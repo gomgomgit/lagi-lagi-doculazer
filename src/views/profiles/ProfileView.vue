@@ -25,12 +25,20 @@
         </div>
       </div>
       <div class="flex justify-end gap-8">
-        <button @click="showChangePassword" class="base-button btn-action-secondary mt-4 flex items-center gap-3">
-          <SaveIcon size="22" /> Change Password
-        </button>
-        <button @click="showEditProfile" class="base-button btn-action mt-4 flex items-center gap-3">
-          <SaveIcon size="22" /> Edit Profile
-        </button>
+        <BaseButton 
+          variant="secondary" 
+          :icon="SaveIcon" 
+          @click="showChangePassword"
+        >
+          Change Password
+        </BaseButton>
+        <BaseButton 
+          variant="primary" 
+          :icon="SaveIcon" 
+          @click="showEditProfile"
+        >
+          Edit Profile
+        </BaseButton>
       </div>
     </div>
 
@@ -57,12 +65,19 @@
         </div>
       </div>
       <div class="flex justify-between">
-        <button @click="showProfile" class="base-button btn-action-secondary mt-4 flex items-center gap-3">
-          <CircleArrowLeftIcon size="22" /> Back
-        </button>
-        <button class="base-button btn-action mt-4 flex items-center gap-3">
-          <SaveIcon size="22" /> Save Changes
-        </button>
+        <BaseButton 
+          variant="secondary" 
+          :icon="CircleArrowLeftIcon" 
+          @click="showProfile"
+        >
+          Back
+        </BaseButton>
+        <BaseButton 
+          variant="primary" 
+          :icon="SaveIcon"
+        >
+          Save Changes
+        </BaseButton>
       </div>
     </div>
 
@@ -97,12 +112,19 @@
         </div>
       </div>
       <div class="flex justify-between">
-        <button @click="showProfile" class="base-button btn-action-secondary mt-4 flex items-center gap-3">
-          <CircleArrowLeftIcon size="22" /> Back
-        </button>
-        <button class="base-button btn-action mt-4 flex items-center gap-3">
-          <SaveIcon size="22" /> Change Password
-        </button>
+        <BaseButton 
+          variant="secondary" 
+          :icon="CircleArrowLeftIcon" 
+          @click="showProfile"
+        >
+          Back
+        </BaseButton>
+        <BaseButton 
+          variant="primary" 
+          :icon="SaveIcon"
+        >
+          Change Password
+        </BaseButton>
       </div>
     </div>
   </div>
@@ -112,6 +134,7 @@
 import { ref } from 'vue'
 import { CircleArrowLeftIcon, SaveIcon } from 'lucide-vue-next';
 import CardHeader from '@/components/ui/CardHeader.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 
 // State untuk mengontrol tampilan mana yang aktif
 const currentView = ref('profile') // 'profile', 'edit-profile', 'change-password'
