@@ -17,10 +17,10 @@
         </div>
         <div class="">
           <div class="mb-2 text-md">
-            : Admin
+            : {{ userFullname }}
           </div>
           <div class="mb-2 text-md">
-            : admin@example.com
+            : {{ userEmail }}
           </div>
         </div>
       </div>
@@ -53,7 +53,14 @@
           Fullname
         </div>
         <div>
-          <input class="border border-gray-300 rounded-full p-2 px-4 w-full" type="text" name="full-name" id="full-name" value="Admin">
+          <input 
+            v-model="profileForm.fullname" 
+            class="border border-gray-300 rounded-full p-2 px-4 w-full" 
+            type="text" 
+            name="full-name" 
+            id="full-name" 
+            :placeholder="userFullname"
+          >
         </div>
       </div>
       <div>
@@ -61,7 +68,14 @@
           Email
         </div>
         <div>
-          <input class="border border-gray-300 rounded-full p-2 px-4 w-full" type="email" name="email" id="email" value="admin@example.com">
+          <input 
+            v-model="profileForm.email" 
+            class="border border-gray-300 rounded-full p-2 px-4 w-full" 
+            type="email" 
+            name="email" 
+            id="email" 
+            :placeholder="userEmail"
+          >
         </div>
       </div>
       <div class="flex justify-between">
@@ -75,8 +89,11 @@
         <BaseButton 
           variant="primary" 
           :icon="SaveIcon"
+          @click="handleSaveProfile"
+          :disabled="authStore.isLoading"
         >
-          Save Changes
+          <span v-if="authStore.isLoading">Saving...</span>
+          <span v-else>Save Changes</span>
         </BaseButton>
       </div>
     </div>
@@ -131,13 +148,40 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { CircleArrowLeftIcon, SaveIcon } from 'lucide-vue-next';
 import CardHeader from '@/components/ui/CardHeader.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import { useAuthStore } from '@/stores/auth'
+
+// State untuk mengontrol tampilan mana yang aktif
+const authStore = useAuthStore()
+
+console.log('User data:', authStore)
 
 // State untuk mengontrol tampilan mana yang aktif
 const currentView = ref('profile') // 'profile', 'edit-profile', 'change-password'
+
+// Computed properties untuk user data
+const userFullname = computed(() => {
+  return authStore.user?.name || authStore.user?.fullname || authStore.user?.full_name || 'User'
+})
+
+const userEmail = computed(() => {
+  return authStore.user?.email || 'No email available'
+})
+
+// Form data untuk edit profile
+const profileForm = ref({
+  fullname: '',
+  email: ''
+})
+
+// Initialize form data when user data is available
+const initializeForm = () => {
+  profileForm.value.fullname = userFullname.value
+  profileForm.value.email = userEmail.value
+}
 
 // Functions untuk mengubah tampilan
 const showProfile = () => {
@@ -145,10 +189,31 @@ const showProfile = () => {
 }
 
 const showEditProfile = () => {
+  initializeForm() // Initialize form with current user data
   currentView.value = 'edit-profile'
 }
 
 const showChangePassword = () => {
   currentView.value = 'change-password'
 }
+
+// Handle save profile changes
+// const handleSaveProfile = async () => {
+//   try {
+//     const result = await authStore.updateProfile({
+//       name: profileForm.value.fullname,
+//       email: profileForm.value.email
+//     })
+    
+//     if (result.success) {
+//       // Show success message or notification
+//       console.log('Profile updated successfully')
+//       showProfile() // Go back to profile view
+//     } else {
+//       console.error('Failed to update profile:', result.error)
+//     }
+//   } catch (error) {
+//     console.error('Error updating profile:', error)
+//   }
+// }
 </script>
