@@ -1,14 +1,14 @@
 <template>
-  <div class="flex h-screen bg-base p-4 gap-4">
+  <div class="flex h-screen bg-base gap-4">
     <!-- Sidebar -->
     <aside class="w-64 base-card bg-card text-base flex flex-col">
       <!-- Sidebar Header -->
-      <div class="p-4 border-b border-gray-200">
+      <div class="p-4 pt-0 border-b border-gray-200">
         <h1 class="text-xl font-bold text-gray-800">My Workspace</h1>
       </div>
       
       <!-- Navigation Menu -->
-      <nav class="flex-1 p-4 space-y-2">
+      <nav class="flex-1 space-y-2">
         <div class="space-y-1">
           <router-link 
             to="/" 
@@ -27,15 +27,13 @@
       
       <!-- Sidebar Footer -->
       <div class="p-4 border-t border-gray-200">
-        <div class="text-xs text-gray-500">Premium Plan</div>
-        <div class="text-sm text-blue-600 mt-1">Upgrade to Premium →</div>
       </div>
     </aside>
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col gap-4">
       <!-- Header -->
-      <header class="px-4 pb-0 pt-2">
+      <header class="px-4 pb-0 pt-3">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-800">{{ currentHeader }}</h2>
@@ -50,7 +48,7 @@
       </header>
       <!-- Router View Content -->
       <div class="base-card bg-card grow">
-        <div class="flex h-full p-8">
+        <div class="flex h-full">
           <router-view />
         </div>
       </div>
