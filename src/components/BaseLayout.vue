@@ -33,9 +33,9 @@
     </aside>
 
     <!-- Main Content Area -->
-    <div class="flex-1 gap-4">
+    <div class="flex-1 flex flex-col gap-4">
       <!-- Header -->
-      <header class="p-4">
+      <header class="px-4 pb-0 pt-2">
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-semibold text-gray-800">{{ currentHeader }}</h2>
@@ -49,8 +49,8 @@
         </div>
       </header>
       <!-- Router View Content -->
-      <div class="flex-overflow-auto base-card bg-card">
-        <div class="flex justify-center h-full p-8">
+      <div class="base-card bg-card grow">
+        <div class="flex h-full p-8">
           <router-view />
         </div>
       </div>

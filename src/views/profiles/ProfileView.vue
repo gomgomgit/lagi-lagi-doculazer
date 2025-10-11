@@ -1,24 +1,104 @@
 <template>
-  <!-- Chat Input -->
-  <div class="w-full max-w-4xl self-end">
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-sm text-blue-800">
-      💡 Tip: select a feature, it will make you goal easily to achieve
-    </div>
-    
-    <div class="relative">
-      <input 
-        type="text" 
-        placeholder="Write your message ..."
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-      >
-      <div class="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-        <button class="p-1 text-gray-400 hover:text-gray-600">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a2 2 0 00-2.828-2.828z" />
-          </svg>
+  <div class="w-full">
+    <!-- Data Profile -->
+    <div v-if="currentView === 'profile'">
+      <div class="text-2xl font-medium mb-4 border-b border-gray-400 pb-2">
+        Your Profile <div class="text-sm text-secondary">View and edit your profile information</div>
+      </div>
+      <div class="flex gap-6 mb-4">
+        <div class="">
+          <div class="mb-2 text-md">
+            Fullname
+          </div>
+          <div class="mb-2 text-md">
+            Email
+          </div>
+        </div>
+        <div class="">
+          <div class="mb-2 text-md">
+            : Admin
+          </div>
+          <div class="mb-2 text-md">
+            : admin@example.com
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-8">
+        <button @click="showChangePassword" class="base-button btn-action-secondary mt-4 flex items-center gap-3">
+          <SaveIcon size="22" /> Change Password
         </button>
-        <button class="px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">
-          Send
+        <button @click="showEditProfile" class="base-button btn-action mt-4 flex items-center gap-3">
+          <SaveIcon size="22" /> Edit Profile
+        </button>
+      </div>
+    </div>
+
+    <!-- Edit Profile Form -->
+     <div v-if="currentView === 'edit-profile'">
+      <div class="text-2xl font-medium mb-4">
+        Edit Profile <div class="text-sm text-secondary">update your information</div>
+      </div>
+      <div>
+        <div class="mb-2 text-md">
+          Fullname
+        </div>
+        <div>
+          <input class="border border-gray-300 rounded-full p-2 px-4 w-full" type="text" name="full-name" id="full-name" value="Admin">
+        </div>
+      </div>
+      <div>
+        <div class="mt-4 mb-2 text-md">
+          Email
+        </div>
+        <div>
+          <input class="border border-gray-300 rounded-full p-2 px-4 w-full" type="email" name="email" id="email" value="admin@example.com">
+        </div>
+      </div>
+      <div class="flex justify-between">
+        <button @click="showProfile" class="base-button btn-action-secondary mt-4 flex items-center gap-3">
+          <CircleArrowLeftIcon size="22" /> Back
+        </button>
+        <button class="base-button btn-action mt-4 flex items-center gap-3">
+          <SaveIcon size="22" /> Save Changes
+        </button>
+      </div>
+    </div>
+
+    <!-- Change Password Form -->
+    <div v-if="currentView === 'change-password'">
+      <div class="text-2xl font-medium mb-4">
+        Change Password <div class="text-sm text-secondary">Please enter your current password and the new password</div>
+      </div>
+      <div>
+        <div class="mb-2 text-md">
+          Old Password
+        </div>
+        <div>
+          <input class="border border-gray-300 rounded-lg p-2 w-full" type="password" name="old-password" id="old-password">
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="mb-2 text-md">
+          New Password
+        </div>
+        <div>
+          <input class="border border-gray-300 rounded-lg p-2 w-full" type="password" name="new-password" id="new-password">
+        </div>
+      </div>
+      <div class="mt-4">
+        <div class="mb-2 text-md">
+          Confirm New Password
+        </div>
+        <div>
+          <input class="border border-gray-300 rounded-lg p-2 w-full" type="password" name="confirm-new-password" id="confirm-new-password">
+        </div>
+      </div>
+      <div class="flex justify-between">
+        <button @click="showProfile" class="base-button btn-action-secondary mt-4 flex items-center gap-3">
+          <CircleArrowLeftIcon size="22" /> Back
+        </button>
+        <button class="base-button btn-action mt-4 flex items-center gap-3">
+          <SaveIcon size="22" /> Change Password
         </button>
       </div>
     </div>
@@ -26,5 +106,22 @@
 </template>
 
 <script setup>
-// Home page component logic
+import { ref } from 'vue'
+import { CircleArrowLeftIcon, SaveIcon } from 'lucide-vue-next';
+
+// State untuk mengontrol tampilan mana yang aktif
+const currentView = ref('profile') // 'profile', 'edit-profile', 'change-password'
+
+// Functions untuk mengubah tampilan
+const showProfile = () => {
+  currentView.value = 'profile'
+}
+
+const showEditProfile = () => {
+  currentView.value = 'edit-profile'
+}
+
+const showChangePassword = () => {
+  currentView.value = 'change-password'
+}
 </script>

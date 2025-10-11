@@ -3,3 +3,10 @@
   box-shadow: var(--shadow-lg);
   padding: var(--spacing-6);
 }
+
+.base-button { 
+  padding-inline: calc(var(--spacing) * 6);
+  padding-block: calc(var(--spacing) * 2);
+  border-radius: calc(infinity * 1px);
+  transition: background-color 0.3s ease;
+}

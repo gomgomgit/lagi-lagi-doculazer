@@ -86,10 +86,26 @@
 .text-card { color: var(--color-dark-800); }
 .text-secondary { color: var(--color-dark-600); }
 
-.btn-primary {
-  background-color: var(--color-navy);
-  color: var(--color-white);
-  border: 1px solid var(--color-navy);
+.btn-action {
+  background-color: var(--color-dark-900);
+  color: var(--color-white-300);
+  border: 1px solid var(--color-dark-200);
+}
+.btn-action:hover {
+  background-color: var(--color-white-700);
+  color: var(--color-dark-600);
+  border: 1px solid var(--color-dark-300);
+}
+
+.btn-action-secondary {
+  background-color: var(--color-white-100);
+  color: var(--color-dark-700);
+  border: 1px solid var(--color-dark-200);
+}
+.btn-action-secondary:hover {
+  background-color: var(--color-white-700);
+  color: var(--color-dark-600);
+  border: 1px solid var(--color-dark-300);
 }
 
 /* Background Color Classes */
