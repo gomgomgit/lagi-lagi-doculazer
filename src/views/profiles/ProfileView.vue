@@ -2,9 +2,10 @@
   <div class="w-full">
     <!-- Data Profile -->
     <div v-if="currentView === 'profile'">
-      <div class="text-2xl font-medium mb-4 border-b border-gray-400 pb-2">
-        Your Profile <div class="text-sm text-secondary">View and edit your profile information</div>
-      </div>
+      <CardHeader 
+        title="Your Profile" 
+        subtitle="View and edit your profile information" 
+      />
       <div class="flex gap-6 mb-4">
         <div class="">
           <div class="mb-2 text-md">
@@ -35,9 +36,10 @@
 
     <!-- Edit Profile Form -->
      <div v-if="currentView === 'edit-profile'">
-      <div class="text-2xl font-medium mb-4">
-        Edit Profile <div class="text-sm text-secondary">update your information</div>
-      </div>
+      <CardHeader 
+        title="Edit Profile" 
+        subtitle="update your information" 
+      />
       <div>
         <div class="mb-2 text-md">
           Fullname
@@ -66,9 +68,10 @@
 
     <!-- Change Password Form -->
     <div v-if="currentView === 'change-password'">
-      <div class="text-2xl font-medium mb-4">
-        Change Password <div class="text-sm text-secondary">Please enter your current password and the new password</div>
-      </div>
+      <CardHeader 
+        title="Change Password" 
+        subtitle="Please enter your current password and the new password" 
+      />
       <div>
         <div class="mb-2 text-md">
           Old Password
@@ -108,6 +111,7 @@
 <script setup>
 import { ref } from 'vue'
 import { CircleArrowLeftIcon, SaveIcon } from 'lucide-vue-next';
+import CardHeader from '@/components/ui/CardHeader.vue'
 
 // State untuk mengontrol tampilan mana yang aktif
 const currentView = ref('profile') // 'profile', 'edit-profile', 'change-password'
