@@ -1,0 +1,5 @@
+/* Base Components */
+.base-card { border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-6);
+}

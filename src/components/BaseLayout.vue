@@ -1,7 +1,7 @@
 <template>
-  <div class="flex h-screen bg-gray-50">
+  <div class="flex h-screen bg-gray-50 p-4 gap-4">
     <!-- Sidebar -->
-    <aside class="w-64 bg-white shadow-sm border-r border-gray-200 flex flex-col">
+    <aside class="w-64 base-card bg-base text-base flex flex-col">
       <!-- Sidebar Header -->
       <div class="p-4 border-b border-gray-200">
         <h1 class="text-xl font-bold text-gray-800">My Workspace</h1>
@@ -33,7 +33,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-1 flex">
+    <main class="flex-1 flex gap-4">
       <!-- Content -->
       <div class="flex-1 flex flex-col">
         <!-- Header -->
@@ -52,13 +52,13 @@
         </header>
 
         <!-- Router View Content -->
-        <div class="flex-1 overflow-auto">
+        <div class="flex-1 overflow-auto base-card">
           <router-view />
         </div>
       </div>
 
       <!-- Additional Sidebar (Tools) -->
-      <aside class="w-80 bg-white border-l border-gray-200 flex flex-col">
+      <aside class="w-80 base-card">
         <!-- Tools Header -->
         <div class="p-4 border-b border-gray-200">
           <div class="flex items-center justify-between">
