@@ -79,10 +79,8 @@
 
 /* Custom Components Colors */
 /* Base Components */
-.bg-base { background-color: var(--color-white-200); }
-.bg-card { 
-  background-color: var(--color-white-50);
-}
+.bg-base { background-color: var(--color-white-600); }
+.bg-card { background-color: var(--color-white-50); }
 
 .text-base { color: var(--color-dark-900); }
 .text-card { color: var(--color-dark-800); }

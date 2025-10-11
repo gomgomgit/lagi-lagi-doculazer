@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import BaseLayout from '../components/BaseLayout.vue'
-import HomeView from '../views/HomeView.vue'
+import ChatView from '../views/chats/ChatView.vue'
+import ChatTool from '@/views/chats/ChatTool.vue'
+import ProfileView from '@/views/profiles/ProfileView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,8 +13,24 @@ const router = createRouter({
       children: [
         {
           path: '',
-          name: 'home',
-          component: HomeView
+          name: 'chat',
+          components: {
+            default: ChatView,
+            toolbar: ChatTool
+          },
+          meta: {
+            header: 'Chat With AI',
+            subtitle: 'Break down lengthy texts into concise summaries to grasp.'
+          }
+        },
+        {
+          path: '/profile',
+          name: 'profile',
+          component: ProfileView,
+          meta: {
+            header: 'Profile',
+            subtitle: 'Manage your account settings and preferences.'
+          }
         }
       ]
     }
