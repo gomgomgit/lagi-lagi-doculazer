@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen bg-base gap-4 p-4">
     <!-- Sidebar -->
-    <aside class="w-64 base-card bg-card text-base flex flex-col">
+    <aside class="w-80 base-card bg-card text-base flex flex-col">
       <!-- Sidebar Header -->
       <div class="p-4 pt-0 border-b border-gray-200">
         <h1 class="text-xl font-bold text-gray-800">My Workspace</h1>
@@ -28,6 +28,14 @@
       
       <!-- Sidebar Footer -->
       <div class="p-4 border-t border-gray-200">
+        <router-link 
+          :to="isOnChatPage ? '/documents' : '/'"
+          class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+        >
+          <FolderArchiveIcon v-if="isOnChatPage" class="w-4 h-4" />
+          <MessageCircleIcon v-else class="w-4 h-4" />
+          <span>{{ isOnChatPage ? 'Documents' : 'Back to Chat' }}</span>
+        </router-link>
       </div>
     </aside>
 
@@ -58,7 +66,7 @@
 </template>
 
 <script setup>
-import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon } from 'lucide-vue-next'
+import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon, MessageCircleIcon } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProjectAccordion from '@/components/ui/ProjectAccordion.vue'
@@ -163,5 +171,10 @@ const currentHeader = computed(() => {
 
 const currentSubtitle = computed(() => {
   return route.meta?.subtitle || 'Default subtitle for this page.'
+})
+
+// Computed property untuk mendeteksi apakah sedang di halaman chat
+const isOnChatPage = computed(() => {
+  return route.name === 'chat' || route.name === 'chat-conversation'
 })
 </script>
