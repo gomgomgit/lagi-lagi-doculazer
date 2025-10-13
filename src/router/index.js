@@ -39,6 +39,18 @@ const router = createRouter({
           }
         },
         {
+          path: '/chat/:projectId/:conversationId',
+          name: 'chat-conversation',
+          components: {
+            default: ChatView,
+            toolbar: ChatTool
+          },
+          meta: {
+            header: 'Chat With AI',
+            subtitle: 'Break down lengthy texts into concise summaries to grasp.'
+          }
+        },
+        {
           path: '/profile',
           name: 'profile',
           component: ProfileView,
