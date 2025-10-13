@@ -9,6 +9,15 @@
       
       <!-- Navigation Menu -->
       <nav class="flex-1 space-y-2 mt-2">
+        <!-- Add Project Button -->
+        <button 
+          @click="showAddProjectModal"
+          class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 bg-gray-50 hover:bg-gray-100 border border-dashed border-gray-300 rounded-lg transition-colors"
+        >
+          <PlusIcon class="w-4 h-4" />
+          <span>Add New Project</span>
+        </button>
+        
         <!-- Project Accordion List -->
         <ProjectAccordion
           v-for="project in projects"
@@ -48,11 +57,18 @@
             <h2 class="text-lg font-semibold text-gray-800">{{ currentHeader }}</h2>
             <p class="text-sm text-gray-600">{{ currentSubtitle }}</p>
           </div>
-          <div class="flex items-center gap-2">
-            <button class="px-4 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
-              Upgrade
-            </button>
-          </div>
+          <router-link 
+            to="/profile"
+            class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <SettingsIcon class="w-5 h-5 text-gray-600 mr-4 cursor-pointer hover:text-gray-800 transition-colors" />
+            <div class="flex items-center gap-2">
+              User
+              <button class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
+                <UserIcon class="w-4 h-4" />
+              </button>
+            </div>
+          </router-link>
         </div>
       </header>
       <!-- Router View Content -->
@@ -62,14 +78,22 @@
     </div>
 
     <router-view name="toolbar" />
+    
+    <!-- Add Project Modal -->
+    <AddProjectModal
+      :show="showModal"
+      @confirm="handleAddProject"
+      @cancel="cancelAddProject"
+    />
   </div>
 </template>
 
 <script setup>
-import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon, MessageCircleIcon } from 'lucide-vue-next'
+import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon, MessageCircleIcon, PlusIcon, SettingsIcon, UserIcon } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProjectAccordion from '@/components/ui/ProjectAccordion.vue'
+import AddProjectModal from '@/components/documents/AddProjectModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -77,6 +101,9 @@ const router = useRouter()
 // State for navigation
 const selectedProjectId = ref(null)
 const selectedConversationId = ref(null)
+
+// State for add project modal
+const showModal = ref(false)
 
 // Sample projects data with conversations
 const projects = ref([
@@ -162,6 +189,37 @@ const onAddConversation = (project) => {
       conversationId: 'new'
     }
   })
+}
+
+// Add Project Modal handlers
+const showAddProjectModal = () => {
+  showModal.value = true
+}
+
+const handleAddProject = (projectData) => {
+  console.log('Add new project:', projectData)
+  
+  // Generate new project ID
+  const newId = Math.max(...projects.value.map(p => p.id), 0) + 1
+  
+  // Create new project with conversations
+  const newProject = {
+    id: newId,
+    name: projectData.name,
+    conversations: []
+  }
+  
+  // Add to projects array
+  projects.value.push(newProject)
+  
+  // Close modal
+  showModal.value = false
+  
+  console.log('Project added successfully:', newProject)
+}
+
+const cancelAddProject = () => {
+  showModal.value = false
 }
 
 // Computed properties untuk mendapatkan header dan subtitle dari route meta
