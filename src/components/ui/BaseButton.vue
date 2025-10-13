@@ -97,7 +97,6 @@ const buttonClasses = computed(() => {
     baseClasses,
     variantClasses[props.variant],
     sizeClasses[props.size],
-    'mt-4', // Default margin top seperti di existing code
     ...additionalClasses
   ].join(' ')
 })

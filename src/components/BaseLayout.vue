@@ -1,5 +1,5 @@
 <template>
-  <div class="flex h-screen bg-base gap-4">
+  <div class="flex h-screen bg-base gap-4 p-4">
     <!-- Sidebar -->
     <aside class="w-64 base-card bg-card text-base flex flex-col">
       <!-- Sidebar Header -->
@@ -47,8 +47,8 @@
         </div>
       </header>
       <!-- Router View Content -->
-      <div class="base-card bg-card grow">
-        <div class="flex h-full">
+      <div class="base-card bg-card grow h-full overflow-scroll">
+        <div class="flex">
           <router-view />
         </div>
       </div>
