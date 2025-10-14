@@ -23,7 +23,7 @@
       leave-from-class="opacity-100 max-h-96" 
       leave-to-class="opacity-0 max-h-0"
     >
-      <div v-show="isExpanded" class="ml-6 space-y-1 overflow-hidden">
+      <div v-show="isExpanded" class="ml-3 space-y-1 overflow-hidden">
         <div 
           v-for="conversation in project.conversations" 
           :key="conversation.id"

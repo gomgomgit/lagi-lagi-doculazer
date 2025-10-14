@@ -3,7 +3,7 @@
     <!-- Sidebar -->
     <aside class="w-80 base-card bg-card text-base flex flex-col">
       <!-- Sidebar Header -->
-      <div class="p-4 pt-0 border-b border-gray-200">
+      <div class="py-2 pt-0 border-b border-gray-200">
         <h1 class="text-xl font-bold text-gray-800">My Workspace</h1>
       </div>
       

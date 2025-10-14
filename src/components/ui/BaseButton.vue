@@ -21,11 +21,11 @@ import { computed } from 'vue'
 
 // Props
 const props = defineProps({
-  // Tipe button: 'primary', 'secondary', 'outline', 'ghost'
+  // Tipe button: 'primary', 'secondary', 'outline', 'ghost', 'danger'
   variant: {
     type: String,
     default: 'primary',
-    validator: (value) => ['primary', 'secondary', 'outline', 'ghost'].includes(value)
+    validator: (value) => ['primary', 'secondary', 'outline', 'ghost', 'danger'].includes(value)
   },
   // Ukuran button: 'sm', 'md', 'lg'
   size: {
@@ -72,7 +72,8 @@ const buttonClasses = computed(() => {
     primary: 'btn-action',
     secondary: 'btn-action-secondary',
     outline: 'border-2 border-orange text-orange bg-transparent hover:bg-orange hover:text-white focus:ring-orange',
-    ghost: 'text-orange hover:bg-orange/10 focus:ring-orange'
+    ghost: 'text-orange hover:bg-orange/10 focus:ring-orange',
+    danger: 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300 focus:ring-red-500'
   }
   
   // Size classes
