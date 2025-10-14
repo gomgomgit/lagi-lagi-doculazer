@@ -58,7 +58,9 @@
             <p class="text-sm text-gray-600">{{ currentSubtitle }}</p>
           </div>
           <div class="flex items-center gap-4">
-            <SettingsIcon class="w-5 h-5 text-gray-600 mr-4 cursor-pointer hover:text-gray-800 transition-colors" />
+            <router-link to="/admin" class="mr-4">
+              <SettingsIcon class="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800 transition-colors" />
+            </router-link>
             <router-link 
               to="/profile"
               class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
