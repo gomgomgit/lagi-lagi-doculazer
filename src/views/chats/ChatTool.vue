@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BaseButton from '@/components/ui/BaseButton.vue';
-import { EyeIcon } from 'lucide-vue-next';
+import { CircleXIcon, EyeIcon, SlidersHorizontalIcon, SquareXIcon } from 'lucide-vue-next';
 
 </script>
 
@@ -20,6 +20,7 @@ import { EyeIcon } from 'lucide-vue-next';
         </div>
         <div class="flex gap-4 mt-3 text-sm">
           <button class="text-gray-900 border-b-2 border-blue-500 pb-1">Files</button>
+          <button class="text-gray-900 border-b-2 border-blue-500 pb-1">Filter</button>
         </div>
       </div>
       <div>
@@ -53,9 +54,23 @@ import { EyeIcon } from 'lucide-vue-next';
       </div>
     </div>
     <div>
-      <BaseButton fullWidth>
-        Filter
-      </BaseButton>
+      <div>
+        <h4 class="font-medium text-gray-800 text-sm mb-2">Applied Filters</h4>
+        <div class="flex flex-wrap gap-2">
+          <BaseButton variant="secondary" size="sm">
+            <span>Company: ABC Corp</span>
+            <SquareXIcon class="w-4 h-4 ml-1" />
+          </BaseButton>
+          <BaseButton variant="secondary" size="sm">
+            <span>Date Range: Last 30 Days</span>
+            <SquareXIcon class="w-4 h-4 ml-1" />
+          </BaseButton>
+          <BaseButton variant="secondary" size="sm">
+            <span>Type: PDF</span>
+            <SquareXIcon class="w-4 h-4 ml-1" />
+          </BaseButton>
+        </div>
+      </div>
     </div>
   </aside>
 </template>
