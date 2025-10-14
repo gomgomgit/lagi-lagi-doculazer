@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full">
+  <div class="w-full base-card bg-card flex-1 grow h-full overflow-scroll">
     <!-- Project List View -->
     <ProjectList
       v-if="currentView === 'project-list'"

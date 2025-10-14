@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import BaseLayout from '../components/BaseLayout.vue'
 import ChatView from '../views/chats/ChatView.vue'
-import ChatTool from '@/views/chats/ChatTool.vue'
 import ProfileView from '@/views/profiles/ProfileView.vue'
 import LoginView from '@/views/auth/LoginView.vue'
 import DocumentsView from '@/views/documents/DocumentsView.vue'
@@ -29,10 +28,7 @@ const router = createRouter({
         {
           path: '',
           name: 'chat',
-          components: {
-            default: ChatView,
-            toolbar: ChatTool
-          },
+          component: ChatView,
           meta: {
             header: 'Chat With AI',
             subtitle: 'Break down lengthy texts into concise summaries to grasp.'
@@ -41,10 +37,7 @@ const router = createRouter({
         {
           path: '/chat/:projectId/:conversationId',
           name: 'chat-conversation',
-          components: {
-            default: ChatView,
-            toolbar: ChatTool
-          },
+          component: ChatView,
           meta: {
             header: 'Chat With AI',
             subtitle: 'Break down lengthy texts into concise summaries to grasp.'

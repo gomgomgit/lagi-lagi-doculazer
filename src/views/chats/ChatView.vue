@@ -1,52 +1,59 @@
 <template>
-  <div class="w-full h-full p-4 flex flex-col">
-    <!-- Project & Conversation Info -->
-    <div v-if="currentProject || currentConversation" class="mb-6">
-      <div class="flex items-center gap-3 mb-2">
-        <FolderIcon class="w-5 h-5 text-gray-600" />
-        <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
-        <ChevronRightIcon class="w-4 h-4 text-gray-400" />
-        <MessageCircleIcon class="w-4 h-4 text-gray-600" />
-        <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
-      </div>
-      <div class="text-sm text-gray-500">
-        {{ conversationId === 'new' ? 'Start a new conversation' : `${currentConversation?.messageCount || 0} messages` }}
-      </div>
-    </div>
+  <div class="flex h-full gap-4">
+    <!-- Main Chat Area -->
+    <div class="base-card bg-card flex flex-1 grow h-full overflow-scroll">
+      <div class="flex-1 p-4 flex flex-col">
+        <!-- Project & Conversation Info -->
+        <div v-if="currentProject || currentConversation" class="mb-6">
+          <div class="flex items-center gap-3 mb-2">
+            <FolderIcon class="w-5 h-5 text-gray-600" />
+            <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
+            <ChevronRightIcon class="w-4 h-4 text-gray-400" />
+            <MessageCircleIcon class="w-4 h-4 text-gray-600" />
+            <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
+          </div>
+          <div class="text-sm text-gray-500">
+            {{ conversationId === 'new' ? 'Start a new conversation' : `${currentConversation?.messageCount || 0} messages` }}
+          </div>
+        </div>
 
-    <!-- Chat Messages Area -->
-    <div class="bg-white grow mb-4 p-6">
-      <div v-if="messages.length === 0" class="text-center text-gray-500 flex items-center justify-center flex-col h-full">
-        <MessageCircleIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">Start a Conversation</h3>
-        <p class="text-gray-600">{{ conversationId === 'new' ? 'Begin chatting about your project documents' : 'No messages yet in this conversation' }}</p>
-      </div>
-      
-      <!-- Message bubbles would go here -->
-      <div v-for="message in messages" :key="message.id" class="mb-4">
-        <!-- Message rendering logic -->
-      </div>
-    </div>
+        <!-- Chat Messages Area -->
+        <div class="bg-white grow mb-4 p-6 rounded-lg">
+          <div v-if="messages.length === 0" class="text-center text-gray-500 flex items-center justify-center flex-col h-full">
+            <MessageCircleIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Start a Conversation</h3>
+            <p class="text-gray-600">{{ conversationId === 'new' ? 'Begin chatting about your project documents' : 'No messages yet in this conversation' }}</p>
+          </div>
+          
+          <!-- Message bubbles would go here -->
+          <div v-for="message in messages" :key="message.id" class="mb-4">
+            <!-- Message rendering logic -->
+          </div>
+        </div>
 
-    <!-- Chat Input -->
-    <div class="relative">
-      <input 
-        v-model="messageText"
-        type="text" 
-        :placeholder="conversationId === 'new' ? 'Start your conversation...' : 'Write your message ...'"
-        class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-        @keydown.enter="sendMessage"
-      >
-      <div class="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-        <button 
-          @click="sendMessage"
-          :disabled="!messageText.trim()"
-          class="px-3 py-3 bg-blue-600 text-white text-sm rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <SendHorizonalIcon class="w-4 h-4" />
-        </button>
+        <!-- Chat Input -->
+        <div class="relative">
+          <input 
+            v-model="messageText"
+            type="text" 
+            :placeholder="conversationId === 'new' ? 'Start your conversation...' : 'Write your message ...'"
+            class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            @keydown.enter="sendMessage"
+          >
+          <div class="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+            <button 
+              @click="sendMessage"
+              :disabled="!messageText.trim()"
+              class="px-3 py-3 bg-blue-600 text-white text-sm rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <SendHorizonalIcon class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
+    <!-- Chat Tools Sidebar -->
+    <ChatTool />
   </div>
 </template>
 
@@ -54,6 +61,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon } from 'lucide-vue-next'
+import ChatTool from './ChatTool.vue'
 
 const route = useRoute()
 

@@ -36,10 +36,10 @@
       </nav>
       
       <!-- Sidebar Footer -->
-      <div class="p-4 border-t border-gray-200">
+      <div class="">
         <router-link 
           :to="isOnChatPage ? '/documents' : '/'"
-          class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+          class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors base-button btn-action"
         >
           <FolderArchiveIcon v-if="isOnChatPage" class="w-4 h-4" />
           <MessageCircleIcon v-else class="w-4 h-4" />
@@ -57,28 +57,26 @@
             <h2 class="text-lg font-semibold text-gray-800">{{ currentHeader }}</h2>
             <p class="text-sm text-gray-600">{{ currentSubtitle }}</p>
           </div>
-          <router-link 
-            to="/profile"
-            class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-          >
+          <div class="flex items-center gap-4">
             <SettingsIcon class="w-5 h-5 text-gray-600 mr-4 cursor-pointer hover:text-gray-800 transition-colors" />
-            <div class="flex items-center gap-2">
-              User
-              <button class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
-                <UserIcon class="w-4 h-4" />
-              </button>
-            </div>
-          </router-link>
+            <router-link 
+              to="/profile"
+              class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <div class="flex items-center gap-2">
+                User
+                <button class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
+                  <UserIcon class="w-4 h-4" />
+                </button>
+              </div>
+            </router-link>
+          </div>
         </div>
       </header>
       <!-- Router View Content -->
-      <div class="base-card bg-card flex flex-1 grow h-full overflow-scroll">
-        <router-view />
-      </div>
+      <router-view />
     </div>
 
-    <router-view name="toolbar" />
-    
     <!-- Add Project Modal -->
     <AddProjectModal
       :show="showModal"

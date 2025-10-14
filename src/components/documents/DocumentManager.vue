@@ -1,84 +1,82 @@
 <template>
-  <div>
-    <CardHeader 
-      :title="`${selectedProject.name} - Documents`"
-      :subtitle="`Manage documents in ${selectedProject.name} project`"
-    >
-      <template #action>
-        <BaseButton variant="secondary" size="sm" @click="$emit('back-to-projects')">
-          <ArrowLeftIcon class="w-4 h-4" /> Back to Projects
-        </BaseButton>
-      </template>
-    </CardHeader>
+  <CardHeader 
+    :title="`${selectedProject.name} - Documents`"
+    :subtitle="`Manage documents in ${selectedProject.name} project`"
+  >
+    <template #action>
+      <BaseButton variant="secondary" size="sm" @click="$emit('back-to-projects')">
+        <ArrowLeftIcon class="w-4 h-4" /> Back to Projects
+      </BaseButton>
+    </template>
+  </CardHeader>
+  
+  <!-- Upload Section -->
+  <div class="mt-6 px-4">
+    <div class="mb-4">
+      <h3 class="text-lg font-medium mb-2">Upload Documents</h3>
+      <p class="text-sm text-gray-600">
+        Upload PDF, DOCX, TXT files to <strong>{{ selectedProject.name }}</strong> project
+      </p>
+    </div>
     
-    <!-- Upload Section -->
-    <div class="mt-6 px-4">
-      <div class="mb-4">
-        <h3 class="text-lg font-medium mb-2">Upload Documents</h3>
-        <p class="text-sm text-gray-600">
-          Upload PDF, DOCX, TXT files to <strong>{{ selectedProject.name }}</strong> project
-        </p>
-      </div>
-      
-      <FileUpload 
-        :multiple="true"
-        accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
-        :max-size="50 * 1024 * 1024"
-        main-text="Drop documents here or click to browse"
-        sub-text="Supports PDF, DOC, DOCX, TXT files up to 50MB each"
-        @files-selected="onFilesSelected"
-        @file-error="$emit('file-error', $event)"
-      />
-      
-      <!-- Upload Progress -->
-      <div v-if="uploadQueue.length > 0" class="mt-6">
-        <h4 class="font-medium mb-3">Upload Queue</h4>
-        <div class="space-y-2">
-          <div 
-            v-for="(item, index) in uploadQueue" 
-            :key="index"
-            class="flex items-center justify-between p-3 bg-gray-50 rounded border"
-          >
-            <div class="flex-1">
-              <div class="font-medium">{{ item.file.name }}</div>
-              <div class="text-sm text-gray-500">{{ formatFileSize(item.file.size) }}</div>
+    <FileUpload 
+      :multiple="true"
+      accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+      :max-size="50 * 1024 * 1024"
+      main-text="Drop documents here or click to browse"
+      sub-text="Supports PDF, DOC, DOCX, TXT files up to 50MB each"
+      @files-selected="onFilesSelected"
+      @file-error="$emit('file-error', $event)"
+    />
+    
+    <!-- Upload Progress -->
+    <div v-if="uploadQueue.length > 0" class="mt-6">
+      <h4 class="font-medium mb-3">Upload Queue</h4>
+      <div class="space-y-2">
+        <div 
+          v-for="(item, index) in uploadQueue" 
+          :key="index"
+          class="flex items-center justify-between p-3 bg-gray-50 rounded border"
+        >
+          <div class="flex-1">
+            <div class="font-medium">{{ item.file.name }}</div>
+            <div class="text-sm text-gray-500">{{ formatFileSize(item.file.size) }}</div>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-sm" :class="getStatusClass(item.status)">
+              {{ item.status }}
             </div>
-            <div class="flex items-center gap-3">
-              <div class="text-sm" :class="getStatusClass(item.status)">
-                {{ item.status }}
-              </div>
-              <BaseButton 
-                v-if="item.status === 'pending'"
-                variant="primary" 
-                size="sm"
-                @click="uploadFile(item, index)"
-              >
-                Upload
-              </BaseButton>
-            </div>
+            <BaseButton 
+              v-if="item.status === 'pending'"
+              variant="primary" 
+              size="sm"
+              @click="uploadFile(item, index)"
+            >
+              Upload
+            </BaseButton>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Documents List -->
-    <div class="mt-6 px-4">
-      <DocumentTable
-        :filtered-documents="filteredDocuments"
-        v-model:search-query="searchQuery"
-        v-model:filter-company="filterCompany"
-        v-model:filter-date-from="filterDateFrom"
-        v-model:filter-date-to="filterDateTo"
-        :sort-field="sortField"
-        :sort-direction="sortDirection"
-        @clear-filters="clearFilters"
-        @sort="sortBy"
-        @refresh="$emit('refresh-documents')"
-        @view-pdf="$emit('view-pdf', $event)"
-        @download="$emit('download-document', $event)"
-        @delete="$emit('confirm-delete', $event)"
-      />
-    </div>
+  <!-- Documents List -->
+  <div class="mt-6 px-4">
+    <DocumentTable
+      :filtered-documents="filteredDocuments"
+      v-model:search-query="searchQuery"
+      v-model:filter-company="filterCompany"
+      v-model:filter-date-from="filterDateFrom"
+      v-model:filter-date-to="filterDateTo"
+      :sort-field="sortField"
+      :sort-direction="sortDirection"
+      @clear-filters="clearFilters"
+      @sort="sortBy"
+      @refresh="$emit('refresh-documents')"
+      @view-pdf="$emit('view-pdf', $event)"
+      @download="$emit('download-document', $event)"
+      @delete="$emit('confirm-delete', $event)"
+    />
   </div>
 </template>
 
