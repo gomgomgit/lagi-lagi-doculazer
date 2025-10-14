@@ -3,17 +3,50 @@
     <!-- Main Chat Area -->
     <div class="base-card bg-card flex flex-1 grow h-full overflow-scroll">
       <div class="flex-1 p-4 flex flex-col">
-        <!-- Project & Conversation Info -->
-        <div v-if="currentProject || currentConversation" class="mb-6">
-          <div class="flex items-center gap-3 mb-2">
-            <FolderIcon class="w-5 h-5 text-gray-600" />
-            <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
-            <ChevronRightIcon class="w-4 h-4 text-gray-400" />
-            <MessageCircleIcon class="w-4 h-4 text-gray-600" />
-            <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
+        <!-- Chat Header with Language Switch -->
+        <div class="flex items-center justify-between mb-6">
+          <!-- Project & Conversation Info -->
+          <div v-if="currentProject || currentConversation" class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <FolderIcon class="w-5 h-5 text-gray-600" />
+              <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
+              <ChevronRightIcon class="w-4 h-4 text-gray-400" />
+              <MessageCircleIcon class="w-4 h-4 text-gray-600" />
+              <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
+            </div>
+            <div class="text-sm text-gray-500">
+              {{ conversationId === 'new' ? 'Start a new conversation' : `${currentConversation?.messageCount || 0} messages` }}
+            </div>
           </div>
-          <div class="text-sm text-gray-500">
-            {{ conversationId === 'new' ? 'Start a new conversation' : `${currentConversation?.messageCount || 0} messages` }}
+          
+          <!-- Language Switcher -->
+          <div class="flex items-center gap-1 bg-gray-100 rounded-full p-1">
+            <button
+              @click="setLanguage('id')"
+              :class="[
+                'px-3 py-1 text-sm font-semibold rounded-full transition-all duration-200',
+                currentLanguage === 'id' 
+                  ? 'bg-blue-100 text-blue-600' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              ]"
+            >
+              <span class="flex items-center gap-1.5">
+                ID
+              </span>
+            </button>
+            <button
+              @click="setLanguage('en')"
+              :class="[
+                'px-3 py-1 text-sm font-semibold rounded-full transition-all duration-200',
+                currentLanguage === 'en' 
+                  ? 'bg-blue-100 text-blue-600' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              ]"
+            >
+              <span class="flex items-center gap-1.5">
+                EN
+              </span>
+            </button>
           </div>
         </div>
 
@@ -109,6 +142,7 @@ const projects = ref([
 // State
 const messageText = ref('')
 const messages = ref([])
+const currentLanguage = ref('id') // Default to Indonesian
 
 // Computed
 const currentProject = computed(() => {
@@ -129,10 +163,18 @@ const sendMessage = () => {
   console.log('Sending message:', messageText.value)
   console.log('Project ID:', projectId.value)
   console.log('Conversation ID:', conversationId.value)
+  console.log('Language:', currentLanguage.value)
   
   // Here you would typically send the message to your backend
   // For now, just clear the input
   messageText.value = ''
+}
+
+const setLanguage = (lang) => {
+  currentLanguage.value = lang
+  console.log('Language switched to:', lang)
+  
+  // This will be used as parameter for AI backend responses
 }
 
 // Watch for route changes to load conversation data
