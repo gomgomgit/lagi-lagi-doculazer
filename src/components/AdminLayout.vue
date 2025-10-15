@@ -34,7 +34,7 @@
       </nav>
       
       <!-- Sidebar Footer -->
-      <div class="border-t border-gray-200 pt-4">
+      <div>
         <router-link 
           to="/"
           class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors base-button btn-action"

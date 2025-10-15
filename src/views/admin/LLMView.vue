@@ -6,49 +6,10 @@
         <h1 class="text-2xl font-bold text-gray-900">LLM Management</h1>
         <p class="text-gray-600">Configure and manage Large Language Models</p>
       </div>
-      <BaseButton>
+      <!-- <BaseButton>
         <PlusIcon class="w-4 h-4" />
         Add Model
-      </BaseButton>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-white p-6 rounded-lg border border-gray-200">
-        <div class="flex items-center">
-          <div class="p-2 bg-green-100 rounded-lg">
-            <CheckCircleIcon class="w-6 h-6 text-green-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm text-gray-600">Active Models</p>
-            <p class="text-2xl font-bold text-gray-900">3</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white p-6 rounded-lg border border-gray-200">
-        <div class="flex items-center">
-          <div class="p-2 bg-blue-100 rounded-lg">
-            <BrainIcon class="w-6 h-6 text-blue-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm text-gray-600">Total Requests</p>
-            <p class="text-2xl font-bold text-gray-900">12,456</p>
-          </div>
-        </div>
-      </div>
-      
-      <div class="bg-white p-6 rounded-lg border border-gray-200">
-        <div class="flex items-center">
-          <div class="p-2 bg-yellow-100 rounded-lg">
-            <ClockIcon class="w-6 h-6 text-yellow-600" />
-          </div>
-          <div class="ml-4">
-            <p class="text-sm text-gray-600">Avg Response Time</p>
-            <p class="text-2xl font-bold text-gray-900">2.3s</p>
-          </div>
-        </div>
-      </div>
+      </BaseButton> -->
     </div>
 
     <!-- LLM Models List -->
@@ -61,8 +22,8 @@
         <div v-for="model in llmModels" :key="model.id" class="p-6">
           <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-              <div class="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
-                <BrainIcon class="w-6 h-6 text-white" />
+              <div class="h-12 w-12 rounded-lg btn-action flex items-center justify-center">
+                <BrainIcon class="w-6 h-6" />
               </div>
               <div>
                 <h4 class="text-lg font-medium text-gray-900">{{ model.name }}</h4>
@@ -72,7 +33,7 @@
                         :class="model.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                     {{ model.status }}
                   </span>
-                  <span class="text-xs text-gray-500">{{ model.usage }} requests today</span>
+                  <!-- <span class="text-xs text-gray-500">{{ model.usage }} requests today</span> -->
                 </div>
               </div>
             </div>
@@ -90,17 +51,17 @@
               </label>
               
               <!-- Actions -->
-              <button class="p-2 text-gray-400 hover:text-gray-600">
+              <!-- <button class="p-2 text-gray-400 hover:text-gray-600">
                 <SettingsIcon class="w-4 h-4" />
               </button>
               <button class="p-2 text-gray-400 hover:text-red-600">
                 <TrashIcon class="w-4 h-4" />
-              </button>
+              </button> -->
             </div>
           </div>
           
           <!-- Model Details -->
-          <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <!-- <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <p class="text-gray-500">Max Tokens</p>
               <p class="font-medium">{{ model.maxTokens }}</p>
@@ -117,13 +78,13 @@
               <p class="text-gray-500">Response Time</p>
               <p class="font-medium">{{ model.avgResponseTime }}s</p>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
 
     <!-- Configuration Section -->
-    <div class="bg-white border border-gray-200 rounded-lg p-6">
+    <!-- <div class="bg-white border border-gray-200 rounded-lg p-6">
       <h3 class="text-lg font-medium text-gray-900 mb-4">Global Configuration</h3>
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -169,7 +130,7 @@
           Save Configuration
         </button>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 

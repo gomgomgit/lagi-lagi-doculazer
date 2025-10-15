@@ -3,7 +3,7 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">User Management</h1>
+        <h1 class="text-2xl font-semibold text-gray-900">User Management</h1>
         <p class="text-gray-600">Manage system users and their permissions</p>
       </div>
       <BaseButton>
@@ -41,8 +41,6 @@
           <tr>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Active</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
@@ -65,15 +63,6 @@
                 {{ user.role }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                    :class="user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                {{ user.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              {{ user.lastActive }}
-            </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
               <button class="text-blue-600 hover:text-blue-900">
                 <EditIcon class="w-4 h-4" />
@@ -93,10 +82,10 @@
         Showing {{ filteredUsers.length }} of {{ users.length }} users
       </div>
       <div class="flex gap-2">
-        <button class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+        <button class="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50">
           Previous
         </button>
-        <button class="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+        <button class="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50">
           Next
         </button>
       </div>
@@ -119,33 +108,25 @@ const users = ref([
     id: 1,
     name: 'John Doe',
     email: 'john.doe@example.com',
-    role: 'admin',
-    status: 'active',
-    lastActive: '2 hours ago'
+    role: 'admin'
   },
   {
     id: 2,
     name: 'Jane Smith',
     email: 'jane.smith@example.com',
-    role: 'user',
-    status: 'active',
-    lastActive: '1 day ago'
+    role: 'user'
   },
   {
     id: 3,
     name: 'Bob Wilson',
     email: 'bob.wilson@example.com',
-    role: 'viewer',
-    status: 'inactive',
-    lastActive: '1 week ago'
+    role: 'user'
   },
   {
     id: 4,
     name: 'Alice Johnson',
     email: 'alice.johnson@example.com',
-    role: 'user',
-    status: 'active',
-    lastActive: '5 minutes ago'
+    role: 'user'
   }
 ])
 
@@ -173,9 +154,7 @@ const getRoleColor = (role) => {
     case 'admin':
       return 'bg-red-100 text-red-800'
     case 'user':
-      return 'bg-blue-100 text-blue-800'
-    case 'viewer':
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-green-100 text-green-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
