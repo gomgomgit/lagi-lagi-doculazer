@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import ContextView from '../../components/context/ContextView.vue';
 import BaseButton from '@/components/ui/BaseButton.vue';
-import ContextView from '@/components/context/ContextView.vue';
 import { CircleXIcon, EyeIcon, SlidersHorizontalIcon, SquareXIcon, SearchIcon, CalendarIcon, BuildingIcon, FilterIcon, XIcon, FilesIcon, BrainIcon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 
@@ -148,7 +148,7 @@ const applyFilters = () => {
       <!-- Tools Mode -->
       <div v-if="viewMode === 'tools'" class="pt-4">
         <!-- Files Tab -->
-        <div v-if="activeTab === 'files'" class="space-y-3 px-4">
+        <div v-if="activeTab === 'files'" class="space-y-3">
           <div 
             v-for="file in files" 
             :key="file.id"
@@ -178,7 +178,7 @@ const applyFilters = () => {
         </div>
 
         <!-- Filter Tab -->
-        <div v-if="activeTab === 'filter'" class="space-y-4 px-4">
+        <div v-if="activeTab === 'filter'" class="space-y-4">
           <!-- Keyword Filter -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">

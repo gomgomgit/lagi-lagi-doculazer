@@ -67,12 +67,41 @@
         <!-- Chat Input -->
         <div class="relative">
           <input 
+            ref="messageInput"
             v-model="messageText"
             type="text" 
             :placeholder="conversationId === 'new' ? 'Start your conversation...' : 'Write your message ...'"
-            class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-16"
+            @keydown="handleKeyDown"
+            @input="handleInput"
             @keydown.enter="sendMessage"
           >
+          
+          <!-- Document Mention Dropdown -->
+          <DocumentMentionDropdown
+            :show="showMentionDropdown"
+            :documents="availableDocuments"
+            :query="mentionQuery"
+            :project-id="projectId"
+            @select="selectDocument"
+            ref="mentionDropdown"
+          />
+          
+          <!-- Selected Documents Badge -->
+          <div 
+            v-if="selectedDocuments.length > 0" 
+            class="absolute left-3 -top-8 flex items-center gap-1 text-xs"
+          >
+            <span class="text-gray-500">Documents:</span>
+            <span 
+              v-for="doc in selectedDocuments" 
+              :key="doc.id"
+              class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium"
+            >
+              {{ doc.name }}
+            </span>
+          </div>
+          
           <div class="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
             <button 
               @click="sendMessage"
@@ -91,10 +120,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
+import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
 
 const route = useRoute()
 
@@ -144,6 +174,78 @@ const messageText = ref('')
 const messages = ref([])
 const currentLanguage = ref('id') // Default to Indonesian
 
+// Mention functionality state
+const messageInput = ref(null)
+const mentionDropdown = ref(null)
+const showMentionDropdown = ref(false)
+const mentionQuery = ref('')
+const mentionStartPos = ref(-1)
+const selectedDocuments = ref([])
+
+// Documents data - using same structure as DocumentsView
+const availableDocuments = ref([
+  {
+    id: 1,
+    name: 'Annual_Report_2024.pdf',
+    company: 'PT ABC',
+    uploadDate: '2024-10-01',
+    size: 2048576, // 2MB
+    type: 'pdf',
+    projectId: 1,
+    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  },
+  {
+    id: 2,
+    name: 'Financial_Statement_Q3.pdf',
+    company: 'PT XYZ',
+    uploadDate: '2024-09-15',
+    size: 1536000, // 1.5MB
+    type: 'pdf',
+    projectId: 1,
+    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  },
+  {
+    id: 3,
+    name: 'Contract_Agreement.docx',
+    company: 'CV DEF',
+    uploadDate: '2024-10-10',
+    size: 512000, // 500KB
+    type: 'docx',
+    projectId: 2,
+    url: '#'
+  },
+  {
+    id: 4,
+    name: 'Meeting_Notes.txt',
+    company: 'PT ABC',
+    uploadDate: '2024-10-12',
+    size: 25600, // 25KB
+    type: 'txt',
+    projectId: 1,
+    url: '#'
+  },
+  {
+    id: 5,
+    name: 'Budget_Proposal_2025.pdf',
+    company: 'PT XYZ',
+    uploadDate: '2024-10-05',
+    size: 3072000, // 3MB
+    type: 'pdf',
+    projectId: 2,
+    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  },
+  {
+    id: 6,
+    name: 'Due_Diligence_Report.pdf',
+    company: 'CV DEF',
+    uploadDate: '2024-10-08',
+    size: 4096000, // 4MB
+    type: 'pdf',
+    projectId: 3,
+    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
+  }
+])
+
 // Computed
 const currentProject = computed(() => {
   if (!projectId.value) return null
@@ -164,10 +266,26 @@ const sendMessage = () => {
   console.log('Project ID:', projectId.value)
   console.log('Conversation ID:', conversationId.value)
   console.log('Language:', currentLanguage.value)
+  console.log('Selected Documents:', selectedDocuments.value)
   
   // Here you would typically send the message to your backend
-  // For now, just clear the input
+  // The message now includes document references
+  const messageData = {
+    text: messageText.value,
+    projectId: projectId.value,
+    conversationId: conversationId.value,
+    language: currentLanguage.value,
+    documents: selectedDocuments.value
+  }
+  
+  console.log('Complete message data:', messageData)
+  
+  // Clear the input and selected documents
   messageText.value = ''
+  selectedDocuments.value = []
+  showMentionDropdown.value = false
+  mentionQuery.value = ''
+  mentionStartPos.value = -1
 }
 
 const setLanguage = (lang) => {
@@ -175,6 +293,94 @@ const setLanguage = (lang) => {
   console.log('Language switched to:', lang)
   
   // This will be used as parameter for AI backend responses
+}
+
+// Document mention methods
+const handleInput = (event) => {
+  const input = event.target
+  const value = input.value
+  const cursorPos = input.selectionStart
+  
+  // If input is cleared, clear selected documents
+  if (value.trim() === '') {
+    selectedDocuments.value = []
+  }
+  
+  // Find the last @ symbol before cursor
+  const textBeforeCursor = value.substring(0, cursorPos)
+  const lastAtPos = textBeforeCursor.lastIndexOf('@')
+  
+  if (lastAtPos !== -1) {
+    // Check if there's a space after the @ (which would end the mention)
+    const textAfterAt = textBeforeCursor.substring(lastAtPos + 1)
+    if (!textAfterAt.includes(' ')) {
+      // We're in a mention
+      mentionStartPos.value = lastAtPos
+      mentionQuery.value = textAfterAt
+      showMentionDropdown.value = true
+      return
+    }
+  }
+  
+  // Hide dropdown if not in mention context
+  showMentionDropdown.value = false
+  mentionQuery.value = ''
+  mentionStartPos.value = -1
+}
+
+const handleKeyDown = (event) => {
+  if (showMentionDropdown.value) {
+    switch (event.key) {
+      case 'ArrowUp':
+        event.preventDefault()
+        mentionDropdown.value?.moveUp()
+        break
+      case 'ArrowDown':
+        event.preventDefault()
+        mentionDropdown.value?.moveDown()
+        break
+      case 'Enter':
+        event.preventDefault()
+        mentionDropdown.value?.selectCurrent()
+        break
+      case 'Escape':
+        showMentionDropdown.value = false
+        mentionQuery.value = ''
+        mentionStartPos.value = -1
+        break
+    }
+  }
+}
+
+const selectDocument = (document) => {
+  if (mentionStartPos.value === -1) return
+  
+  const input = messageInput.value
+  const currentText = messageText.value
+  
+  // Replace the @query with the document mention
+  const beforeMention = currentText.substring(0, mentionStartPos.value)
+  const afterMention = currentText.substring(mentionStartPos.value + mentionQuery.value.length + 1)
+  const mentionText = `@${document.name}`
+  
+  messageText.value = beforeMention + mentionText + ' ' + afterMention
+  
+  // Add to selected documents for sending with message
+  if (!selectedDocuments.value.find(doc => doc.id === document.id)) {
+    selectedDocuments.value.push(document)
+  }
+  
+  // Hide dropdown
+  showMentionDropdown.value = false
+  mentionQuery.value = ''
+  mentionStartPos.value = -1
+  
+  // Focus back to input and set cursor position
+  nextTick(() => {
+    const newCursorPos = beforeMention.length + mentionText.length + 1
+    input.focus()
+    input.setSelectionRange(newCursorPos, newCursorPos)
+  })
 }
 
 // Watch for route changes to load conversation data
