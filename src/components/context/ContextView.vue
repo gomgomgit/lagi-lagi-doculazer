@@ -2,8 +2,7 @@
   <div class="h-full py-4">
     <!-- Mindmap Header -->
     <div class="mb-4">
-      <h3 class="text-lg font-medium text-gray-800">AI Response Mindmap</h3>
-      <p class="text-sm text-gray-600">Visual representation of AI analysis</p>
+      <h3 class="text-lg font-medium text-gray-800">Information Panel</h3>
     </div>
 
     <!-- Mindmap Canvas -->

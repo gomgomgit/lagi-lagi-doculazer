@@ -6,7 +6,7 @@
         <h1 class="text-2xl font-semibold text-gray-900">User Management</h1>
         <p class="text-gray-600">Manage system users and their permissions</p>
       </div>
-      <BaseButton>
+      <BaseButton @click="showAddUserModal">
         <PlusIcon class="w-4 h-4" />
         Add User
       </BaseButton>
@@ -63,13 +63,23 @@
                 {{ user.role }}
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-              <button class="text-blue-600 hover:text-blue-900">
-                <EditIcon class="w-4 h-4" />
-              </button>
-              <button class="text-red-600 hover:text-red-900">
-                <TrashIcon class="w-4 h-4" />
-              </button>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2 flex">
+              <BaseButton 
+                @click="editUser(user)"
+                variant="icon"
+                size="sm"
+                :icon="EditIcon"
+                class="text-blue-600 hover:text-blue-900"
+                title="Edit User"
+              />
+              <BaseButton 
+                @click="deleteUser(user)"
+                variant="icon"
+                size="sm"
+                :icon="TrashIcon"
+                class="text-red-600 hover:text-red-900"
+                title="Delete User"
+              />
             </td>
           </tr>
         </tbody>
@@ -82,25 +92,42 @@
         Showing {{ filteredUsers.length }} of {{ users.length }} users
       </div>
       <div class="flex gap-2">
-        <button class="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50">
+        <BaseButton 
+          variant="secondary" 
+          size="sm"
+        >
           Previous
-        </button>
-        <button class="px-3 py-1 text-sm border border-gray-300 rounded-full hover:bg-gray-50">
+        </BaseButton>
+        <BaseButton 
+          variant="secondary" 
+          size="sm"
+        >
           Next
-        </button>
+        </BaseButton>
       </div>
     </div>
+
+    <!-- User Form Modal -->
+    <UserFormModal
+      :show="showModal"
+      :user="selectedUser"
+      @confirm="handleUserSubmit"
+      @cancel="cancelUserForm"
+    />
   </div>
 </template>
 
 <script setup>
 import BaseButton from '@/components/ui/BaseButton.vue'
+import UserFormModal from '@/components/admin/UserFormModal.vue'
 import { EditIcon, PlusIcon, SearchIcon, TrashIcon, UserIcon } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
 
 // State
 const searchQuery = ref('')
 const filterRole = ref('')
+const showModal = ref(false)
+const selectedUser = ref(null)
 
 // Sample users data
 const users = ref([
@@ -154,9 +181,53 @@ const getRoleColor = (role) => {
     case 'admin':
       return 'bg-red-100 text-red-800'
     case 'user':
-      return 'bg-green-100 text-green-800'
+      return 'bg-blue-100 text-blue-800'
     default:
       return 'bg-gray-100 text-gray-800'
   }
+}
+
+// Modal methods
+const showAddUserModal = () => {
+  selectedUser.value = null
+  showModal.value = true
+}
+
+const editUser = (user) => {
+  selectedUser.value = { ...user }
+  showModal.value = true
+}
+
+const deleteUser = (user) => {
+  if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+    const index = users.value.findIndex(u => u.id === user.id)
+    if (index > -1) {
+      users.value.splice(index, 1)
+      console.log('User deleted:', user.name)
+    }
+  }
+}
+
+const handleUserSubmit = (userData) => {
+  if (selectedUser.value) {
+    // Edit existing user
+    const index = users.value.findIndex(u => u.id === userData.id)
+    if (index > -1) {
+      users.value[index] = userData
+      console.log('User updated:', userData.name)
+    }
+  } else {
+    // Add new user
+    users.value.push(userData)
+    console.log('User added:', userData.name)
+  }
+  
+  showModal.value = false
+  selectedUser.value = null
+}
+
+const cancelUserForm = () => {
+  showModal.value = false
+  selectedUser.value = null
 }
 </script>

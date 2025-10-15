@@ -21,11 +21,11 @@ import { computed } from 'vue'
 
 // Props
 const props = defineProps({
-  // Tipe button: 'primary', 'secondary', 'outline', 'ghost', 'danger'
+  // Tipe button: 'primary', 'secondary', 'outline', 'ghost', 'danger', 'icon'
   variant: {
     type: String,
     default: 'primary',
-    validator: (value) => ['primary', 'secondary', 'outline', 'ghost', 'danger'].includes(value)
+    validator: (value) => ['primary', 'secondary', 'outline', 'ghost', 'danger', 'icon'].includes(value)
   },
   // Ukuran button: 'sm', 'md', 'lg'
   size: {
@@ -65,7 +65,8 @@ defineEmits(['click'])
 
 // Computed classes
 const buttonClasses = computed(() => {
-  const baseClasses = 'base-button flex items-center gap-3 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2'
+  const gapClass = props.variant === 'icon' ? 'gap-0' : 'gap-3'
+  const baseClasses = `${props.variant !== 'icon' ? 'base-button' : ''} flex items-center ${gapClass} transition-colors`
   
   // Variant classes
   const variantClasses = {
@@ -73,14 +74,15 @@ const buttonClasses = computed(() => {
     secondary: 'btn-action-secondary',
     outline: 'border-2 border-orange text-orange bg-transparent hover:bg-orange hover:text-white focus:ring-orange',
     ghost: 'text-orange hover:bg-orange/10 focus:ring-orange',
-    danger: 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300 focus:ring-red-500'
+    danger: 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300 focus:ring-red-500',
+    icon: ''
   }
   
   // Size classes
   const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg'
+    sm: props.variant === 'icon' ? 'p-1' : 'px-3 py-1.5 text-sm',
+    md: props.variant === 'icon' ? 'p-1.5' : 'px-4 py-2 text-base',
+    lg: props.variant === 'icon' ? 'p-2' : 'px-6 py-3 text-lg'
   }
   
   // Additional classes

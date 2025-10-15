@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import BaseButton from '@/components/ui/BaseButton.vue';
-import MindMapView from '@/components/mindmap/MindMapView.vue';
+import ContextView from '@/components/context/ContextView.vue';
 import { CircleXIcon, EyeIcon, SlidersHorizontalIcon, SquareXIcon, SearchIcon, CalendarIcon, BuildingIcon, FilterIcon, XIcon, FilesIcon, BrainIcon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 
 // View mode state
-const viewMode = ref('tools'); // 'tools' | 'mindmap'
+const viewMode = ref('tools'); // 'tools' | 'context'
 
 // Active tab state (for tools mode)
 const activeTab = ref('files'); // 'files' | 'filter'
@@ -63,7 +63,7 @@ const setActiveTab = (tab: string) => {
 }
 
 const toggleViewMode = () => {
-  viewMode.value = viewMode.value === 'tools' ? 'mindmap' : 'tools'
+  viewMode.value = viewMode.value === 'tools' ? 'context' : 'tools'
 }
 
 const removeFilter = (filterType: string) => {
@@ -99,25 +99,25 @@ const applyFilters = () => {
 </script>
 
 <template>
-  <!-- Additional Sidebar (Tools/Mindmap) -->
+  <!-- Additional Sidebar (Tools/Context) -->
   <aside class="w-80 base-card bg-card flex flex-col h-full">
     <!-- Header with Toggle -->
-    <div class="border-b border-gray-200 p-4 pb-0">
+    <div class="border-b border-gray-200 py-4 pb-0">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-semibold text-gray-800">
-          {{ viewMode === 'tools' ? 'Chat Tools' : 'AI Mindmap' }}
+          {{ viewMode === 'tools' ? 'Chat Tools' : 'Context View' }}
         </h3>
         <div class="flex items-center gap-2">
           <!-- Toggle Button -->
           <button
             @click="toggleViewMode"
             class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-            :class="viewMode === 'mindmap' 
+            :class="viewMode === 'context' 
               ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
           >
             <BrainIcon class="w-3.5 h-3.5" />
-            <span>{{ viewMode === 'tools' ? 'Mindmap' : 'Tools' }}</span>
+            <span>{{ viewMode === 'tools' ? 'Context' : 'Tools' }}</span>
           </button>
         </div>
       </div>
@@ -257,8 +257,8 @@ const applyFilters = () => {
         </div>
       </div>
 
-      <!-- Mindmap Mode -->
-      <MindMapView v-else />
+      <!-- Context Mode -->
+      <ContextView v-else />
     </div>
 
     <!-- Applied Filters Footer (Only for Tools Mode) -->
