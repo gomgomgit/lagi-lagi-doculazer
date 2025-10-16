@@ -3,8 +3,8 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-semibold text-gray-900">User Management</h1>
-        <p class="text-gray-600">Manage system users and their permissions</p>
+        <h1 class="text-2xl font-semibold admin-title">User Management</h1>
+        <p class="admin-subtitle">Manage system users and their permissions</p>
       </div>
       <BaseButton @click="showAddUserModal">
         <PlusIcon class="w-4 h-4" />
@@ -20,12 +20,12 @@
           v-model="searchQuery"
           type="text"
           placeholder="Search users by name or email..."
-          class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          class="admin-form-input w-full pl-10 pr-4 py-2 rounded-lg"
         />
       </div>
       <select 
         v-model="filterRole"
-        class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        class="admin-form-input px-3 py-2 rounded-lg"
       >
         <option value="">All Roles</option>
         <option value="admin">Admin</option>
@@ -35,25 +35,25 @@
     </div>
 
     <!-- Users Table -->
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div class="admin-page-card rounded-lg overflow-hidden">
       <table class="w-full">
-        <thead class="bg-gray-50">
+        <thead class="admin-table-header">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <th class="px-6 py-3 text-left text-xs font-medium admin-table-header-text uppercase tracking-wider">User</th>
+            <th class="px-6 py-3 text-left text-xs font-medium admin-table-header-text uppercase tracking-wider">Role</th>
+            <th class="px-6 py-3 text-left text-xs font-medium admin-table-header-text uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="user in filteredUsers" :key="user.id" class="hover:bg-gray-50">
+          <tr v-for="user in filteredUsers" :key="user.id" class="admin-table-row">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                   <UserIcon class="w-5 h-5 text-gray-600" />
                 </div>
                 <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900">{{ user.name }}</div>
-                  <div class="text-sm text-gray-500">{{ user.email }}</div>
+                  <div class="text-sm font-medium admin-table-text">{{ user.name }}</div>
+                  <div class="text-sm admin-table-meta">{{ user.email }}</div>
                 </div>
               </div>
             </td>

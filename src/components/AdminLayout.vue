@@ -1,13 +1,13 @@
 <template>
-  <div class="flex h-screen bg-base gap-4 p-4">
+  <div class="flex h-screen admin-page-container gap-4 p-4">
     <!-- Admin Sidebar -->
-    <aside class="w-64 base-card bg-card text-base flex flex-col">
+    <aside class="w-64 admin-page-card text-base flex flex-col">
       <!-- Sidebar Header -->
-      <div class="py-4 border-b border-gray-200">
+      <div class="py-4 admin-header">
         <div class="flex items-center gap-2">
           <div>
-            <h1 class="text-lg font-bold text-gray-800">Admin Panel</h1>
-            <p class="text-xs text-gray-500">System Management</p>
+            <h1 class="text-lg font-bold admin-title">Admin Panel</h1>
+            <p class="text-xs admin-subtitle">System Management</p>
           </div>
         </div>
       </div>
@@ -16,7 +16,7 @@
       <nav class="flex-1 space-y-1 mt-4">
         <router-link 
           to="/admin/users"
-          class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          class="flex items-center gap-3 px-4 py-3 text-sm admin-table-text admin-table-row rounded-lg transition-colors"
           :class="{ 'bg-blue-50 text-blue-700': $route.path === '/admin/users' }"
         >
           <UsersIcon class="w-5 h-5" />
@@ -25,7 +25,7 @@
         
         <router-link 
           to="/admin/llm"
-          class="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+          class="flex items-center gap-3 px-4 py-3 text-sm admin-table-text admin-table-row rounded-lg transition-colors"
           :class="{ 'bg-blue-50 text-blue-700': $route.path === '/admin/llm' }"
         >
           <BrainIcon class="w-5 h-5" />
@@ -37,7 +37,7 @@
       <div>
         <router-link 
           to="/"
-          class="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors base-button btn-action"
+          class="flex items-center gap-2 text-sm admin-table-meta hover:text-gray-800 transition-colors base-button btn-action"
         >
           <ArrowLeftIcon class="w-4 h-4" />
           <span>Back to Main</span>
@@ -51,11 +51,11 @@
       <header class="px-4 pb-0 pt-3">
         <div class="flex items-center justify-between">
           <div>
-            <h2 class="text-lg font-semibold text-gray-800">{{ currentHeader }}</h2>
-            <p class="text-sm text-gray-600">{{ currentSubtitle }}</p>
+            <h2 class="text-lg font-semibold admin-title">{{ currentHeader }}</h2>
+            <p class="text-sm admin-subtitle">{{ currentSubtitle }}</p>
           </div>
           <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 admin-table-text">
               Admin User
               <button class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full">
                 <ShieldIcon class="w-4 h-4" />
@@ -66,7 +66,7 @@
       </header>
       
       <!-- Router View Content -->
-      <div class="flex-1 bg-white rounded-lg base-card p-6 overflow-auto">
+      <div class="flex-1 admin-page-card rounded-lg p-6 overflow-auto">
         <router-view />
       </div>
     </div>
