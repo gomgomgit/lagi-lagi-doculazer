@@ -124,20 +124,20 @@ const dropZoneClasses = computed(() => {
   }
   
   if (isDragOver.value) {
-    return `${baseClasses} border-orange bg-orange/5 border-solid`
+    return `${baseClasses} border-blue-500 bg-blue-50 border-solid`
   }
   
-  return `${baseClasses} border-gray-300 hover:border-orange hover:bg-orange/5`
+  return `${baseClasses} border-gray-300 hover:border-blue-500 hover:bg-blue-50`
 })
 
 const iconClasses = computed(() => {
   if (props.disabled) return 'text-gray-400'
-  return isDragOver.value ? 'text-orange' : 'text-gray-400'
+  return isDragOver.value ? 'text-blue-500' : 'text-gray-400'
 })
 
 const textClasses = computed(() => {
   if (props.disabled) return 'text-gray-400'
-  return isDragOver.value ? 'text-orange' : 'text-gray-600'
+  return isDragOver.value ? 'text-blue-500' : 'text-gray-600'
 })
 
 // Methods

@@ -1,4 +1,25 @@
-/* Brand Color Palette with Tints & Shades */
+/* ================================================ */
+/* DOCULAZER - COLOR SYSTEM */
+/* ================================================ */
+/* 
+ * This file contains the complete color system for Doculazer app.
+ * 
+ * STRUCTURE:
+ * 1. Brand Color Palette - Base colors with tints & shades
+ * 2. Commonly Used Colors - Easy to customize variables
+ * 3. Component-specific Colors - Individual component themes
+ * 4. Component Classes - CSS classes for components
+ * 
+ * CUSTOMIZATION:
+ * - To change the main theme color, update --primary-color
+ * - To change backgrounds, update --bg-* variables
+ * - To change text colors, update --text-* variables
+ * - Individual components can be customized in their sections
+ */
+
+/* ================================================ */
+/* BRAND COLOR PALETTE WITH TINTS & SHADES */
+/* ================================================ */
 
 :root {
   /* Dark (#000000) - Base Black */
@@ -29,18 +50,18 @@
   --color-navy-950: #2d3340;
   --color-navy: #14213d;
 
-  /* Orange (#FCA311) - Bright Orange */
-  --color-orange-50: #fffcf0;
-  --color-orange-100: #fff8d8;
-  --color-orange-200: #ffefb0;
-  --color-orange-300: #ffe177;
-  --color-orange-400: #ffce3c;
-  --color-orange-500: #fcb916;
-  --color-orange-600: #fca311;
-  --color-orange-700: #d1820d;
-  --color-orange-800: #a86510;
-  --color-orange-900: #8a5413;
-  --color-orange-950: #522d07;
+  /* Blue (#3B82F6) - Bright Blue */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-blue-950: #172554;
 
   /* Light Gray (#E5E5E5) */
   --color-light-gray-50: #fafafa;
@@ -72,10 +93,234 @@
   /* RGB Values for Opacity */
   --color-dark-rgb: 0, 0, 0;
   --color-navy-rgb: 20, 33, 61;
-  --color-orange-rgb: 252, 163, 17;
+  --color-blue-rgb: 59, 130, 246;
   --color-light-gray-rgb: 229, 229, 229;
   --color-white-rgb: 255, 255, 255;
 }
+
+/* ================================================ */
+/* COMMONLY USED COLORS - EASY TO CUSTOMIZE */
+/* ================================================ */
+:root {
+  /* Primary Theme Colors */
+  --primary-color: var(--color-blue-500); /* Main brand color - #3b82f6 */
+  --primary-color-light: var(--color-blue-50); /* Light version - #eff6ff */
+  --primary-color-dark: var(--color-blue-700); /* Dark version - #1d4ed8 */
+  --primary-color-rgb: var(--color-blue-rgb); /* RGB for opacity - 59, 130, 246 */
+  
+  /* Background Colors */
+  --bg-primary: var(--color-white); /* Main background - #ffffff */
+  --bg-secondary: var(--color-white-50); /* Card backgrounds - #ffffff */
+  --bg-tertiary: var(--color-white-600); /* Base backgrounds - #f5f5f5 */
+  --bg-hover: #f3f4f6; /* Hover states - gray-100 */
+  --bg-selected: rgba(59, 130, 246, 0.1); /* Selected items - primary with opacity */
+  
+  /* Text Colors */
+  --text-primary: #111827; /* Main text - gray-900 */
+  --text-secondary: #6b7280; /* Secondary text - gray-500 */
+  --text-muted: #9ca3af; /* Muted text - gray-400 */
+  --text-dark: var(--color-dark-800); /* Dark text - #333333 */
+  
+  /* Border Colors */
+  --border-light: #e5e7eb; /* Light borders - gray-200 */
+  --border-medium: #d1d5db; /* Medium borders - gray-300 */
+  --border-focus: var(--primary-color); /* Focus borders - primary color */
+  --border-hover: var(--primary-color); /* Hover borders - primary color */
+  
+  /* Form & Input Colors */
+  --input-border: var(--border-medium); /* Default input border */
+  --input-focus-border: var(--primary-color); /* Input focus border */
+  --input-focus-ring: rgba(59, 130, 246, 0.2); /* Input focus ring */
+  --input-bg: var(--bg-primary); /* Input background */
+  
+  /* Error Colors */
+  --error-color: #dc2626; /* Error text - red-600 */
+  --error-border: #fca5a5; /* Error border - red-300 */
+  --error-ring: rgba(252, 165, 165, 0.2); /* Error focus ring */
+  
+  /* Success Colors */
+  --success-color: #059669; /* Success text - green-600 */
+  --success-border: #6ee7b7; /* Success border - green-300 */
+  --success-bg: #d1fae5; /* Success background - green-100 */
+  
+  /* Warning Colors */
+  --warning-color: #d97706; /* Warning text - amber-600 */
+  --warning-border: #fcd34d; /* Warning border - amber-300 */
+  --warning-bg: #fef3c7; /* Warning background - amber-100 */
+  
+  /* Button Colors */
+  --btn-primary-bg: var(--color-dark-900); /* Primary button background */
+  --btn-primary-text: var(--color-white-300); /* Primary button text */
+  --btn-primary-border: var(--color-dark-200); /* Primary button border */
+  --btn-primary-hover-bg: var(--color-white-700); /* Primary button hover background */
+  --btn-primary-hover-text: var(--color-dark-600); /* Primary button hover text */
+  --btn-primary-hover-border: var(--color-dark-300); /* Primary button hover border */
+  
+  --btn-secondary-bg: var(--color-white-100); /* Secondary button background */
+  --btn-secondary-text: var(--color-dark-700); /* Secondary button text */
+  --btn-secondary-border: var(--color-dark-200); /* Secondary button border */
+  --btn-secondary-hover-bg: var(--color-white-700); /* Secondary button hover background */
+  --btn-secondary-hover-text: var(--color-dark-600); /* Secondary button hover text */
+  --btn-secondary-hover-border: var(--color-dark-300); /* Secondary button hover border */
+  
+  --btn-outline-bg: transparent; /* Outline button background */
+  --btn-outline-text: var(--primary-color); /* Outline button text */
+  --btn-outline-border: var(--primary-color); /* Outline button border */
+  --btn-outline-hover-bg: var(--primary-color); /* Outline button hover background */
+  --btn-outline-hover-text: var(--color-white); /* Outline button hover text */
+  --btn-outline-focus-ring: var(--primary-color); /* Outline button focus ring */
+  
+  --btn-ghost-bg: transparent; /* Ghost button background */
+  --btn-ghost-text: var(--primary-color); /* Ghost button text */
+  --btn-ghost-hover-bg: var(--primary-color-light); /* Ghost button hover background */
+  --btn-ghost-focus-ring: var(--primary-color); /* Ghost button focus ring */
+  
+  --btn-danger-bg: #f3f4f6; /* Danger button background - gray-100 */
+  --btn-danger-text: #374151; /* Danger button text - gray-700 */
+  --btn-danger-border: #d1d5db; /* Danger button border - gray-300 */
+  --btn-danger-hover-bg: #fef2f2; /* Danger button hover background - red-50 */
+  --btn-danger-hover-text: #dc2626; /* Danger button hover text - red-600 */
+  --btn-danger-hover-border: #fecaca; /* Danger button hover border - red-300 */
+  --btn-danger-focus-ring: #ef4444; /* Danger button focus ring - red-500 */
+  
+  --btn-disabled-opacity: 0.5; /* Disabled button opacity */
+  
+  /* Chat Tool Colors */
+  --chat-tool-bg: var(--bg-secondary); /* Main chat tool background */
+  --chat-tool-border: var(--border-light); /* Chat tool borders */
+  
+  /* Chat Tool Header */
+  --chat-tool-header-text: #1f2937; /* Header title text - gray-800 */
+  --chat-tool-toggle-bg: #f3f4f6; /* Toggle button default background - gray-100 */
+  --chat-tool-toggle-text: #374151; /* Toggle button default text - gray-700 */
+  --chat-tool-toggle-hover-bg: #e5e7eb; /* Toggle button hover background - gray-200 */
+  --chat-tool-toggle-active-bg: #f3e8ff; /* Toggle button active background - purple-100 */
+  --chat-tool-toggle-active-text: #7c3aed; /* Toggle button active text - purple-700 */
+  --chat-tool-toggle-active-hover: #e9d5ff; /* Toggle button active hover - purple-200 */
+  
+  /* Chat Tool Tabs */
+  --chat-tool-tab-default-text: #4b5563; /* Default tab text - gray-600 */
+  --chat-tool-tab-hover-text: #1f2937; /* Tab hover text - gray-800 */
+  --chat-tool-tab-hover-bg: #f9fafb; /* Tab hover background - gray-50 */
+  --chat-tool-tab-active-bg: #eff6ff; /* Active tab background - blue-50 */
+  --chat-tool-tab-active-text: #2563eb; /* Active tab text - blue-600 */
+  --chat-tool-tab-active-border: #2563eb; /* Active tab border - blue-500 */
+  
+  /* File List Items */
+  --chat-tool-file-bg: var(--bg-primary); /* File item background */
+  --chat-tool-file-border: var(--border-light); /* File item border */
+  --chat-tool-file-hover-bg: #f9fafb; /* File item hover background - gray-50 */
+  --chat-tool-file-title: #1f2937; /* File name text - gray-800 */
+  --chat-tool-file-meta: #6b7280; /* File metadata text - gray-500 */
+  --chat-tool-file-icon-hover: #f3f4f6; /* File action icon hover - gray-100 */
+  
+  /* Form Elements in Chat Tool */
+  --chat-tool-form-label: #374151; /* Form label text - gray-700 */
+  --chat-tool-form-input-border: #d1d5db; /* Form input border - gray-300 */
+  --chat-tool-form-input-focus-ring: #2563eb; /* Form input focus ring - blue-500 */
+  --chat-tool-form-input-focus-border: #2563eb; /* Form input focus border - blue-500 */
+  --chat-tool-form-placeholder: #9ca3af; /* Form placeholder text - gray-400 */
+  
+  /* Applied Filters */
+  --chat-tool-filter-bg: #dbeafe; /* Filter badge background - blue-100 */
+  --chat-tool-filter-text: #1e40af; /* Filter badge text - blue-800 */
+  --chat-tool-filter-hover-bg: #bfdbfe; /* Filter badge hover - blue-200 */
+  --chat-tool-clear-text: #6b7280; /* Clear filters text - gray-500 */
+  --chat-tool-clear-hover-text: #374151; /* Clear filters hover text - gray-700 */
+  
+  /* Empty State */
+  --chat-tool-empty-text: #6b7280; /* Empty state text - gray-500 */
+  
+  /* Document Page Colors - Reusing existing variables */
+  --doc-page-bg: var(--bg-primary); /* Main document page background */
+  --doc-page-section-bg: var(--bg-hover); /* Section backgrounds - gray-50 */
+  --doc-page-card-bg: var(--bg-primary); /* Card backgrounds */
+  --doc-page-border: var(--border-light); /* Borders */
+  
+  /* Document Manager */
+  --doc-manager-title: var(--text-primary); /* Section titles */
+  --doc-manager-subtitle: var(--text-secondary); /* Descriptions */
+  --doc-manager-upload-queue-bg: var(--bg-hover); /* Upload queue item background */
+  
+  /* Document Table */
+  --doc-table-header: var(--text-primary); /* Table headers */
+  --doc-table-header-bg: var(--bg-hover); /* Table header background */
+  --doc-table-row-hover: var(--bg-hover); /* Table row hover */
+  --doc-table-text: var(--text-primary); /* Table cell text */
+  --doc-table-meta: var(--text-secondary); /* Table metadata */
+  
+  /* Upload Status Colors */
+  --doc-status-pending: var(--text-secondary); /* Pending status - gray-500 */
+  --doc-status-uploading: var(--primary-color); /* Uploading status - blue-500 */
+  --doc-status-completed: var(--success-color); /* Completed status - green-500 */
+  --doc-status-error: var(--error-color); /* Error status - red-500 */
+}
+
+/* ================================================ */
+/* USAGE GUIDE FOR COMMONLY USED COLORS */
+/* ================================================ */
+/* 
+ * QUICK REFERENCE:
+ * 
+ * Primary Theme:
+ * - --primary-color: Main brand color (buttons, links, focus states)
+ * - --primary-color-light: Light backgrounds (selected items, hover states)
+ * - --primary-color-dark: Dark accents (hover on primary buttons)
+ * 
+ * Backgrounds:
+ * - --bg-primary: Main page/card backgrounds (#ffffff)
+ * - --bg-secondary: Secondary backgrounds (#ffffff)
+ * - --bg-tertiary: Base container backgrounds (#f5f5f5)
+ * - --bg-hover: Hover states (#f3f4f6)
+ * - --bg-selected: Selected/active states (primary with opacity)
+ * 
+ * Text:
+ * - --text-primary: Main headings and important text (#111827)
+ * - --text-secondary: Body text and descriptions (#6b7280)
+ * - --text-muted: Less important text, placeholders (#9ca3af)
+ * - --text-dark: Dark text for labels (#333333)
+ * 
+ * Borders:
+ * - --border-light: Default borders (#e5e7eb)
+ * - --border-medium: Input borders (#d1d5db)
+ * - --border-focus: Focus state borders (primary color)
+ * - --border-hover: Hover state borders (primary color)
+ * 
+ * Forms:
+ * - --input-*: All input-related styles
+ * - --error-*: Error state styles
+ * - --success-*: Success state styles
+ * - --warning-*: Warning state styles
+ * 
+ * Buttons:
+ * - --btn-primary-*: Primary button colors (dark theme)
+ * - --btn-secondary-*: Secondary button colors (light theme)
+ * - --btn-outline-*: Outline button colors (transparent with border)
+ * - --btn-ghost-*: Ghost button colors (transparent, minimal)
+ * - --btn-danger-*: Danger button colors (red theme)
+ * 
+ * Chat Tool:
+ * - --chat-tool-*: All chat tool related colors
+ * - --chat-tool-header-*: Header and title colors
+ * - --chat-tool-toggle-*: Toggle button states (tools/context)
+ * - --chat-tool-tab-*: Tab navigation colors
+ * - --chat-tool-file-*: File list item colors
+ * - --chat-tool-form-*: Form elements colors
+ * - --chat-tool-filter-*: Applied filters colors
+ * 
+ * EXAMPLES:
+ * 
+ * color: var(--primary-color);
+ * background-color: var(--bg-hover);
+ * border: 1px solid var(--border-light);
+ * 
+ * BUTTON USAGE:
+ * 
+ * <BaseButton variant="primary" size="md">Primary</BaseButton>
+ * <BaseButton variant="outline" size="sm">Outline</BaseButton>
+ * <BaseButton variant="ghost">Ghost</BaseButton>
+ * <BaseButton variant="danger">Delete</BaseButton>
+ */
 
 /* Custom Components Colors */
 /* Base Components */
@@ -87,206 +332,549 @@
 .text-secondary { color: var(--color-dark-600); }
 
 .btn-action {
-  background-color: var(--color-dark-900);
-  color: var(--color-white-300);
-  border: 1px solid var(--color-dark-200);
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: 1px solid var(--btn-primary-border);
 }
 .btn-action:hover {
-  background-color: var(--color-white-700);
-  color: var(--color-dark-600);
-  border: 1px solid var(--color-dark-300);
+  background-color: var(--btn-primary-hover-bg);
+  color: var(--btn-primary-hover-text);
+  border: 1px solid var(--btn-primary-hover-border);
 }
 
 .btn-action-secondary {
-  background-color: var(--color-white-100);
-  color: var(--color-dark-700);
-  border: 1px solid var(--color-dark-200);
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 1px solid var(--btn-secondary-border);
 }
 .btn-action-secondary:hover {
-  background-color: var(--color-white-700);
-  color: var(--color-dark-600);
-  border: 1px solid var(--color-dark-300);
+  background-color: var(--btn-secondary-hover-bg);
+  color: var(--btn-secondary-hover-text);
+  border: 1px solid var(--btn-secondary-hover-border);
 }
 
-/* Background Color Classes */
-
-/* Dark Shades */
-.bg-dark-50 { background-color: var(--color-dark-50); }
-.bg-dark-100 { background-color: var(--color-dark-100); }
-.bg-dark-200 { background-color: var(--color-dark-200); }
-.bg-dark-300 { background-color: var(--color-dark-300); }
-.bg-dark-400 { background-color: var(--color-dark-400); }
-.bg-dark-500 { background-color: var(--color-dark-500); }
-.bg-dark-600 { background-color: var(--color-dark-600); }
-.bg-dark-700 { background-color: var(--color-dark-700); }
-.bg-dark-800 { background-color: var(--color-dark-800); }
-.bg-dark-900 { background-color: var(--color-dark-900); }
-.bg-dark-950 { background-color: var(--color-dark-950); }
-.bg-dark { background-color: var(--color-dark); }
-
-/* Navy Shades */
-.bg-navy-50 { background-color: var(--color-navy-50); }
-.bg-navy-100 { background-color: var(--color-navy-100); }
-.bg-navy-200 { background-color: var(--color-navy-200); }
-.bg-navy-300 { background-color: var(--color-navy-300); }
-.bg-navy-400 { background-color: var(--color-navy-400); }
-.bg-navy-500 { background-color: var(--color-navy-500); }
-.bg-navy-600 { background-color: var(--color-navy-600); }
-.bg-navy-700 { background-color: var(--color-navy-700); }
-.bg-navy-800 { background-color: var(--color-navy-800); }
-.bg-navy-900 { background-color: var(--color-navy-900); }
-.bg-navy-950 { background-color: var(--color-navy-950); }
-.bg-navy { background-color: var(--color-navy); }
-
-/* Orange Shades */
-.bg-orange-50 { background-color: var(--color-orange-50); }
-.bg-orange-100 { background-color: var(--color-orange-100); }
-.bg-orange-200 { background-color: var(--color-orange-200); }
-.bg-orange-300 { background-color: var(--color-orange-300); }
-.bg-orange-400 { background-color: var(--color-orange-400); }
-.bg-orange-500 { background-color: var(--color-orange-500); }
-.bg-orange-600 { background-color: var(--color-orange-600); }
-.bg-orange-700 { background-color: var(--color-orange-700); }
-.bg-orange-800 { background-color: var(--color-orange-800); }
-.bg-orange-900 { background-color: var(--color-orange-900); }
-.bg-orange-950 { background-color: var(--color-orange-950); }
-.bg-orange { background-color: var(--color-orange); }
-
-/* Light Gray Shades */
-.bg-light-gray-50 { background-color: var(--color-light-gray-50); }
-.bg-light-gray-100 { background-color: var(--color-light-gray-100); }
-.bg-light-gray-200 { background-color: var(--color-light-gray-200); }
-.bg-light-gray-300 { background-color: var(--color-light-gray-300); }
-.bg-light-gray-400 { background-color: var(--color-light-gray-400); }
-.bg-light-gray-500 { background-color: var(--color-light-gray-500); }
-.bg-light-gray-600 { background-color: var(--color-light-gray-600); }
-.bg-light-gray-700 { background-color: var(--color-light-gray-700); }
-.bg-light-gray-800 { background-color: var(--color-light-gray-800); }
-.bg-light-gray-900 { background-color: var(--color-light-gray-900); }
-.bg-light-gray-950 { background-color: var(--color-light-gray-950); }
-.bg-light-gray { background-color: var(--color-light-gray); }
-
-/* White Shades */
-.bg-white-50 { background-color: var(--color-white-50); }
-.bg-white-100 { background-color: var(--color-white-100); }
-.bg-white-200 { background-color: var(--color-white-200); }
-.bg-white-300 { background-color: var(--color-white-300); }
-.bg-white-400 { background-color: var(--color-white-400); }
-.bg-white-500 { background-color: var(--color-white-500); }
-.bg-white-600 { background-color: var(--color-white-600); }
-.bg-white-700 { background-color: var(--color-white-700); }
-.bg-white-800 { background-color: var(--color-white-800); }
-.bg-white-900 { background-color: var(--color-white-900); }
-.bg-white-950 { background-color: var(--color-white-950); }
-.bg-white { background-color: var(--color-white); }
-
-/* Text Color Classes */
-
-/* Dark Text */
-.text-dark-50 { color: var(--color-dark-50); }
-.text-dark-100 { color: var(--color-dark-100); }
-.text-dark-200 { color: var(--color-dark-200); }
-.text-dark-300 { color: var(--color-dark-300); }
-.text-dark-400 { color: var(--color-dark-400); }
-.text-dark-500 { color: var(--color-dark-500); }
-.text-dark-600 { color: var(--color-dark-600); }
-.text-dark-700 { color: var(--color-dark-700); }
-.text-dark-800 { color: var(--color-dark-800); }
-.text-dark-900 { color: var(--color-dark-900); }
-.text-dark-950 { color: var(--color-dark-950); }
-.text-dark { color: var(--color-dark); }
-
-/* Navy Text */
-.text-navy-50 { color: var(--color-navy-50); }
-.text-navy-100 { color: var(--color-navy-100); }
-.text-navy-200 { color: var(--color-navy-200); }
-.text-navy-300 { color: var(--color-navy-300); }
-.text-navy-400 { color: var(--color-navy-400); }
-.text-navy-500 { color: var(--color-navy-500); }
-.text-navy-600 { color: var(--color-navy-600); }
-.text-navy-700 { color: var(--color-navy-700); }
-.text-navy-800 { color: var(--color-navy-800); }
-.text-navy-900 { color: var(--color-navy-900); }
-.text-navy-950 { color: var(--color-navy-950); }
-.text-navy { color: var(--color-navy); }
-
-/* Orange Text */
-.text-orange-50 { color: var(--color-orange-50); }
-.text-orange-100 { color: var(--color-orange-100); }
-.text-orange-200 { color: var(--color-orange-200); }
-.text-orange-300 { color: var(--color-orange-300); }
-.text-orange-400 { color: var(--color-orange-400); }
-.text-orange-500 { color: var(--color-orange-500); }
-.text-orange-600 { color: var(--color-orange-600); }
-.text-orange-700 { color: var(--color-orange-700); }
-.text-orange-800 { color: var(--color-orange-800); }
-.text-orange-900 { color: var(--color-orange-900); }
-.text-orange-950 { color: var(--color-orange-950); }
-.text-orange { color: var(--color-orange); }
-
-/* Border Color Classes */
-
-/* Dark Borders */
-.border-dark-50 { border-color: var(--color-dark-50); }
-.border-dark-100 { border-color: var(--color-dark-100); }
-.border-dark-200 { border-color: var(--color-dark-200); }
-.border-dark-300 { border-color: var(--color-dark-300); }
-.border-dark { border-color: var(--color-dark); }
-
-/* Navy Borders */
-.border-navy-50 { border-color: var(--color-navy-50); }
-.border-navy-100 { border-color: var(--color-navy-100); }
-.border-navy-200 { border-color: var(--color-navy-200); }
-.border-navy-300 { border-color: var(--color-navy-300); }
-.border-navy { border-color: var(--color-navy); }
-
-/* Orange Borders */
-.border-orange-50 { border-color: var(--color-orange-50); }
-.border-orange-100 { border-color: var(--color-orange-100); }
-.border-orange-200 { border-color: var(--color-orange-200); }
-.border-orange-300 { border-color: var(--color-orange-300); }
-.border-orange { border-color: var(--color-orange); }
-
-/* Hover States */
-.hover\:bg-dark:hover { background-color: var(--color-dark); }
-.hover\:bg-navy:hover { background-color: var(--color-navy); }
-.hover\:bg-orange:hover { background-color: var(--color-orange); }
-.hover\:bg-orange-700:hover { background-color: var(--color-orange-700); }
-.hover\:bg-navy-800:hover { background-color: var(--color-navy-800); }
-
-.hover\:text-orange:hover { color: var(--color-orange); }
-.hover\:text-navy:hover { color: var(--color-navy); }
-.hover\:text-white:hover { color: var(--color-white); }
-
-/* Focus States */
-.focus\:ring-orange:focus { 
-  --tw-ring-color: var(--color-orange);
-}
-.focus\:ring-navy:focus { 
-  --tw-ring-color: var(--color-navy);
-}
-.focus\:border-orange:focus { 
-  border-color: var(--color-orange);
-}
-.focus\:border-navy:focus { 
-  border-color: var(--color-navy);
+/* Project Accordion Colors */
+:root {
+  /* Project Accordion - Project Header */
+  --project-header-text: var(--text-dark); /* Default text color for project name */
+  --project-header-hover-bg: var(--bg-hover); /* Background when hovering over project header */
+  --project-header-expanded-bg: var(--primary-color-light); /* Background when project is expanded */
+  
+  /* Project Accordion - Conversations */
+  --conversation-text: var(--text-secondary); /* Default text color for conversation items */
+  --conversation-hover-bg: var(--bg-hover); /* Background when hovering over conversations */
+  --conversation-selected-bg: var(--bg-selected); /* Background for active/selected conversation */
+  --conversation-selected-text: var(--primary-color); /* Text color for active/selected conversation */
+  
+  /* Project Accordion - Message Count Badge */
+  --message-count-text: var(--text-muted); /* Text color for message count numbers */
+  --message-count-bg: var(--bg-hover); /* Background color for message count badges */
+  
+  /* Project Accordion - New Chat Button */
+  --new-chat-text: var(--text-secondary); /* Text color for "New Chat" button */
+  --new-chat-hover-bg: var(--bg-hover); /* Background when hovering over "New Chat" button */
 }
 
-/* Opacity Variants */
-.bg-dark\/5 { background-color: rgba(var(--color-dark-rgb), 0.05); }
-.bg-dark\/10 { background-color: rgba(var(--color-dark-rgb), 0.1); }
-.bg-dark\/20 { background-color: rgba(var(--color-dark-rgb), 0.2); }
-.bg-dark\/30 { background-color: rgba(var(--color-dark-rgb), 0.3); }
-.bg-dark\/50 { background-color: rgba(var(--color-dark-rgb), 0.5); }
+/* Project Accordion Component Classes */
+.project-accordion-header {
+  color: var(--project-header-text);
+}
 
-.bg-navy\/5 { background-color: rgba(var(--color-navy-rgb), 0.05); }
-.bg-navy\/10 { background-color: rgba(var(--color-navy-rgb), 0.1); }
-.bg-navy\/20 { background-color: rgba(var(--color-navy-rgb), 0.2); }
-.bg-navy\/30 { background-color: rgba(var(--color-navy-rgb), 0.3); }
-.bg-navy\/50 { background-color: rgba(var(--color-navy-rgb), 0.5); }
+.project-accordion-header:hover {
+  background-color: var(--project-header-hover-bg);
+}
 
-.bg-orange\/5 { background-color: rgba(var(--color-orange-rgb), 0.05); }
-.bg-orange\/10 { background-color: rgba(var(--color-orange-rgb), 0.1); }
-.bg-orange\/20 { background-color: rgba(var(--color-orange-rgb), 0.2); }
-.bg-orange\/30 { background-color: rgba(var(--color-orange-rgb), 0.3); }
-.bg-orange\/50 { background-color: rgba(var(--color-orange-rgb), 0.5); }
+.project-accordion-header.expanded {
+  background-color: var(--project-header-expanded-bg);
+}
+
+.project-accordion-conversation {
+  color: var(--conversation-text);
+}
+
+.project-accordion-conversation:hover {
+  background-color: var(--conversation-hover-bg);
+}
+
+.project-accordion-conversation.selected {
+  background-color: var(--conversation-selected-bg);
+  color: var(--conversation-selected-text);
+  font-weight: 500;
+}
+
+.project-accordion-message-count {
+  color: var(--message-count-text);
+  background-color: var(--message-count-bg);
+}
+
+.project-accordion-new-chat {
+  color: var(--new-chat-text);
+}
+
+.project-accordion-new-chat:hover {
+  background-color: var(--new-chat-hover-bg);
+}
+
+/* Project List & Project Cards Colors */
+:root {
+  /* Project Card Colors */
+  --project-card-bg: var(--bg-primary); /* Background color for project cards */
+  --project-card-border: var(--border-light); /* Default border color for project cards */
+  --project-card-hover-border: var(--border-hover); /* Border color when hovering over project card */
+  --project-card-hover-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* Shadow on hover */
+  
+  /* Project Card Icon */
+  --project-icon-bg: var(--bg-selected); /* Background for project folder icon */
+  --project-icon-color: var(--primary-color); /* Color for project folder icon */
+  
+  /* Project Card Text */
+  --project-title-text: var(--text-primary); /* Color for project name/title */
+  --project-meta-text: var(--text-secondary); /* Color for dates and metadata */
+  --project-doc-count-text: var(--text-secondary); /* Text color for document count */
+  --project-doc-count-bg: var(--bg-hover); /* Background color for document count badge */
+  
+  /* Empty State */
+  --project-empty-icon: var(--text-muted); /* Color for empty state icon */
+  --project-empty-title: var(--text-primary); /* Color for empty state title */
+  --project-empty-text: var(--text-secondary); /* Color for empty state description */
+}
+
+/* Add Project Modal Colors */
+:root {
+  /* Modal Overlay & Background */
+  --modal-overlay-bg: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay background */
+  --modal-bg: var(--bg-primary); /* Modal content background */
+  
+  /* Modal Header */
+  --modal-icon-bg: var(--bg-selected); /* Background for modal header icon */
+  --modal-icon-color: var(--primary-color); /* Color for modal header icon */
+  --modal-title-text: var(--text-primary); /* Color for modal title */
+  --modal-subtitle-text: var(--text-secondary); /* Color for modal subtitle/description */
+  
+  /* Form Elements */
+  --form-label-text: var(--text-dark); /* Color for form labels */
+  --form-input-border: var(--input-border); /* Default border color for inputs */
+  --form-input-focus-border: var(--input-focus-border); /* Border color when input is focused */
+  --form-input-focus-ring: var(--input-focus-ring); /* Focus ring color for inputs */
+  
+  /* Error States */
+  --form-error-border: var(--error-border); /* Border color for inputs with errors */
+  --form-error-focus-border: var(--error-border); /* Focus border color for inputs with errors */
+  --form-error-focus-ring: var(--error-ring); /* Focus ring color for inputs with errors */
+  --form-error-text: var(--error-color); /* Color for error messages */
+}
+
+/* Project List Component Classes */
+.project-card {
+  background-color: var(--project-card-bg);
+  border-color: var(--project-card-border);
+}
+
+.project-card:hover {
+  border-color: var(--project-card-hover-border);
+  box-shadow: var(--project-card-hover-shadow);
+}
+
+.project-card-icon-bg {
+  background-color: var(--project-icon-bg);
+}
+
+.project-card-icon {
+  color: var(--project-icon-color);
+}
+
+.project-card-title {
+  color: var(--project-title-text);
+}
+
+.project-card-meta {
+  color: var(--project-meta-text);
+}
+
+.project-card-doc-count {
+  color: var(--project-doc-count-text);
+  background-color: var(--project-doc-count-bg);
+}
+
+.project-empty-state-icon {
+  color: var(--project-empty-icon);
+}
+
+.project-empty-state-title {
+  color: var(--project-empty-title);
+}
+
+.project-empty-state-text {
+  color: var(--project-empty-text);
+}
+
+/* Add Project Modal Component Classes */
+.modal-overlay {
+  background-color: var(--modal-overlay-bg);
+}
+
+.modal-content {
+  background-color: var(--modal-bg);
+}
+
+.modal-header-icon-bg {
+  background-color: var(--modal-icon-bg);
+}
+
+.modal-header-icon {
+  color: var(--modal-icon-color);
+}
+
+.modal-title {
+  color: var(--modal-title-text);
+}
+
+.modal-subtitle {
+  color: var(--modal-subtitle-text);
+}
+
+.form-label {
+  color: var(--form-label-text);
+}
+
+.form-input {
+  border-color: var(--form-input-border);
+}
+
+.form-input:focus {
+  border-color: var(--form-input-focus-border) !important;
+  box-shadow: 0 0 0 3px var(--form-input-focus-ring) !important;
+  outline: none;
+}
+
+.form-input.error {
+  border-color: var(--form-error-border);
+}
+
+.form-input.error:focus {
+  border-color: var(--form-error-focus-border) !important;
+  box-shadow: 0 0 0 3px var(--form-error-focus-ring) !important;
+  outline: none;
+}
+
+.form-error-text {
+  color: var(--form-error-text);
+}
+
+/* ================================================ */
+/* UTILITY CLASSES - READY TO USE */
+/* ================================================ */
+
+/* Background Utilities */
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-tertiary { background-color: var(--bg-tertiary); }
+.bg-hover { background-color: var(--bg-hover); }
+.bg-selected { background-color: var(--bg-selected); }
+
+/* Text Color Utilities */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-dark { color: var(--text-dark); }
+.text-theme { color: var(--primary-color); }
+
+/* Border Utilities */
+.border-light { border-color: var(--border-light); }
+.border-medium { border-color: var(--border-medium); }
+.border-focus { border-color: var(--border-focus); }
+.border-hover { border-color: var(--border-hover); }
+
+/* Status Color Utilities */
+.text-error { color: var(--error-color); }
+.text-success { color: var(--success-color); }
+.text-warning { color: var(--warning-color); }
+
+.bg-error { background-color: var(--error-bg); }
+.bg-success { background-color: var(--success-bg); }
+.bg-warning { background-color: var(--warning-bg); }
+
+.border-error { border-color: var(--error-border); }
+.border-success { border-color: var(--success-border); }
+.border-warning { border-color: var(--warning-border); }
+
+/* Interactive States */
+.hover-bg:hover { background-color: var(--bg-hover); }
+.hover-primary:hover { color: var(--primary-color); }
+.hover-border:hover { border-color: var(--border-hover); }
+
+/* ================================================ */
+/* BASE BUTTON COLORS & VARIANTS */
+/* ================================================ */
+
+/* Button Base Styles */
+.base-button {
+  border-radius: 0.375rem; /* rounded-md */
+  font-weight: 500; /* font-medium */
+  transition: all 0.2s ease-in-out;
+  outline: none;
+  cursor: pointer;
+}
+
+.base-button:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.base-button:disabled {
+  opacity: var(--btn-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-outline {
+  background-color: var(--btn-outline-bg);
+  color: var(--btn-outline-text);
+  border: 2px solid var(--btn-outline-border);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background-color: var(--btn-outline-hover-bg);
+  color: var(--btn-outline-hover-text);
+}
+
+.btn-outline:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-ghost {
+  background-color: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
+  border: none;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background-color: var(--btn-ghost-hover-bg);
+}
+
+.btn-ghost:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.btn-danger {
+  background-color: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
+  border: 1px solid var(--btn-danger-border);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: var(--btn-danger-hover-bg);
+  color: var(--btn-danger-hover-text);
+  border-color: var(--btn-danger-hover-border);
+}
+
+.btn-danger:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 0.375rem 0.75rem; /* px-3 py-1.5 */
+  font-size: 0.875rem; /* text-sm */
+}
+
+.btn-md {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  font-size: 1rem; /* text-base */
+}
+
+.btn-lg {
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  font-size: 1.125rem; /* text-lg */
+}
+
+/* Icon Button Sizes */
+.btn-icon-sm { padding: 0.25rem; } /* p-1 */
+.btn-icon-md { padding: 0.375rem; } /* p-1.5 */
+.btn-icon-lg { padding: 0.5rem; } /* p-2 */
+
+/* ================================================ */
+/* CHAT TOOL COLORS & COMPONENTS */
+/* ================================================ */
+
+/* Chat Tool Container */
+.chat-tool-container {
+  background-color: var(--chat-tool-bg);
+}
+
+.chat-tool-border {
+  border-color: var(--chat-tool-border);
+}
+
+/* Chat Tool Header */
+.chat-tool-header-title {
+  color: var(--chat-tool-header-text);
+}
+
+.chat-tool-toggle {
+  background-color: var(--chat-tool-toggle-bg);
+  color: var(--chat-tool-toggle-text);
+}
+
+.chat-tool-toggle:hover {
+  background-color: var(--chat-tool-toggle-hover-bg);
+}
+
+.chat-tool-toggle.active {
+  background-color: var(--chat-tool-toggle-active-bg);
+  color: var(--chat-tool-toggle-active-text);
+}
+
+.chat-tool-toggle.active:hover {
+  background-color: var(--chat-tool-toggle-active-hover);
+}
+
+/* Chat Tool Tabs */
+.chat-tool-tab {
+  color: var(--chat-tool-tab-default-text);
+}
+
+.chat-tool-tab:hover {
+  color: var(--chat-tool-tab-hover-text);
+  background-color: var(--chat-tool-tab-hover-bg);
+}
+
+.chat-tool-tab.active {
+  background-color: var(--chat-tool-tab-active-bg);
+  color: var(--chat-tool-tab-active-text);
+  border-bottom-color: var(--chat-tool-tab-active-border);
+}
+
+/* File List Items */
+.chat-tool-file {
+  background-color: var(--chat-tool-file-bg);
+  border-color: var(--chat-tool-file-border);
+}
+
+.chat-tool-file:hover {
+  background-color: var(--chat-tool-file-hover-bg);
+}
+
+.chat-tool-file-title {
+  color: var(--chat-tool-file-title);
+}
+
+.chat-tool-file-meta {
+  color: var(--chat-tool-file-meta);
+}
+
+.chat-tool-file-action:hover {
+  background-color: var(--chat-tool-file-icon-hover);
+}
+
+/* Form Elements */
+.chat-tool-form-label {
+  color: var(--chat-tool-form-label);
+}
+
+.chat-tool-form-input {
+  border-color: var(--chat-tool-form-input-border);
+}
+
+.chat-tool-form-input:focus {
+  border-color: var(--chat-tool-form-input-focus-border);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.chat-tool-form-input::placeholder {
+  color: var(--chat-tool-form-placeholder);
+}
+
+/* Applied Filters */
+.chat-tool-filter-badge {
+  background-color: var(--chat-tool-filter-bg);
+  color: var(--chat-tool-filter-text);
+}
+
+.chat-tool-filter-badge button:hover {
+  background-color: var(--chat-tool-filter-hover-bg);
+}
+
+.chat-tool-clear {
+  color: var(--chat-tool-clear-text);
+}
+
+.chat-tool-clear:hover {
+  color: var(--chat-tool-clear-hover-text);
+}
+
+/* Empty State */
+.chat-tool-empty {
+  color: var(--chat-tool-empty-text);
+}
+
+/* ================================================ */
+/* DOCUMENT PAGES COLORS & COMPONENTS */
+/* ================================================ */
+
+/* Document Page Container */
+.doc-page-container {
+  background-color: var(--doc-page-bg);
+}
+
+.doc-page-section {
+  background-color: var(--doc-page-section-bg);
+}
+
+.doc-page-card {
+  background-color: var(--doc-page-card-bg);
+  border-color: var(--doc-page-border);
+}
+
+/* Document Manager */
+.doc-manager-title {
+  color: var(--doc-manager-title);
+}
+
+.doc-manager-subtitle {
+  color: var(--doc-manager-subtitle);
+}
+
+.doc-upload-queue-item {
+  background-color: var(--doc-manager-upload-queue-bg);
+  border-color: var(--doc-page-border);
+}
+
+/* Document Table */
+.doc-table-header {
+  background-color: var(--doc-table-header-bg);
+}
+
+.doc-table-header-text {
+  color: var(--doc-table-header);
+}
+
+.doc-table-row:hover {
+  background-color: var(--doc-table-row-hover);
+}
+
+.doc-table-text {
+  color: var(--doc-table-text);
+}
+
+.doc-table-meta {
+  color: var(--doc-table-meta);
+}
+
+/* Upload Status Classes */
+.doc-status-pending {
+  color: var(--doc-status-pending);
+}
+
+.doc-status-uploading {
+  color: var(--doc-status-uploading);
+}
+
+.doc-status-completed {
+  color: var(--doc-status-completed);
+}
+
+.doc-status-error {
+  color: var(--doc-status-error);
+}

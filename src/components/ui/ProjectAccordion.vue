@@ -2,8 +2,8 @@
   <div class="space-y-1">
     <!-- Project Header -->
     <div  
-      class="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-      :class="{ 'bg-blue-50': isExpanded }"
+      class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer project-accordion-header"
+      :class="{ 'expanded': isExpanded }"
       @click="toggleExpanded"
     >
       <FolderIcon class="w-4 h-4" />
@@ -27,20 +27,20 @@
         <div 
           v-for="conversation in project.conversations" 
           :key="conversation.id"
-          class="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-          :class="{ 'bg-orange/10 text-orange font-medium': selectedConversationId === conversation.id }"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer project-accordion-conversation"
+          :class="{ 'selected': selectedConversationId === conversation.id }"
           @click.stop="selectConversation(conversation)"
         >
           <MessageCircleIcon class="w-3 h-3 flex-shrink-0" />
           <span class="truncate">{{ conversation.title }}</span>
-          <span v-if="conversation.messageCount" class="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full">
+          <span v-if="conversation.messageCount" class="text-xs px-1.5 py-0.5 rounded-full project-accordion-message-count">
             {{ conversation.messageCount }}
           </span>
         </div>
         
         <!-- Add new conversation button -->
         <div 
-          class="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer project-accordion-new-chat"
           @click.stop="addNewConversation"
         >
           <PlusIcon class="w-3 h-3" />

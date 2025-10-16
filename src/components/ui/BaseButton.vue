@@ -72,17 +72,17 @@ const buttonClasses = computed(() => {
   const variantClasses = {
     primary: 'btn-action',
     secondary: 'btn-action-secondary',
-    outline: 'border-2 border-orange text-orange bg-transparent hover:bg-orange hover:text-white focus:ring-orange',
-    ghost: 'text-orange hover:bg-orange/10 focus:ring-orange',
-    danger: 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-red-50 hover:text-red-700 hover:border-red-300 focus:ring-red-500',
+    outline: 'btn-outline',
+    ghost: 'btn-ghost',
+    danger: 'btn-danger',
     icon: ''
   }
   
   // Size classes
   const sizeClasses = {
-    sm: props.variant === 'icon' ? 'p-1' : 'px-3 py-1.5 text-sm',
-    md: props.variant === 'icon' ? 'p-1.5' : 'px-4 py-2 text-base',
-    lg: props.variant === 'icon' ? 'p-2' : 'px-6 py-3 text-lg'
+    sm: props.variant === 'icon' ? 'btn-icon-sm' : 'btn-sm',
+    md: props.variant === 'icon' ? 'btn-icon-md' : 'btn-md',
+    lg: props.variant === 'icon' ? 'btn-icon-lg' : 'btn-lg'
   }
   
   // Additional classes

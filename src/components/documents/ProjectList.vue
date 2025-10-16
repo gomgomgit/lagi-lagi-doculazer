@@ -20,20 +20,20 @@
       v-for="project in projects" 
       :key="project.id"
       @click="selectProject(project)"
-      class="bg-white border border-gray-200 rounded-lg p-6 cursor-pointer hover:border-orange hover:shadow-md transition-all duration-200"
+      class="border rounded-lg p-6 cursor-pointer transition-all duration-200 project-card"
     >
       <div class="flex items-start justify-between mb-4">
-        <div class="p-3 bg-orange/10 rounded-lg">
-          <FolderClosedIcon class="w-8 h-8 text-orange" />
+        <div class="p-3 rounded-lg project-card-icon-bg">
+          <FolderClosedIcon class="w-8 h-8 project-card-icon" />
         </div>
-        <span class="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
+        <span class="text-sm px-2 py-1 rounded project-card-doc-count">
           {{ getDocumentCount(project.id) }} docs
         </span>
       </div>
       
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ project.name }}</h3>
+      <h3 class="text-lg font-semibold mb-2 project-card-title">{{ project.name }}</h3>
       
-      <div class="flex items-center justify-between text-xs text-gray-500">
+      <div class="flex items-center justify-between text-xs project-card-meta">
         <span>Created: {{ formatDate(project.createdDate) }}</span>
         <span>Updated: {{ formatDate(project.lastUpdated) }}</span>
       </div>
@@ -42,9 +42,9 @@
   
   <!-- Empty state untuk projects -->
   <div v-if="projects.length === 0" class="text-center py-12">
-    <FolderPlusIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
-    <h3 class="text-lg font-medium text-gray-900 mb-2">No projects yet</h3>
-    <p class="text-gray-500 mb-6">Create your first project to start managing documents</p>
+    <FolderPlusIcon class="w-16 h-16 mx-auto mb-4 project-empty-state-icon" />
+    <h3 class="text-lg font-medium mb-2 project-empty-state-title">No projects yet</h3>
+    <p class="mb-6 project-empty-state-text">Create your first project to start managing documents</p>
     <BaseButton variant="primary" @click="showAddProjectModal">
       <FolderPlusIcon class="w-4 h-4" /> Create Project
     </BaseButton>

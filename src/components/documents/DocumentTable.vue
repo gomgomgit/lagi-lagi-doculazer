@@ -2,8 +2,8 @@
   <div>
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h3 class="text-lg font-medium">Uploaded Documents</h3>
-        <p class="text-sm text-gray-600">{{ filteredDocuments.length }} documents found</p>
+        <h3 class="text-lg font-medium doc-manager-title">Uploaded Documents</h3>
+        <p class="text-sm doc-manager-subtitle">{{ filteredDocuments.length }} documents found</p>
       </div>
       <BaseButton 
         variant="secondary" 
@@ -15,7 +15,7 @@
     </div>
 
     <!-- Search and Filter Section -->
-    <div class="mb-6 p-4 bg-gray-50 rounded-lg">
+    <div class="mb-6 p-4 doc-page-section rounded-lg">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <!-- Search by filename -->
         <div>
@@ -26,7 +26,7 @@
               @input="$emit('update:searchQuery', $event.target.value)"
               type="text"
               placeholder="Search by filename..."
-              class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange focus:border-orange text-sm"
+              class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
             <SearchIcon class="absolute left-2 top-2.5 w-4 h-4 text-gray-400" />
           </div>
@@ -38,7 +38,7 @@
           <select
             :value="filterCompany"
             @input="$emit('update:filterCompany', $event.target.value)"
-            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange focus:border-orange text-sm"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           >
             <option value="">All Companies</option>
             <option value="PT ABC">PT ABC</option>
@@ -54,7 +54,7 @@
             :value="filterDateFrom"
             @input="$emit('update:filterDateFrom', $event.target.value)"
             type="date"
-            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange focus:border-orange text-sm"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
         
@@ -64,7 +64,7 @@
             :value="filterDateTo"
             @input="$emit('update:filterDateTo', $event.target.value)"
             type="date"
-            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-orange focus:border-orange text-sm"
+            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
           />
         </div>
       </div>
@@ -82,59 +82,59 @@
     </div>
 
     <!-- Documents Table -->
-    <div v-if="filteredDocuments.length > 0" class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div v-if="filteredDocuments.length > 0" class="doc-page-card border rounded-lg overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full">
-          <thead class="bg-gray-50">
+          <thead class="doc-table-header">
             <tr>
-              <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">
+              <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">
                 <button @click="$emit('sort', 'name')" class="flex items-center gap-1 hover:text-gray-900">
                   File Name
                   <component :is="getSortIcon('name')" class="w-3 h-3" />
                 </button>
               </th>
-              <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">
+              <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">
                 <button @click="$emit('sort', 'company')" class="flex items-center gap-1 hover:text-gray-900">
                   Company
                   <component :is="getSortIcon('company')" class="w-3 h-3" />
                 </button>
               </th>
-              <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">
+              <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">
                 <button @click="$emit('sort', 'uploadDate')" class="flex items-center gap-1 hover:text-gray-900">
                   Upload Date
                   <component :is="getSortIcon('uploadDate')" class="w-3 h-3" />
                 </button>
               </th>
-              <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">
+              <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">
                 <button @click="$emit('sort', 'size')" class="flex items-center gap-1 hover:text-gray-900">
                   Size
                   <component :is="getSortIcon('size')" class="w-3 h-3" />
                 </button>
               </th>
-              <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Type</th>
-              <th class="px-4 py-3 text-center text-sm font-medium text-gray-700">Actions</th>
+              <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">Type</th>
+              <th class="px-4 py-3 text-center text-sm font-medium doc-table-header-text">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr 
               v-for="doc in filteredDocuments" 
               :key="doc.id"
-              class="hover:bg-gray-50 transition-colors"
+              class="doc-table-row transition-colors"
             >
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <component :is="getFileIcon(doc.type)" class="w-5 h-5 text-gray-500" />
-                  <span class="font-medium text-gray-900">{{ doc.name }}</span>
+                  <span class="font-medium doc-table-text">{{ doc.name }}</span>
                 </div>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm text-gray-600">{{ doc.company }}</span>
+                <span class="text-sm doc-table-meta">{{ doc.company }}</span>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm text-gray-600">{{ formatDate(doc.uploadDate) }}</span>
+                <span class="text-sm doc-table-meta">{{ formatDate(doc.uploadDate) }}</span>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm text-gray-600">{{ formatFileSize(doc.size) }}</span>
+                <span class="text-sm doc-table-meta">{{ formatFileSize(doc.size) }}</span>
               </td>
               <td class="px-4 py-3">
                 <span class="inline-block px-2 py-1 text-xs font-medium rounded-full" :class="getTypeClass(doc.type)">
@@ -181,8 +181,8 @@
     <!-- Empty State -->
     <div v-else class="text-center py-12">
       <FileTextIcon class="w-12 h-12 text-gray-400 mx-auto mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 mb-2">No documents found</h3>
-      <p class="text-gray-500 mb-4">
+      <h3 class="text-lg font-medium doc-table-text mb-2">No documents found</h3>
+      <p class="doc-table-meta mb-4">
         {{ searchQuery || filterCompany || filterDateFrom || filterDateTo 
           ? 'No documents match your current filters.' 
           : 'Upload some documents to get started.' }}

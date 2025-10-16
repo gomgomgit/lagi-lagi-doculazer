@@ -1,23 +1,23 @@
 <template>
   <div 
     v-if="show" 
-    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+    class="fixed inset-0 flex items-center justify-center z-50 p-4 modal-overlay"
     @click.self="cancel"
   >
-    <div class="bg-white rounded-lg max-w-md w-full p-6">
+    <div class="rounded-lg max-w-md w-full p-6 modal-content">
       <div class="flex items-center gap-3 mb-4">
-        <div class="p-2 bg-orange/10 rounded-full">
-          <FolderPlusIcon class="w-6 h-6 text-orange" />
+        <div class="p-2 rounded-full modal-header-icon-bg">
+          <FolderPlusIcon class="w-6 h-6 modal-header-icon" />
         </div>
         <div>
-          <h3 class="text-lg font-medium text-gray-900">Create New Project</h3>
-          <p class="text-sm text-gray-500">Enter a name for your new project</p>
+          <h3 class="text-lg font-medium modal-title">Create New Project</h3>
+          <p class="text-sm modal-subtitle">Enter a name for your new project</p>
         </div>
       </div>
       
       <form @submit.prevent="handleSubmit">
         <div class="mb-6">
-          <label for="projectName" class="block text-sm font-medium text-gray-700 mb-2">
+          <label for="projectName" class="block text-sm font-medium mb-2 form-label">
             Project Name
           </label>
           <input
@@ -26,13 +26,13 @@
             v-model="projectName"
             type="text"
             placeholder="Enter project name..."
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange focus:border-orange text-sm"
+            class="w-full px-3 py-2 border rounded-lg text-sm form-input"
             :class="{
-              'border-red-300 focus:border-red-300 focus:ring-red-200': error
+              'error': error
             }"
             :disabled="loading"
           />
-          <p v-if="error" class="text-red-600 text-sm mt-1">{{ error }}</p>
+          <p v-if="error" class="text-sm mt-1 form-error-text">{{ error }}</p>
         </div>
         
         <div class="flex justify-end gap-3">

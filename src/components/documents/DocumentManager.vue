@@ -11,15 +11,13 @@
   </CardHeader>
   
   <!-- Upload Section -->
-  <div class="mt-6 px-4">
+    <div class="mt-6 px-4 doc-page-container">
     <div class="mb-4">
-      <h3 class="text-lg font-medium mb-2">Upload Documents</h3>
-      <p class="text-sm text-gray-600">
+      <h3 class="text-lg font-medium mb-2 doc-manager-title">Upload Documents</h3>
+      <p class="text-sm doc-manager-subtitle">
         Upload PDF, DOCX, TXT files to <strong>{{ selectedProject.name }}</strong> project
       </p>
-    </div>
-    
-    <FileUpload 
+    </div>    <FileUpload 
       :multiple="true"
       accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
       :max-size="50 * 1024 * 1024"
@@ -31,16 +29,16 @@
     
     <!-- Upload Progress -->
     <div v-if="uploadQueue.length > 0" class="mt-6">
-      <h4 class="font-medium mb-3">Upload Queue</h4>
+      <h4 class="font-medium mb-3 doc-manager-title">Upload Queue</h4>
       <div class="space-y-2">
         <div 
           v-for="(item, index) in uploadQueue" 
           :key="index"
-          class="flex items-center justify-between p-3 bg-gray-50 rounded border"
+          class="doc-upload-queue-item flex items-center justify-between p-3 rounded border"
         >
           <div class="flex-1">
-            <div class="font-medium">{{ item.file.name }}</div>
-            <div class="text-sm text-gray-500">{{ formatFileSize(item.file.size) }}</div>
+            <div class="font-medium doc-table-text">{{ item.file.name }}</div>
+            <div class="text-sm doc-table-meta">{{ formatFileSize(item.file.size) }}</div>
           </div>
           <div class="flex items-center gap-3">
             <div class="text-sm" :class="getStatusClass(item.status)">
@@ -218,11 +216,11 @@ const formatFileSize = (bytes) => {
 
 const getStatusClass = (status) => {
   const classes = {
-    pending: 'text-gray-500',
-    uploading: 'text-blue-500',
-    completed: 'text-green-500',
-    error: 'text-red-500'
+    pending: 'doc-status-pending',
+    uploading: 'doc-status-uploading',
+    completed: 'doc-status-completed',
+    error: 'doc-status-error'
   }
-  return classes[status] || 'text-gray-500'
+  return classes[status] || 'doc-status-pending'
 }
 </script>

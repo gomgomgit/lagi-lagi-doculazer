@@ -100,21 +100,19 @@ const applyFilters = () => {
 
 <template>
   <!-- Additional Sidebar (Tools/Context) -->
-  <aside class="w-80 base-card bg-card flex flex-col h-full">
+  <aside class="w-80 base-card bg-card flex flex-col h-full chat-tool-container">
     <!-- Header with Toggle -->
-    <div class="border-b border-gray-200 py-4 pb-0">
+    <div class="border-b py-4 pb-0 chat-tool-border">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold text-gray-800">
+        <h3 class="font-semibold chat-tool-header-title">
           {{ viewMode === 'tools' ? 'Chat Tools' : 'Context View' }}
         </h3>
         <div class="flex items-center gap-2">
           <!-- Toggle Button -->
           <button
             @click="toggleViewMode"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
-            :class="viewMode === 'context' 
-              ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors chat-tool-toggle"
+            :class="viewMode === 'context' ? 'active' : ''"
           >
             <BrainIcon class="w-3.5 h-3.5" />
             <span>{{ viewMode === 'tools' ? 'Context' : 'Tools' }}</span>
@@ -126,16 +124,16 @@ const applyFilters = () => {
       <div v-if="viewMode === 'tools'" class="flex gap-1 text-sm">
         <button 
           @click="setActiveTab('files')"
-          class="px-3 py-2 rounded-t-lg transition-colors"
-          :class="activeTab === 'files' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'"
+          class="px-3 py-2 rounded-t-lg transition-colors chat-tool-tab"
+          :class="activeTab === 'files' ? 'active border-b-2' : ''"
         >
           <FilesIcon class="w-4 h-4 inline mr-1" />
           Files
         </button>
         <button 
           @click="setActiveTab('filter')"
-          class="px-3 py-2 rounded-t-lg transition-colors"
-          :class="activeTab === 'filter' ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-500' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'"
+          class="px-3 py-2 rounded-t-lg transition-colors chat-tool-tab"
+          :class="activeTab === 'filter' ? 'active border-b-2' : ''"
         >
           <FilterIcon class="w-4 h-4 inline mr-1" />
           Filter
@@ -152,12 +150,12 @@ const applyFilters = () => {
           <div 
             v-for="file in files" 
             :key="file.id"
-            class="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            class="p-3 border rounded-lg transition-colors chat-tool-file"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1 min-w-0">
-                <h4 class="font-medium text-gray-800 text-sm truncate">{{ file.name }}</h4>
-                <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                <h4 class="font-medium text-sm truncate chat-tool-file-title">{{ file.name }}</h4>
+                <div class="flex items-center gap-2 mt-1 text-xs chat-tool-file-meta">
                   <CalendarIcon class="w-3 h-3" />
                   <span>{{ file.date }}</span>
                   <span>•</span>
@@ -165,14 +163,14 @@ const applyFilters = () => {
                   <span>{{ file.company }}</span>
                 </div>
               </div>
-              <button class="p-1 hover:bg-gray-100 rounded">
-                <EyeIcon class="w-4 h-4 text-gray-500" />
+              <button class="p-1 rounded chat-tool-file-action">
+                <EyeIcon class="w-4 h-4 chat-tool-file-meta" />
               </button>
             </div>
           </div>
           
           <!-- Empty state for files -->
-          <div v-if="files.length === 0" class="text-center py-8 text-gray-500">
+          <div v-if="files.length === 0" class="text-center py-8 chat-tool-empty">
             <p class="text-sm">No files uploaded yet</p>
           </div>
         </div>
@@ -181,7 +179,7 @@ const applyFilters = () => {
         <div v-if="activeTab === 'filter'" class="space-y-4">
           <!-- Keyword Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium mb-2 chat-tool-form-label">
               <SearchIcon class="w-4 h-4 inline mr-1" />
               Search Keyword
             </label>
@@ -189,31 +187,31 @@ const applyFilters = () => {
               v-model="filterKeyword"
               type="text"
               placeholder="Enter keyword to search..."
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
             />
           </div>
 
           <!-- Date Range Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium mb-2 chat-tool-form-label">
               <CalendarIcon class="w-4 h-4 inline mr-1" />
               Date Range
             </label>
             <div class="space-y-2">
               <div>
-                <span class="text-xs text-gray-500 mt-1 block">From</span>
+                <span class="text-xs my-1 block chat-tool-file-meta">From :</span>
                 <input
                   v-model="filterStartDate"
                   type="date"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
                 />
               </div>
               <div>
-                <span class="text-xs text-gray-500 mt-1 block">To</span>
+                <span class="text-xs my-1 block chat-tool-file-meta">To :</span>
                 <input
                   v-model="filterEndDate"
                   type="date"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                  class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
                 />
               </div>
             </div>
@@ -221,13 +219,13 @@ const applyFilters = () => {
 
           <!-- Company Filter -->
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
+            <label class="block text-sm font-medium mb-2 chat-tool-form-label">
               <BuildingIcon class="w-4 h-4 inline mr-1" />
               Company Mentioned
             </label>
             <select
               v-model="filterCompany"
-              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
             >
               <option value="">All companies</option>
               <option value="PT ABC">PT ABC</option>
@@ -262,12 +260,12 @@ const applyFilters = () => {
     </div>
 
     <!-- Applied Filters Footer (Only for Tools Mode) -->
-    <div v-if="viewMode === 'tools' && appliedFilters.length > 0" class="border-t border-gray-200 p-4">
+    <div v-if="viewMode === 'tools' && appliedFilters.length > 0" class="border-t chat-tool-border">
       <div class="flex items-center justify-between mb-2">
-        <h4 class="font-medium text-gray-800 text-sm">Applied Filters</h4>
+        <h4 class="font-medium text-sm chat-tool-header-title">Applied Filters</h4>
         <button 
           @click="clearAllFilters"
-          class="text-xs text-gray-500 hover:text-gray-700"
+          class="text-xs chat-tool-clear"
         >
           Clear All
         </button>
@@ -276,12 +274,12 @@ const applyFilters = () => {
         <span 
           v-for="filter in appliedFilters" 
           :key="filter.type"
-          class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+          class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full chat-tool-filter-badge"
         >
           {{ filter.label }}
           <button 
             @click="removeFilter(filter.type)"
-            class="hover:bg-blue-200 rounded-full p-0.5"
+            class="rounded-full p-0.5"
           >
             <XIcon class="w-3 h-3" />
           </button>

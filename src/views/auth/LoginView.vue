@@ -29,7 +29,7 @@
               type="email" 
               id="email" 
               name="email"
-              class="w-full px-4 py-3 border border-light-gray-300 rounded-full focus:ring-2 focus:ring-orange focus:border-orange outline-none transition-colors"
+              class="w-full px-4 py-3 border border-light-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               placeholder="Enter your email"
               required
             >
@@ -45,7 +45,7 @@
               type="password" 
               id="password" 
               name="password"
-              class="w-full px-4 py-3 border border-light-gray-300 rounded-full focus:ring-2 focus:ring-orange focus:border-orange outline-none transition-colors"
+              class="w-full px-4 py-3 border border-light-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
               placeholder="Enter your password"
               required
             >
@@ -59,13 +59,13 @@
                 type="checkbox" 
                 id="remember" 
                 name="remember"
-                class="w-4 h-4 text-orange border-light-gray-300 rounded focus:ring-orange"
+                class="w-4 h-4 text-blue-500 border-light-gray-300 rounded focus:ring-blue-500"
               >
               <label for="remember" class="ml-2 text-sm text-dark-600">
                 Remember me
               </label>
             </div>
-            <a href="#" class="text-sm text-orange hover:text-orange-700 transition-colors">
+            <a href="#" class="text-sm text-blue-500 hover:text-blue-700 transition-colors">
               Forgot password?
             </a>
           </div>
