@@ -17,7 +17,8 @@
       <p class="text-sm doc-manager-subtitle">
         Upload PDF, DOCX, TXT files to <strong>{{ selectedProject.name }}</strong> project
       </p>
-    </div>    <FileUpload 
+    </div>
+    <FileUpload 
       :multiple="true"
       accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
       :max-size="50 * 1024 * 1024"
