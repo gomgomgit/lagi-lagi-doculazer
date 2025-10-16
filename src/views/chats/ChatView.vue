@@ -74,7 +74,6 @@
             class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-16"
             @keydown="handleKeyDown"
             @input="handleInput"
-            @keydown.enter="sendMessage"
           >
           
           <!-- Document Mention Dropdown -->
@@ -96,9 +95,16 @@
             <span 
               v-for="doc in selectedDocuments" 
               :key="doc.id"
-              class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium"
+              class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1"
             >
               {{ doc.name }}
+              <button 
+                @click="removeDocument(doc.id)"
+                class="ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                type="button"
+              >
+                <XIcon class="w-3 h-3" />
+              </button>
             </span>
           </div>
           
@@ -122,7 +128,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon } from 'lucide-vue-next'
+import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
 
@@ -306,6 +312,21 @@ const handleInput = (event) => {
     selectedDocuments.value = []
   }
   
+  // Check which documents are still mentioned in the text and remove badges for missing ones
+  const currentMentions = []
+  selectedDocuments.value.forEach(doc => {
+    const mentionText = `@${doc.name}`
+    if (value.includes(mentionText)) {
+      currentMentions.push(doc)
+    }
+  })
+  
+  // Update selectedDocuments to only include documents still mentioned in text
+  if (currentMentions.length !== selectedDocuments.value.length) {
+    selectedDocuments.value = currentMentions
+    console.log('Updated selected documents based on text content:', selectedDocuments.value)
+  }
+  
   // Find the last @ symbol before cursor
   const textBeforeCursor = value.substring(0, cursorPos)
   const lastAtPos = textBeforeCursor.lastIndexOf('@')
@@ -330,30 +351,46 @@ const handleInput = (event) => {
 
 const handleKeyDown = (event) => {
   if (showMentionDropdown.value) {
+    console.log('handleKeyDown - dropdown is open, key pressed:', event.key)
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault()
+        event.stopPropagation()
         mentionDropdown.value?.moveUp()
         break
       case 'ArrowDown':
         event.preventDefault()
+        event.stopPropagation()
         mentionDropdown.value?.moveDown()
         break
       case 'Enter':
+        console.log('Enter pressed in dropdown, calling selectCurrent')
         event.preventDefault()
+        event.stopPropagation()
         mentionDropdown.value?.selectCurrent()
-        break
+        return // Important: return early to prevent sendMessage
       case 'Escape':
+        event.preventDefault()
+        event.stopPropagation()
         showMentionDropdown.value = false
         mentionQuery.value = ''
         mentionStartPos.value = -1
         break
     }
+  } else if (event.key === 'Enter') {
+    // Jika dropdown tidak terbuka dan Enter ditekan, kirim pesan
+    console.log('Enter pressed, sending message')
+    event.preventDefault()
+    sendMessage()
   }
 }
 
 const selectDocument = (document) => {
-  if (mentionStartPos.value === -1) return
+  console.log('selectDocument called with:', document)
+  if (mentionStartPos.value === -1) {
+    console.log('mentionStartPos is -1, returning')
+    return
+  }
   
   const input = messageInput.value
   const currentText = messageText.value
@@ -381,6 +418,21 @@ const selectDocument = (document) => {
     input.focus()
     input.setSelectionRange(newCursorPos, newCursorPos)
   })
+}
+
+const removeDocument = (documentId) => {
+  // Remove document from selected documents
+  selectedDocuments.value = selectedDocuments.value.filter(doc => doc.id !== documentId)
+  
+  // Also remove the @mention from the message text
+  const removedDoc = availableDocuments.value.find(doc => doc.id === documentId)
+  if (removedDoc) {
+    const mentionText = `@${removedDoc.name}`
+    messageText.value = messageText.value.replace(new RegExp(`${mentionText}\\s*`, 'g'), '')
+  }
+  
+  console.log('Document removed:', documentId)
+  console.log('Remaining selected documents:', selectedDocuments.value)
 }
 
 // Watch for route changes to load conversation data

@@ -154,8 +154,13 @@ const moveDown = () => {
 }
 
 const selectCurrent = () => {
-  if (filteredDocuments.value[selectedIndex.value]) {
+  console.log('selectCurrent called, selectedIndex:', selectedIndex.value)
+  console.log('filteredDocuments:', filteredDocuments.value)
+  if (filteredDocuments.value.length > 0 && filteredDocuments.value[selectedIndex.value]) {
+    console.log('Selecting document:', filteredDocuments.value[selectedIndex.value])
     emit('select', filteredDocuments.value[selectedIndex.value])
+  } else {
+    console.log('No document to select or invalid index')
   }
 }
 
