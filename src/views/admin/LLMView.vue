@@ -3,8 +3,8 @@
     <!-- Page Header -->
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">LLM Management</h1>
-        <p class="text-gray-600">Configure and manage Large Language Models</p>
+        <h1 class="text-2xl font-bold admin-title">LLM Management</h1>
+        <p class="admin-subtitle">Configure and manage Large Language Models</p>
       </div>
       <!-- <BaseButton>
         <PlusIcon class="w-4 h-4" />
@@ -13,9 +13,9 @@
     </div>
 
     <!-- LLM Models List -->
-    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-medium text-gray-900">Available Models</h3>
+    <div class="admin-page-card rounded-lg overflow-hidden">
+      <div class="px-6 py-4 admin-header">
+        <h3 class="text-lg font-medium admin-title">Available Models</h3>
       </div>
       
       <div class="divide-y divide-gray-200">
@@ -26,14 +26,14 @@
                 <BrainIcon class="w-6 h-6" />
               </div>
               <div>
-                <h4 class="text-lg font-medium text-gray-900">{{ model.name }}</h4>
-                <p class="text-sm text-gray-500">{{ model.provider }} • {{ model.version }}</p>
+                <h4 class="text-lg font-medium admin-table-text">{{ model.name }}</h4>
+                <p class="text-sm admin-table-meta">{{ model.provider }} • {{ model.version }}</p>
                 <div class="flex items-center gap-4 mt-2">
                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                        :class="model.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                        :class="model.status === 'active' ? 'admin-status-active' : 'admin-status-inactive'">
                     {{ model.status }}
                   </span>
-                  <!-- <span class="text-xs text-gray-500">{{ model.usage }} requests today</span> -->
+                  <!-- <span class="text-xs admin-table-meta">{{ model.usage }} requests today</span> -->
                 </div>
               </div>
             </div>
@@ -47,7 +47,7 @@
                   @change="toggleModelStatus(model)"
                   class="sr-only peer"
                 >
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                <div class="admin-toggle w-11 h-6 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
               </label>
               
               <!-- Actions -->

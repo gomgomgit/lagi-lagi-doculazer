@@ -1,9 +1,9 @@
 <template>
-  <div v-if="show" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
+  <div v-if="show" class="admin-modal-overlay fixed inset-0 flex items-center justify-center z-50">
+    <div class="admin-modal rounded-lg shadow-xl w-full max-w-md mx-4">
       <!-- Modal Header -->
-      <div class="flex items-center justify-between p-6 border-b border-gray-200">
-        <h2 class="text-xl font-semibold text-gray-900">
+      <div class="admin-header flex items-center justify-between p-6">
+        <h2 class="text-xl font-semibold admin-title">
           {{ isEditing ? 'Edit User' : 'Add New User' }}
         </h2>
         <BaseButton 
@@ -19,39 +19,39 @@
       <form @submit.prevent="handleSubmit" class="p-6 space-y-4">
         <!-- Name Field -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
+          <label class="admin-form-label block text-sm font-medium mb-2">
             Full Name *
           </label>
           <input
             v-model="form.name"
             type="text"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :class="{ 'border-red-500': errors.name }"
+            class="admin-form-input w-full px-3 py-2 rounded-lg"
+            :class="{ 'error': errors.name }"
             placeholder="Enter full name"
           />
-          <p v-if="errors.name" class="mt-1 text-sm text-red-600">{{ errors.name }}</p>
+          <p v-if="errors.name" class="admin-form-error-text mt-1 text-sm">{{ errors.name }}</p>
         </div>
 
         <!-- Email Field -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
+          <label class="admin-form-label block text-sm font-medium mb-2">
             Email Address *
           </label>
           <input
             v-model="form.email"
             type="email"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :class="{ 'border-red-500': errors.email }"
+            class="admin-form-input w-full px-3 py-2 rounded-lg"
+            :class="{ 'error': errors.email }"
             placeholder="Enter email address"
           />
-          <p v-if="errors.email" class="mt-1 text-sm text-red-600">{{ errors.email }}</p>
+          <p v-if="errors.email" class="admin-form-error-text mt-1 text-sm">{{ errors.email }}</p>
         </div>
 
         <!-- Password Field (only for new users) -->
         <div v-if="!isEditing">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
+          <label class="admin-form-label block text-sm font-medium mb-2">
             Password *
           </label>
           <div class="relative">
@@ -59,8 +59,8 @@
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
               required
-              class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              :class="{ 'border-red-500': errors.password }"
+              class="admin-form-input w-full px-3 py-2 pr-10 rounded-lg"
+              :class="{ 'error': errors.password }"
               placeholder="Enter password"
             />
             <BaseButton
@@ -71,42 +71,42 @@
               :icon="showPassword ? EyeOffIcon : EyeIcon"
             />
           </div>
-          <p v-if="errors.password" class="mt-1 text-sm text-red-600">{{ errors.password }}</p>
+          <p v-if="errors.password" class="admin-form-error-text mt-1 text-sm">{{ errors.password }}</p>
         </div>
 
         <!-- Confirm Password Field (only for new users) -->
         <div v-if="!isEditing">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
+          <label class="admin-form-label block text-sm font-medium mb-2">
             Confirm Password *
           </label>
           <input
             v-model="form.confirmPassword"
             type="password"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :class="{ 'border-red-500': errors.confirmPassword }"
+            class="admin-form-input w-full px-3 py-2 rounded-lg"
+            :class="{ 'error': errors.confirmPassword }"
             placeholder="Confirm password"
           />
-          <p v-if="errors.confirmPassword" class="mt-1 text-sm text-red-600">{{ errors.confirmPassword }}</p>
+          <p v-if="errors.confirmPassword" class="admin-form-error-text mt-1 text-sm">{{ errors.confirmPassword }}</p>
         </div>
 
         <!-- Role Field -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
+          <label class="admin-form-label block text-sm font-medium mb-2">
             Role *
           </label>
           <select
             v-model="form.role"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            :class="{ 'border-red-500': errors.role }"
+            class="admin-form-input w-full px-3 py-2 rounded-lg"
+            :class="{ 'error': errors.role }"
           >
             <option value="">Select role</option>
             <option value="admin">Admin</option>
             <option value="user">User</option>
             <option value="viewer">Viewer</option>
           </select>
-          <p v-if="errors.role" class="mt-1 text-sm text-red-600">{{ errors.role }}</p>
+          <p v-if="errors.role" class="admin-form-error-text mt-1 text-sm">{{ errors.role }}</p>
         </div>
 
         <!-- Form Actions -->
