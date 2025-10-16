@@ -883,150 +883,91 @@
 /* ADMIN PANEL COLORS & COMPONENTS */
 /* ================================================ */
 
-/* Admin Panel Color Variables - Reusing existing colors */
+/* Admin Color Variables - Reusing existing system */
 :root {
-  /* Admin Panel Layout */
-  --admin-page-bg: var(--bg-primary);
-  --admin-page-card-bg: var(--bg-secondary);
-  --admin-page-border: var(--border-color);
+  /* Admin Panel Colors */
+  --admin-bg: var(--bg-primary); /* Admin background */
+  --admin-sidebar-bg: var(--bg-secondary); /* Sidebar background */
+  --admin-sidebar-border: var(--border-light); /* Sidebar border */
   
-  /* Admin Headers & Text */
-  --admin-title: var(--text-primary);
-  --admin-subtitle: var(--text-secondary);
-  --admin-header-bg: var(--bg-tertiary);
-  --admin-header-text: var(--text-tertiary);
+  /* Admin Text */
+  --admin-title: var(--text-primary); /* Main titles */
+  --admin-subtitle: var(--text-secondary); /* Subtitles & descriptions */
+  --admin-nav-text: var(--text-secondary); /* Navigation text */
+  --admin-nav-hover-text: var(--text-primary); /* Navigation hover text */
+  --admin-nav-active-text: var(--primary-color); /* Active navigation text */
   
-  /* Admin Table */
-  --admin-table-header-bg: var(--bg-tertiary);
-  --admin-table-header-text: var(--text-tertiary);
-  --admin-table-row-hover: var(--bg-hover);
-  --admin-table-text: var(--text-primary);
-  --admin-table-meta: var(--text-secondary);
+  /* Admin Navigation */
+  --admin-nav-hover-bg: var(--bg-hover); /* Navigation hover background */
+  --admin-nav-active-bg: var(--primary-color-light); /* Active navigation background */
   
-  /* Admin Forms */
-  --admin-form-input-border: var(--border-color);
-  --admin-form-input-focus: var(--primary-color);
-  --admin-form-error: var(--error-color);
-  --admin-form-label: var(--text-primary);
+  /* Admin Button Colors */
+  --admin-btn-bg: var(--text-dark); /* Admin button background */
+  --admin-btn-text: var(--bg-primary); /* Admin button text */
+  --admin-btn-hover-text: var(--text-primary); /* Admin button hover text */
   
-  /* Admin Status Colors */
-  --admin-status-active: var(--success-color);
-  --admin-status-inactive: var(--error-color);
-  --admin-status-pending: var(--warning-color);
-  
-  /* Admin Modal */
-  --admin-modal-bg: var(--bg-secondary);
-  --admin-modal-overlay: rgba(0, 0, 0, 0.5);
-  --admin-modal-border: var(--border-color);
-  
-  /* Admin Toggle Switch */
-  --admin-toggle-bg: var(--bg-tertiary);
-  --admin-toggle-active: var(--primary-color);
-  --admin-toggle-focus: var(--primary-light);
+  /* Admin Content Area */
+  --admin-content-bg: var(--bg-primary); /* Main content background */
+  --admin-header-bg: transparent; /* Header background */
 }
 
-/* Admin Panel Container */
-.admin-page-container {
-  background-color: var(--admin-page-bg);
+/* Admin Layout Classes */
+.admin-layout {
+  background-color: var(--admin-bg);
 }
 
-.admin-page-card {
-  background-color: var(--admin-page-card-bg);
-  border-color: var(--admin-page-border);
+.admin-sidebar {
+  background-color: var(--admin-sidebar-bg);
+  border-color: var(--admin-sidebar-border);
 }
 
-/* Admin Headers */
-.admin-title {
+.admin-sidebar-title {
   color: var(--admin-title);
 }
 
-.admin-subtitle {
+.admin-sidebar-subtitle {
   color: var(--admin-subtitle);
 }
 
-.admin-header {
-  background-color: var(--admin-header-bg);
-  color: var(--admin-header-text);
+.admin-nav-link {
+  color: var(--admin-nav-text);
 }
 
-/* Admin Table */
-.admin-table-header {
-  background-color: var(--admin-table-header-bg);
+.admin-nav-link:hover {
+  background-color: var(--admin-nav-hover-bg);
+  color: var(--admin-nav-hover-text);
 }
 
-.admin-table-header-text {
-  color: var(--admin-table-header-text);
+.admin-nav-link.active {
+  background-color: var(--admin-nav-active-bg);
+  color: var(--admin-nav-active-text);
 }
 
-.admin-table-row:hover {
-  background-color: var(--admin-table-row-hover);
+.admin-header-title {
+  color: var(--admin-title);
 }
 
-.admin-table-text {
-  color: var(--admin-table-text);
+.admin-header-subtitle {
+  color: var(--admin-subtitle);
 }
 
-.admin-table-meta {
-  color: var(--admin-table-meta);
+.admin-user-button {
+  background-color: var(--admin-btn-bg);
+  color: var(--admin-btn-text);
 }
 
-/* Admin Forms */
-.admin-form-input {
-  border-color: var(--admin-form-input-border);
+.admin-user-button:hover {
+  color: var(--admin-btn-hover-text);
 }
 
-.admin-form-input:focus {
-  border-color: var(--admin-form-input-focus);
-  box-shadow: 0 0 0 2px var(--admin-form-input-focus);
+.admin-content {
+  background-color: var(--admin-content-bg);
 }
 
-.admin-form-input.error {
-  border-color: var(--admin-form-error);
+.admin-back-link {
+  color: var(--admin-nav-text);
 }
 
-.admin-form-label {
-  color: var(--admin-form-label);
-}
-
-.admin-form-error-text {
-  color: var(--admin-form-error);
-}
-
-/* Admin Status */
-.admin-status-active {
-  background-color: var(--success-light);
-  color: var(--admin-status-active);
-}
-
-.admin-status-inactive {
-  background-color: var(--error-light);
-  color: var(--admin-status-inactive);
-}
-
-.admin-status-pending {
-  background-color: var(--warning-light);
-  color: var(--admin-status-pending);
-}
-
-/* Admin Modal */
-.admin-modal-overlay {
-  background-color: var(--admin-modal-overlay);
-}
-
-.admin-modal {
-  background-color: var(--admin-modal-bg);
-  border-color: var(--admin-modal-border);
-}
-
-/* Admin Toggle Switch */
-.admin-toggle {
-  background-color: var(--admin-toggle-bg);
-}
-
-.admin-toggle:focus {
-  box-shadow: 0 0 0 4px var(--admin-toggle-focus);
-}
-
-.admin-toggle.active {
-  background-color: var(--admin-toggle-active);
+.admin-back-link:hover {
+  color: var(--admin-nav-hover-text);
 }
