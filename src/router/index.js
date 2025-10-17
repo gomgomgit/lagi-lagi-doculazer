@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import BaseLayout from '../components/BaseLayout.vue'
 import AdminLayout from '../components/AdminLayout.vue'
 import ChatView from '../views/chats/ChatView.vue'
@@ -108,6 +109,57 @@ const router = createRouter({
       ]
     }
   ],
+})
+
+// Navigation Guards
+router.beforeEach(async (to, from, next) => {
+  const authStore = useAuthStore()
+  
+  console.log('Navigation Guard:', {
+    to: to.path,
+    requiresAuth: to.matched.some(record => record.meta.requiresAuth),
+    requiresGuest: to.matched.some(record => record.meta.requiresGuest),
+    requiresAdmin: to.matched.some(record => record.meta.requiresAdmin),
+    isAuthenticated: authStore.isAuthenticated,
+    user: authStore.user
+  })
+
+  // Check if route requires authentication
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+
+  // Redirect to login if not authenticated
+  if (requiresAuth && !authStore.isAuthenticated) {
+    console.log('Redirecting to login - not authenticated')
+    next({
+      name: 'login',
+      query: { redirect: to.fullPath } // Save intended destination
+    })
+    return
+  }
+
+  // Redirect authenticated users away from guest-only pages (like login)
+  if (requiresGuest && authStore.isAuthenticated) {
+    console.log('Redirecting authenticated user away from guest page')
+    next({ name: 'chat' }) // or wherever you want to redirect logged-in users
+    return
+  }
+
+  // Check admin permissions
+  if (requiresAdmin && authStore.isAuthenticated) {
+    // You can add admin role check here
+    // For now, we'll assume all authenticated users can access admin
+    // In real app, you might check: authStore.user?.role === 'admin'
+    console.log('Admin route accessed')
+  }
+
+  // Set page title if provided
+  if (to.meta.title) {
+    document.title = to.meta.title
+  }
+
+  next()
 })
 
 export default router

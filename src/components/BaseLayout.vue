@@ -61,17 +61,45 @@
             <router-link to="/admin" class="mr-4">
               <SettingsIcon class="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800 transition-colors" />
             </router-link>
-            <router-link 
-              to="/profile"
-              class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-            >
-              <div class="flex items-center gap-2">
-                User
-                <button class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
-                  <UserIcon class="w-4 h-4" />
-                </button>
+            
+            <!-- User Dropdown -->
+            <div class="relative" ref="userDropdownRef">
+              <button 
+                @click="toggleUserDropdown"
+                class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <div class="flex items-center gap-2">
+                  User
+                  <div class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
+                    <UserIcon class="w-4 h-4" />
+                  </div>
+                </div>
+              </button>
+              
+              <!-- Dropdown Menu -->
+              <div 
+                v-if="showUserDropdown"
+                class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+              >
+                <div class="py-1">
+                  <router-link 
+                    to="/profile"
+                    @click="closeUserDropdown"
+                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <UserIcon class="w-4 h-4" />
+                    <span>Profile</span>
+                  </router-link>
+                  <button 
+                    @click="handleLogout"
+                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <LogOutIcon class="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
               </div>
-            </router-link>
+            </div>
           </div>
         </div>
       </header>
@@ -89,14 +117,16 @@
 </template>
 
 <script setup>
-import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon, MessageCircleIcon, PlusIcon, SettingsIcon, UserIcon } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon, LogOutIcon, MessageCircleIcon, PlusIcon, SettingsIcon, UserIcon } from 'lucide-vue-next'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import ProjectAccordion from '@/components/ui/ProjectAccordion.vue'
 import AddProjectModal from '@/components/documents/AddProjectModal.vue'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // State for navigation
 const selectedProjectId = ref(null)
@@ -104,6 +134,10 @@ const selectedConversationId = ref(null)
 
 // State for add project modal
 const showModal = ref(false)
+
+// State for user dropdown
+const showUserDropdown = ref(false)
+const userDropdownRef = ref(null)
 
 // Sample projects data with conversations
 const projects = ref([
@@ -221,6 +255,48 @@ const handleAddProject = (projectData) => {
 const cancelAddProject = () => {
   showModal.value = false
 }
+
+// User Dropdown handlers
+const toggleUserDropdown = () => {
+  showUserDropdown.value = !showUserDropdown.value
+}
+
+const closeUserDropdown = () => {
+  showUserDropdown.value = false
+}
+
+const handleLogout = async () => {
+  console.log('Logout clicked')
+  closeUserDropdown()
+  
+  try {
+    // Call logout method from auth store
+    await authStore.logout()
+    
+    // Redirect to login page
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Even if logout fails, redirect to login
+    router.push('/login')
+  }
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (userDropdownRef.value && !userDropdownRef.value.contains(event.target)) {
+    closeUserDropdown()
+  }
+}
+
+// Setup event listeners
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
 
 // Computed properties untuk mendapatkan header dan subtitle dari route meta
 const currentHeader = computed(() => {

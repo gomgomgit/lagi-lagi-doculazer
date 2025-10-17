@@ -4,13 +4,13 @@ import { ref, computed } from 'vue'
 export const useAuthStore = defineStore('auth', () => {
   // State
   const token = ref(localStorage.getItem('auth_token') || null)
-  const user = ref(null)
+  const user = ref(JSON.parse(localStorage.getItem('auth_user')) || null)
   const isLoading = ref(false)
 
   // Getters
   const isAuthenticated = computed(() => !!token.value)
   const isGuest = computed(() => !token.value)
-  const userId = computed(() => user.value?.user_id || null)
+  const userId = computed(() => user.user_id || null)
 
   // Actions
   const setToken = (newToken) => {
@@ -24,6 +24,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setUser = (userData) => {
     user.value = userData
+    if (userData) {
+      localStorage.setItem('auth_user', JSON.stringify(userData))
+    } else {
+      localStorage.removeItem('auth_user')
+    }
   }
 
   const login = async (credentials) => {
@@ -193,6 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isGuest,
     userId,
+    user,
     
     // Actions
     setToken,
