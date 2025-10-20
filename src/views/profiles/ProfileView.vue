@@ -167,7 +167,7 @@ const currentView = ref('profile') // 'profile', 'edit-profile', 'change-passwor
 
 // Computed properties untuk user data
 const userFullname = computed(() => {
-  return authStore.user?.name || authStore.user?.fullname || authStore.user?.full_name || 'User'
+  return authStore.user?.name || 'User'
 })
 
 const userEmail = computed(() => {

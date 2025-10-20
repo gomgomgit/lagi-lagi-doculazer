@@ -8,7 +8,7 @@ import LoginView from '@/views/auth/LoginView.vue'
 import DocumentsView from '@/views/documents/DocumentsView.vue'
 import FileUploadDemo from '@/views/FileUploadDemo.vue'
 import UsersView from '@/views/admin/UsersView.vue'
-import LLMView from '@/views/admin/LLMView.vue'
+import MultiModelView from '@/views/admin/MultiModelView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -100,10 +100,10 @@ const router = createRouter({
         {
           path: 'llm',
           name: 'admin-llm',
-          component: LLMView,
+          component: MultiModelView,
           meta: {
-            header: 'LLM Management',
-            subtitle: 'Configure and manage Large Language Models'
+            header: 'Multi Model Management',
+            subtitle: 'Configure and manage Large Language Models and Embeddings'
           }
         }
       ]

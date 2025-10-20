@@ -29,7 +29,7 @@
           :class="{ 'active': $route.path === '/admin/llm' }"
         >
           <BrainIcon class="w-5 h-5" />
-          <span class="font-medium">LLM</span>
+          <span class="font-medium">Multi Model</span>
         </router-link>
       </nav>
       
