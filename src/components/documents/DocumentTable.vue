@@ -123,8 +123,8 @@
             >
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <component :is="getFileIcon(doc.type)" class="w-5 h-5 text-gray-500" />
-                  <span class="font-medium doc-table-text">{{ doc.name }}</span>
+                  <component :is="getFileIcon(doc.mime)" class="w-5 h-5 text-gray-500" />
+                  <span class="font-medium doc-table-text">{{ doc.file_name }}</span>
                 </div>
               </td>
               <td class="px-4 py-3">
@@ -134,11 +134,11 @@
                 <span class="text-sm doc-table-meta">{{ formatDate(doc.uploadDate) }}</span>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm doc-table-meta">{{ formatFileSize(doc.size) }}</span>
+                <span class="text-sm doc-table-meta">{{ formatFileSize(doc.file_size) }}</span>
               </td>
               <td class="px-4 py-3">
                 <span class="inline-block px-2 py-1 text-xs font-medium rounded-full" :class="getTypeClass(doc.type)">
-                  {{ doc.type.toUpperCase() }}
+                  {{ doc.mime?.toUpperCase() }}
                 </span>
               </td>
               <td class="px-4 py-3">

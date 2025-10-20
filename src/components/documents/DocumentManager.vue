@@ -61,7 +61,40 @@
 
   <!-- Documents List -->
   <div class="mt-6 px-4">
+    <!-- Loading State -->
+    <div v-if="loading" class="text-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+      <p class="doc-table-meta">Loading documents...</p>
+    </div>
+    
+    <!-- Error State -->
+    <div v-else-if="error" class="text-center py-8">
+      <div class="text-red-500 mb-4">
+        <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+        </svg>
+      </div>
+      <p class="text-red-600 font-medium">Failed to load documents</p>
+      <p class="doc-table-meta mt-1">{{ error }}</p>
+      <BaseButton variant="primary" size="sm" class="mt-4" @click="retryFetch">
+        Try Again
+      </BaseButton>
+    </div>
+    
+    <!-- Empty State -->
+    <div v-else-if="!projectKnowledges || projectKnowledges.length === 0" class="text-center py-12">
+      <div class="doc-table-meta mb-4">
+        <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium mb-2 doc-manager-title">No documents yet</h3>
+      <p class="doc-table-meta">Start by uploading your first document to this project</p>
+    </div>
+    
+    <!-- Documents Table -->
     <DocumentTable
+      v-else
       :filtered-documents="filteredDocuments"
       v-model:search-query="searchQuery"
       v-model:filter-company="filterCompany"
@@ -71,7 +104,7 @@
       :sort-direction="sortDirection"
       @clear-filters="clearFilters"
       @sort="sortBy"
-      @refresh="$emit('refresh-documents')"
+      @refresh="retryFetch"
       @view-pdf="$emit('view-pdf', $event)"
       @download="$emit('download-document', $event)"
       @delete="$emit('confirm-delete', $event)"
@@ -137,55 +170,60 @@ const filterDateTo = ref('')
 
 // Computed
 const filteredDocuments = computed(() => {
-  let filtered = props.documents
-
-  // Filter by selected project first
-  if (props.selectedProject) {
-    filtered = filtered.filter(doc => doc.projectId === props.selectedProject.id)
-  }
+  // Gunakan projectKnowledges dari API sebagai sumber data
+  let filtered = [...(projectKnowledges.value || [])]
 
   // Filter by search query (filename)
   if (searchQuery.value) {
     filtered = filtered.filter(doc => 
-      doc.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+      doc.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+      doc.filename?.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   }
 
-  // Filter by company
-  if (filterCompany.value) {
+  // Filter by company (jika ada field company)
+  if (filterCompany.value && filterCompany.value !== 'all') {
     filtered = filtered.filter(doc => doc.company === filterCompany.value)
   }
 
   // Filter by date range
   if (filterDateFrom.value) {
-    filtered = filtered.filter(doc => doc.uploadDate >= filterDateFrom.value)
+    filtered = filtered.filter(doc => {
+      const docDate = new Date(doc.uploadDate || doc.created_at || doc.createdAt)
+      return docDate >= new Date(filterDateFrom.value)
+    })
   }
 
   if (filterDateTo.value) {
-    filtered = filtered.filter(doc => doc.uploadDate <= filterDateTo.value)
+    filtered = filtered.filter(doc => {
+      const docDate = new Date(doc.uploadDate || doc.created_at || doc.createdAt)
+      return docDate <= new Date(filterDateTo.value)
+    })
   }
 
   // Sort documents
-  filtered.sort((a, b) => {
-    let aVal = a[props.sortField]
-    let bVal = b[props.sortField]
-    
-    // Handle different data types
-    if (props.sortField === 'size') {
-      aVal = Number(aVal)
-      bVal = Number(bVal)
-    } else if (props.sortField === 'uploadDate') {
-      aVal = new Date(aVal)
-      bVal = new Date(bVal)
-    } else if (typeof aVal === 'string') {
-      aVal = aVal.toLowerCase()
-      bVal = bVal.toLowerCase()
-    }
-    
-    if (aVal < bVal) return props.sortDirection === 'asc' ? -1 : 1
-    if (aVal > bVal) return props.sortDirection === 'asc' ? 1 : -1
-    return 0
-  })
+  if (props.sortField && filtered.length > 0) {
+    filtered.sort((a, b) => {
+      let aVal = a[props.sortField]
+      let bVal = b[props.sortField]
+      
+      // Handle different data types
+      if (props.sortField === 'size') {
+        aVal = Number(aVal) || 0
+        bVal = Number(bVal) || 0
+      } else if (props.sortField === 'uploadDate' || props.sortField === 'created_at') {
+        aVal = new Date(aVal || 0)
+        bVal = new Date(bVal || 0)
+      } else if (typeof aVal === 'string') {
+        aVal = aVal.toLowerCase()
+        bVal = (bVal || '').toLowerCase()
+      }
+      
+      if (aVal < bVal) return props.sortDirection === 'asc' ? -1 : 1
+      if (aVal > bVal) return props.sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }
 
   return filtered
 })
@@ -230,10 +268,19 @@ const getStatusClass = (status) => {
   return classes[status] || 'doc-status-pending'
 }
 
+const retryFetch = () => {
+  if (props.selectedProject?.id) {
+    fetchProjectKnowledges(props.selectedProject.id)
+  }
+}
+
 watch(() => props.selectedProject, (newProject) => {
-  console.log('Selected project changed:', newProject)
-  if (newProject) {
+  if (newProject?.id) {
+    console.log('🔄 Project changed, fetching documents for:', newProject.name)
     fetchProjectKnowledges(newProject.id)
   }
+}, {
+  deep: true,
+  immediate: true
 })
 </script>
