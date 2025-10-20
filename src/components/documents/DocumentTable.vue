@@ -137,7 +137,7 @@
                 <span class="text-sm doc-table-meta">{{ formatFileSize(doc.file_size) }}</span>
               </td>
               <td class="px-4 py-3">
-                <span class="inline-block px-2 py-1 text-xs font-medium rounded-full" :class="getTypeClass(doc.type)">
+                <span class="inline-block px-2 py-1 text-xs font-medium rounded-full" :class="getTypeClass(doc.mime)">
                   {{ doc.mime?.toUpperCase() }}
                 </span>
               </td>
@@ -145,7 +145,7 @@
                 <div class="flex items-center justify-center gap-2">
                   <!-- View PDF -->
                   <button
-                    v-if="doc.type === 'pdf'"
+                    v-if="doc.mime === 'application/pdf'"
                     @click="$emit('view-pdf', doc)"
                     class="p-1 text-blue-600 hover:text-blue-800 transition-colors"
                     title="View PDF"
@@ -263,17 +263,17 @@ defineEmits([
 ])
 
 // Methods
-const getFileIcon = (type) => {
+const getFileIcon = (mime) => {
   const iconMap = {
-    pdf: FileTextIcon,
-    docx: FileIcon,
-    doc: FileIcon,
-    txt: FileTextIcon,
-    jpg: ImageIcon,
-    png: ImageIcon,
-    gif: ImageIcon
+    'application/pdf': FileTextIcon,
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': FileIcon,
+    'application/msword': FileIcon,
+    'text/plain': FileTextIcon,
+    'image/jpeg': ImageIcon,
+    'image/png': ImageIcon,
+    'image/gif': ImageIcon
   }
-  return iconMap[type] || FileIcon
+  return iconMap[mime] || FileIcon
 }
 
 const getTypeClass = (type) => {
