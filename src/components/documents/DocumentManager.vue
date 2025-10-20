@@ -80,12 +80,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ArrowLeftIcon } from 'lucide-vue-next'
 import CardHeader from '@/components/ui/CardHeader.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import FileUpload from '@/components/ui/FileUpload.vue'
 import DocumentTable from './DocumentTable.vue'
+import { useProjects } from '@/composables/useProjects'
+
+const { projectKnowledges, loading, error, fetchProjectKnowledges } = useProjects()
 
 // Props
 const props = defineProps({
@@ -129,6 +132,8 @@ const searchQuery = ref('')
 const filterCompany = ref('')
 const filterDateFrom = ref('')
 const filterDateTo = ref('')
+
+
 
 // Computed
 const filteredDocuments = computed(() => {
@@ -224,4 +229,11 @@ const getStatusClass = (status) => {
   }
   return classes[status] || 'doc-status-pending'
 }
+
+watch(() => props.selectedProject, (newProject) => {
+  console.log('Selected project changed:', newProject)
+  if (newProject) {
+    fetchProjectKnowledges(newProject.id)
+  }
+})
 </script>

@@ -136,6 +136,12 @@ export const documentAPI = {
   summarizeDocument: (documentId) => apiService.post(apiEndpoints.summarizeDocument, { documentId }),
 }
 
+// Projects API methods
+export const projectAPI = {
+  fetchProjects: () => apiService.get(apiEndpoints.projects),
+  fetchProjectKnowledges: (id) => apiService.get(`${apiEndpoints.projects}/${id}/knowledge`),
+}
+
 // Chat API methods
 export const chatAPI = {
   sendMessage: (message) => apiService.post(apiEndpoints.chat, { message }),

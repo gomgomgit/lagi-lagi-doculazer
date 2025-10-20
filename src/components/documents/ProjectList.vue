@@ -59,11 +59,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { FolderClosedIcon, FolderPlusIcon } from 'lucide-vue-next'
 import CardHeader from '@/components/ui/CardHeader.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import AddProjectModal from './AddProjectModal.vue'
+import { useProjects } from '@/composables/useProjects'
+
+// Composable
+const { projects, currentProject, loading, error, fetchProjects } = useProjects()
 
 // Props
 const props = defineProps({
@@ -109,4 +113,10 @@ const formatDate = (dateString) => {
     day: 'numeric'
   })
 }
+
+// Lifecycle
+onMounted(() => {
+  fetchProjects()
+  console.log('Projects fetched on mounted:', projects.value)
+})
 </script>

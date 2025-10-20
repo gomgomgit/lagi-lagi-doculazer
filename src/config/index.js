@@ -30,6 +30,9 @@ export const apiEndpoints = {
   // uploadDocument: `${config.apiBaseUrl}/documents/upload`,
   // summarizeDocument: `${config.apiBaseUrl}/documents/summarize`,
   
+  // Project endpoints
+  projects: `${config.apiBaseUrl}/v1/projects`,
+  
   // Chat endpoints
   // chat: `${config.apiBaseUrl}/chat`,
   // chatHistory: `${config.apiBaseUrl}/chat/history`,
