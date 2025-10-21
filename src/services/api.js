@@ -115,6 +115,8 @@ class ApiService {
 // Create instance
 const apiService = new ApiService()
 
+const apiBaseUrl = config.apiBaseUrl
+
 // Auth API methods
 export const authAPI = {
   login: (credentials) => apiService.post(apiEndpoints.login, credentials),
@@ -138,8 +140,12 @@ export const documentAPI = {
 
 // Projects API methods
 export const projectAPI = {
-  fetchProjects: () => apiService.get(apiEndpoints.projects),
-  fetchProjectKnowledges: (id) => apiService.get(`${apiEndpoints.projects}/${id}/knowledge`),
+  createProject: (formData) => apiService.post(`${apiBaseUrl}/v1/projects`, formData),
+  fetchProjects: () => apiService.get(`${apiBaseUrl}/v1/projects`),
+  fetchProjectsWithConversations: () => apiService.get(`${apiBaseUrl}/v1/projects-with-conversations`),
+  fetchProjectKnowledges: (id) => apiService.get(`${apiBaseUrl}/v1/projects/${id}/knowledge`),
+  updateProject: (id, formData) => apiService.put(`${apiBaseUrl}/v1/projects/${id}`, formData),
+  deleteProject: (id) => apiService.delete(`${apiBaseUrl}/v1/projects/${id}`),
 }
 
 // Chat API methods

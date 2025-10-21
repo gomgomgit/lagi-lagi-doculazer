@@ -8,7 +8,7 @@
       </div>
       
       <!-- Navigation Menu -->
-      <nav class="flex-1 space-y-2 mt-2">
+      <nav class="flex-1 space-y-2 mt-2 overflow-y-auto overflow-x-hidden">
         <!-- Add Project Button -->
         <button 
           @click="showAddProjectModal"
@@ -19,20 +19,48 @@
         </button>
         
         <!-- Project Accordion List -->
-        <ProjectAccordion
-          v-for="project in projects"
-          :key="project.id"
-          :project="project"
-          :selected-conversation-id="selectedConversationId"
-          :expanded-by-default="project.id === selectedProjectId"
-          @conversation-selected="onConversationSelected"
-          @add-conversation="onAddConversation"
-        />
         
-        <!-- Empty state -->
-        <div v-if="projects.length === 0" class="text-center py-8 text-gray-500">
-          <p class="text-sm">No projects available</p>
+        <!-- Loading State -->
+        <div v-if="loading" class="text-center py-8">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-3"></div>
+          <p class="text-sm text-gray-500">Loading projects...</p>
         </div>
+        
+        <!-- Error State -->
+        <div v-else-if="error" class="text-center py-8">
+          <div class="text-red-500 mb-3">
+            <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"></path>
+            </svg>
+          </div>
+          <p class="text-sm text-red-600 mb-2">Failed to load projects</p>
+          <button 
+            @click="fetchProjectsWithConversations" 
+            class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+        
+        <!-- Projects List -->
+        <template v-else>
+          <ProjectAccordion
+            v-for="project in projects"
+            :key="project.id"
+            :project="project"
+            :selected-conversation-id="selectedConversationId"
+            :expanded-by-default="project.id === selectedProjectId"
+            @conversation-selected="onConversationSelected"
+            @add-conversation="onAddConversation"
+            @edit-project="onEditProject"
+            @delete-project="onDeleteProject"
+          />
+          
+          <!-- Empty state -->
+          <div v-if="projects.length === 0" class="text-center py-8 text-gray-500">
+            <p class="text-sm">No projects available</p>
+          </div>
+        </template>
       </nav>
       
       <!-- Sidebar Footer -->
@@ -110,8 +138,20 @@
     <!-- Add Project Modal -->
     <AddProjectModal
       :show="showModal"
+      :loading="loading"
+      :error="error"
       @confirm="handleAddProject"
       @cancel="cancelAddProject"
+    />
+
+    <!-- Edit Project Modal -->
+    <EditProjectModal
+      :show="showEditModal"
+      :project="projectToEdit"
+      :loading="loading"
+      :error="error"
+      @confirm="handleEditProject"
+      @cancel="cancelEditProject"
     />
   </div>
 </template>
@@ -123,10 +163,27 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ProjectAccordion from '@/components/ui/ProjectAccordion.vue'
 import AddProjectModal from '@/components/documents/AddProjectModal.vue'
+import EditProjectModal from '@/components/documents/EditProjectModal.vue'
+import { useProjects } from '@/composables/useProjects'
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+// Use projects composable
+const { 
+  projectsWithConversations, 
+  loading, 
+  error, 
+  fetchProjectsWithConversations,
+  addProject,
+  updateProjectData,
+  deleteProjectById,
+  clearError
+} = useProjects()
+
+// Use projects from API instead of hardcoded data
+const projects = computed(() => projectsWithConversations.value || [])
 
 // State for navigation
 const selectedProjectId = ref(null)
@@ -135,79 +192,26 @@ const selectedConversationId = ref(null)
 // State for add project modal
 const showModal = ref(false)
 
+// State for edit project modal
+const showEditModal = ref(false)
+const projectToEdit = ref(null)
+
 // State for user dropdown
 const showUserDropdown = ref(false)
 const userDropdownRef = ref(null)
 
-// Sample projects data with conversations
-const projects = ref([
-  {
-    id: 1,
-    name: 'Project Wahiiid',
-    conversations: [
-      {
-        id: 1,
-        title: 'Summarize this document..',
-        messageCount: 5,
-        lastMessage: '2024-10-13',
-        projectId: 1
-      },
-      {
-        id: 2,
-        title: 'Analyze financial report',
-        messageCount: 3,
-        lastMessage: '2024-10-12',
-        projectId: 1
-      },
-      {
-        id: 3,
-        title: 'Review contract terms',
-        messageCount: 8,
-        lastMessage: '2024-10-11',
-        projectId: 1
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Project Tsanii',
-    conversations: [
-      {
-        id: 4,
-        title: 'Legal document analysis',
-        messageCount: 12,
-        lastMessage: '2024-10-13',
-        projectId: 2
-      },
-      {
-        id: 5,
-        title: 'Risk assessment review',
-        messageCount: 7,
-        lastMessage: '2024-10-10',
-        projectId: 2
-      },
-      {
-        id: 6,
-        title: 'Compliance checklist',
-        messageCount: 4,
-        lastMessage: '2024-10-09',
-        projectId: 2
-      }
-    ]
-  }
-])
-
 // Event handlers
 const onConversationSelected = (conversation) => {
-  selectedConversationId.value = conversation.id
-  selectedProjectId.value = conversation.projectId
+  console.log('Conversation selected:', conversation)
+  selectedConversationId.value = conversation.conversation_id
+  selectedProjectId.value = conversation.project_id
   
   // Navigate to chat view with conversation
   router.push({
     name: 'chat-conversation',
     params: {
-      projectId: conversation.projectId,
-      conversationId: conversation.id
+      projectId: conversation.project_id,
+      conversationId: conversation.conversation_id
     }
   })
 }
@@ -227,33 +231,112 @@ const onAddConversation = (project) => {
 
 // Add Project Modal handlers
 const showAddProjectModal = () => {
+  clearError() // Clear any previous errors
   showModal.value = true
 }
 
-const handleAddProject = (projectData) => {
+const handleAddProject = async (projectData) => {
   console.log('Add new project:', projectData)
   
-  // Generate new project ID
-  const newId = Math.max(...projects.value.map(p => p.id), 0) + 1
-  
-  // Create new project with conversations
-  const newProject = {
-    id: newId,
-    name: projectData.name,
-    conversations: []
+  try {
+    // Call API to create project
+    const newProject = await addProject(projectData)
+    
+    if (newProject) {
+      // Close modal on success
+      showModal.value = false
+      console.log('Project added successfully:', newProject)
+      
+      // Optionally refresh the projects list to ensure sync
+      fetchProjectsWithConversations()
+    } else {
+      // Error will be handled by the composable and shown in UI
+      console.error('Failed to create project')
+    }
+  } catch (err) {
+    console.error('Error in handleAddProject:', err)
   }
-  
-  // Add to projects array
-  projects.value.push(newProject)
-  
-  // Close modal
-  showModal.value = false
-  
-  console.log('Project added successfully:', newProject)
 }
 
 const cancelAddProject = () => {
   showModal.value = false
+}
+
+// Edit Project handlers
+const onEditProject = (project) => {
+  console.log('Edit project:', project)
+  projectToEdit.value = project
+  clearError() // Clear any previous errors
+  showEditModal.value = true
+}
+
+const handleEditProject = async (projectId, updatedData) => {
+  console.log('Update project:', projectId, updatedData)
+  
+  try {
+    // Call API to update project
+    const updatedProject = await updateProjectData(projectId, updatedData)
+    
+    if (updatedProject) {
+      // Close modal on success
+      showEditModal.value = false
+      projectToEdit.value = null
+      console.log('Project updated successfully:', updatedProject)
+      
+      // Optionally refresh the projects list to ensure sync
+      fetchProjectsWithConversations()
+    } else {
+      // Error will be handled by the composable and shown in UI
+      console.error('Failed to update project')
+    }
+  } catch (err) {
+    console.error('Error in handleEditProject:', err)
+  }
+}
+
+const cancelEditProject = () => {
+  showEditModal.value = false
+  projectToEdit.value = null
+}
+
+// Delete Project handler
+const onDeleteProject = async (project) => {
+  console.log('Delete project:', project)
+  
+  // Show confirmation dialog
+  const confirmed = window.confirm(
+    `Are you sure you want to delete the project "${project.name}"?\n\nThis action cannot be undone and will permanently delete all conversations in this project.`
+  )
+  
+  if (confirmed) {
+    try {
+      // Call API to delete project
+      const success = await deleteProjectById(project.id)
+      
+      if (success) {
+        console.log('Project deleted successfully:', project.id)
+        
+        // Refresh the projects list
+        fetchProjectsWithConversations()
+        
+        // If the deleted project was selected, clear selection
+        if (selectedProjectId.value === project.id) {
+          selectedProjectId.value = null
+          selectedConversationId.value = null
+          
+          // Navigate to default chat view if currently viewing deleted project
+          if (route.params.projectId === project.id) {
+            router.push({ name: 'chat' })
+          }
+        }
+      } else {
+        console.error('Failed to delete project')
+        // Error will be handled by the composable
+      }
+    } catch (err) {
+      console.error('Error in onDeleteProject:', err)
+    }
+  }
 }
 
 // User Dropdown handlers
@@ -292,6 +375,13 @@ const handleClickOutside = (event) => {
 // Setup event listeners
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+})
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+  
+  // Fetch projects with conversations when component mounts
+  fetchProjectsWithConversations()
 })
 
 onUnmounted(() => {

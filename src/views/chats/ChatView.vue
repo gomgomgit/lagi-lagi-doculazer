@@ -138,42 +138,16 @@ const route = useRoute()
 const projectId = computed(() => route.params.projectId)
 const conversationId = computed(() => route.params.conversationId)
 
-// Sample data (in real app, this would come from API/store)
-const projects = ref([
-  {
-    id: 1,
-    name: 'Project Wahiiid',
-    conversations: [
-      {
-        id: 1,
-        title: 'Summarize this document..',
-        messageCount: 5,
-        lastMessage: '2024-10-13',
-        projectId: 1
-      },
-      {
-        id: 2,
-        title: 'Analyze financial report',
-        messageCount: 3,
-        lastMessage: '2024-10-12',
-        projectId: 1
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Project Tsanii',
-    conversations: [
-      {
-        id: 4,
-        title: 'Legal document analysis',
-        messageCount: 12,
-        lastMessage: '2024-10-13',
-        projectId: 2
-      }
-    ]
-  }
-])
+// Use projects composable
+// const { 
+//   projectsWithConversations, 
+//   loading, 
+//   error, 
+//   fetchProjectsWithConversations 
+// } = useProjects()
+
+// Use projects from API instead of hardcoded data
+// const projects = computed(() => projectsWithConversations.value || [])
 
 // State
 const messageText = ref('')
@@ -253,16 +227,16 @@ const availableDocuments = ref([
 ])
 
 // Computed
-const currentProject = computed(() => {
-  if (!projectId.value) return null
-  return projects.value.find(p => p.id == projectId.value)
-})
+// const currentProject = computed(() => {
+//   if (!projectId.value) return null
+//   return projects.value.find(p => p.id == projectId.value)
+// })
 
-const currentConversation = computed(() => {
-  if (!conversationId.value || conversationId.value === 'new') return null
-  if (!currentProject.value) return null
-  return currentProject.value.conversations.find(c => c.id == conversationId.value)
-})
+// const currentConversation = computed(() => {
+//   if (!conversationId.value || conversationId.value === 'new') return null
+//   if (!currentProject.value) return null
+//   return currentProject.value.conversations.find(c => c.id == conversationId.value)
+// })
 
 // Methods
 const sendMessage = () => {
@@ -449,5 +423,8 @@ onMounted(() => {
     projectId: projectId.value,
     conversationId: conversationId.value
   })
+  
+  // Fetch projects with conversations when component mounts
+  // fetchProjectsWithConversations()
 })
 </script>

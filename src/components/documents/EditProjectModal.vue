@@ -7,11 +7,11 @@
     <div class="rounded-lg max-w-md w-full p-6 modal-content">
       <div class="flex items-center gap-3 mb-4">
         <div class="p-2 rounded-full modal-header-icon-bg">
-          <FolderPlusIcon class="w-6 h-6 modal-header-icon" />
+          <EditIcon class="w-6 h-6 modal-header-icon" />
         </div>
         <div>
-          <h3 class="text-lg font-medium modal-title">Create New Project</h3>
-          <p class="text-sm modal-subtitle">Enter a name for your new project</p>
+          <h3 class="text-lg font-medium modal-title">Edit Project</h3>
+          <p class="text-sm modal-subtitle">Update project information</p>
         </div>
       </div>
       
@@ -30,7 +30,7 @@
             :class="{
               'error': displayError
             }"
-            :disabled="props.loading"
+            :disabled="loading"
           />
           <p v-if="displayError" class="text-sm mt-1 form-error-text">{{ displayError }}</p>
         </div>
@@ -41,7 +41,7 @@
             variant="secondary" 
             size="sm"
             @click="cancel"
-            :disabled="props.loading"
+            :disabled="loading"
           >
             Cancel
           </BaseButton>
@@ -49,10 +49,10 @@
             type="submit"
             variant="primary" 
             size="sm"
-            :disabled="!projectName.trim() || props.loading"
+            :disabled="!projectName.trim() || loading || projectName === project?.name"
           >
-            <FolderPlusIcon class="w-4 h-4" /> 
-            {{ props.loading ? 'Creating...' : 'Create Project' }}
+            <EditIcon class="w-4 h-4" /> 
+            {{ loading ? 'Updating...' : 'Update Project' }}
           </BaseButton>
         </div>
       </form>
@@ -62,7 +62,7 @@
 
 <script setup>
 import { ref, watch, nextTick, computed } from 'vue'
-import { FolderPlusIcon } from 'lucide-vue-next'
+import { EditIcon } from 'lucide-vue-next'
 import BaseButton from '@/components/ui/BaseButton.vue'
 
 // Props
@@ -70,6 +70,10 @@ const props = defineProps({
   show: {
     type: Boolean,
     default: false
+  },
+  project: {
+    type: Object,
+    default: null
   },
   loading: {
     type: Boolean,
@@ -94,9 +98,9 @@ const displayError = computed(() => localError.value || props.error)
 
 // Watch for modal show/hide to focus input and reset form
 watch(() => props.show, async (newShow) => {
-  if (newShow) {
-    // Reset form when modal opens
-    projectName.value = ''
+  if (newShow && props.project) {
+    // Set current project name when modal opens
+    projectName.value = props.project.name || ''
     localError.value = ''
     
     // Focus input after modal is rendered
@@ -112,22 +116,56 @@ const cancel = () => {
   }
 }
 
+const validateProjectName = (name) => {
+  if (!name.trim()) {
+    return 'Project name is required'
+  }
+  
+  if (name.trim().length < 3) {
+    return 'Project name must be at least 3 characters'
+  }
+  
+  if (name.trim().length > 50) {
+    return 'Project name must be less than 50 characters'
+  }
+  
+  // Check for valid characters (letters, numbers, spaces, hyphens, underscores)
+  const validNameRegex = /^[a-zA-Z0-9\s\-_]+$/
+  if (!validNameRegex.test(name.trim())) {
+    return 'Project name can only contain letters, numbers, spaces, hyphens, and underscores'
+  }
+  
+  return null
+}
+
 const handleSubmit = async () => {
   const trimmedName = projectName.value.trim()
+  
+  // Validate project name
+  const validationError = validateProjectName(trimmedName)
+  if (validationError) {
+    localError.value = validationError
+    return
+  }
+  
+  // Check if name actually changed
+  if (trimmedName === props.project?.name) {
+    localError.value = 'Please change the project name'
+    return
+  }
   
   // Clear any previous local errors
   localError.value = ''
   
-  // Create new project object
-  const newProject = {
+  // Create updated project object
+  const updatedProject = {
     project_name: trimmedName,
-    system_prompt: '', // default system prompt
+    system_prompt: ''
   }
   
-  // Emit the project to parent (parent will handle loading and API call)
-  emit('confirm', newProject)
+  // Emit the updated project to parent (parent will handle loading and API call)
+  emit('confirm', props.project.id, updatedProject)
   
-  // Reset form (will be called by parent on success)
-  projectName.value = ''
+  // Form will be reset by parent on success
 }
 </script>
