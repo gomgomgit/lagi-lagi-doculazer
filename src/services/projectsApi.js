@@ -96,3 +96,51 @@ export const getProjectKnowledges = async (id) => {
     }
   }
 }
+
+export const ingestProjectKnowledge = async (projectId, formData) => {
+  try {
+    const response = await projectAPI.ingestProjectKnowledge(projectId, formData)
+    return {
+      success: true,
+      data: response.result,
+    }
+  } catch (error) {
+    console.error('Error ingesting project knowledge:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to ingest project knowledge'
+    }
+  }
+}
+
+export const deleteProjectKnowledge = async (projectId, knowledgeId) => {
+  try {
+    const response = await projectAPI.deleteProjectKnowledge(projectId, knowledgeId)
+    return {
+      success: true,
+      data: response.result,
+    }
+  } catch (error) {
+    console.error('Error deleting project knowledge:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to delete project knowledge'
+    }
+  }
+}
+
+export const getConversationHistory = async (projectId, conversationId) => {
+  try {
+    const response = await projectAPI.getConversationHistory(projectId, conversationId)
+    return {
+      success: true,
+      data: response.result,
+    }
+  } catch (error) {
+    console.error('Error fetching conversation history:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to fetch conversation history'
+    }
+  }
+}

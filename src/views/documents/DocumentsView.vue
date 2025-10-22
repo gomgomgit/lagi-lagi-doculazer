@@ -52,6 +52,10 @@ import DocumentManager from '@/components/documents/DocumentManager.vue'
 import PDFViewer from '@/components/documents/PDFViewer.vue'
 import DeleteConfirmModal from '@/components/documents/DeleteConfirmModal.vue'
 
+import { useProjects } from '@/composables/useProjects'
+const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById } = useProjects()
+
+
 // State untuk project selection
 const selectedProject = ref(null)
 const currentView = ref('project-list') // 'project-list' | 'document-management'
@@ -287,32 +291,60 @@ const onFileError = (errors) => {
 const uploadFile = async (item, index) => {
   try {
     uploadQueue.value[index].status = 'uploading'
+    uploadQueue.value[index].progress = 0
     
     const formData = new FormData()
     formData.append('file', item.file)
-    formData.append('project_id', selectedProject.value?.id)
     
-    // Simulate upload progress
-    for (let progress = 0; progress <= 100; progress += 10) {
-      uploadQueue.value[index].progress = progress
-      await new Promise(resolve => setTimeout(resolve, 100))
+    // Simulate progress during upload
+    const progressInterval = setInterval(() => {
+      if (uploadQueue.value[index].progress < 90) {
+        uploadQueue.value[index].progress += 10
+      }
+    }, 100)
+    
+    // Call the upload function and wait for response
+    const result = await uploadProjectKnowledge(selectedProject.value.id, formData)
+    
+    // Clear progress interval
+    clearInterval(progressInterval)
+    uploadQueue.value[index].progress = 100
+    
+    if (result && result.success) {
+      // Create document object from response or file data
+      const newDocument = {
+        id: result.data?.id || Date.now(),
+        name: result.data?.name || item.file.name,
+        company: selectedProject.value?.name || 'Unknown',
+        uploadDate: result.data?.uploadDate || new Date().toISOString().split('T')[0],
+        size: result.data?.size || item.file.size,
+        type: result.data?.type || item.file.name.split('.').pop().toLowerCase(),
+        projectId: selectedProject.value?.id || null,
+        url: result.data?.url || URL.createObjectURL(item.file)
+      }
+      
+      // Add the new document to the list
+      documents.value.unshift(newDocument)
+      uploadQueue.value[index].status = 'completed'
+      console.log(`File ${item.file.name} uploaded successfully`)
+      
+      // Auto refresh documents list after successful upload to sync with server
+      await refreshDocuments()
+      
+      // Remove completed item from upload queue after 2 seconds
+      setTimeout(() => {
+        const completedIndex = uploadQueue.value.findIndex((item, idx) => 
+          idx === index && item.status === 'completed'
+        )
+        if (completedIndex !== -1) {
+          uploadQueue.value.splice(completedIndex, 1)
+        }
+      }, 2000)
+    } else {
+      uploadQueue.value[index].status = 'error'
+      uploadQueue.value[index].error = result?.error || 'Upload failed'
+      console.error('Upload failed:', result?.error)
     }
-    
-    // Simulate adding to documents list
-    const newDocument = {
-      id: Date.now(),
-      name: item.file.name,
-      company: selectedProject.value?.name || 'Unknown',
-      uploadDate: new Date().toISOString().split('T')[0],
-      size: item.file.size,
-      type: item.file.name.split('.').pop().toLowerCase(),
-      projectId: selectedProject.value?.id || null,
-      url: URL.createObjectURL(item.file)
-    }
-    
-    documents.value.unshift(newDocument)
-    uploadQueue.value[index].status = 'completed'
-    console.log(`File ${item.file.name} uploaded successfully`)
     
   } catch (error) {
     uploadQueue.value[index].status = 'error'
@@ -323,7 +355,31 @@ const uploadFile = async (item, index) => {
 
 // Document management methods
 const refreshDocuments = async () => {
-  console.log('Refreshing documents...')
+  if (!selectedProject.value) {
+    console.warn('No project selected for document refresh')
+    return
+  }
+  
+  try {
+    console.log('Refreshing documents for project:', selectedProject.value.id)
+    
+    // Fetch updated documents from API
+    await fetchProjectKnowledges(selectedProject.value.id)
+    
+    // For now, we'll add a simple simulation of refreshing
+    // In a real implementation, you would:
+    // 1. Call an API to get documents for the project
+    // 2. Update the documents array with fresh data
+    
+    // Simulate adding the uploaded document to the current documents
+    // This ensures the UI shows the new document
+    const currentProjectDocs = documents.value.filter(doc => doc.projectId === selectedProject.value.id)
+    console.log(`Found ${currentProjectDocs.length} documents for project ${selectedProject.value.id}`)
+    
+    console.log('Documents refreshed successfully')
+  } catch (error) {
+    console.error('Error refreshing documents:', error)
+  }
 }
 
 // PDF Viewer methods
@@ -348,6 +404,7 @@ const downloadDocument = (document) => {
 
 // Delete methods
 const confirmDelete = (document) => {
+  console.log('Confirm delete for document:', document)
   documentToDelete.value = document
   showDeleteModal.value = true
 }
@@ -359,16 +416,32 @@ const cancelDelete = () => {
 
 const deleteDocument = async () => {
   try {
-    const docIndex = documents.value.findIndex(doc => doc.id === documentToDelete.value.id)
-    if (docIndex !== -1) {
-      documents.value.splice(docIndex, 1)
+    if (!documentToDelete.value || !selectedProject.value) {
+      console.error('No document or project selected for deletion')
+      return
+    }
+
+    console.log(`Deleting document ${documentToDelete.value.file_name} from project ${selectedProject.value.id}`)
+    
+    // Call API to delete document
+    const result = await deleteProjectKnowledgeById(selectedProject.value.id, documentToDelete.value.knowledge_source_id)
+    
+    if (result && result.success) {
+      
+      // Refresh documents to sync with server
+      await refreshDocuments()
+    } else {
+      console.error('Failed to delete document:', result?.error)
+      // You might want to show an error message to the user here
     }
     
-    console.log(`Document ${documentToDelete.value.name} deleted successfully`)
     showDeleteModal.value = false
     documentToDelete.value = null
   } catch (error) {
     console.error('Error deleting document:', error)
+    // You might want to show an error message to the user here
+    showDeleteModal.value = false
+    documentToDelete.value = null
   }
 }
 

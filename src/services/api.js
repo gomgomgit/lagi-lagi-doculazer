@@ -11,10 +11,17 @@ class ApiService {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
     
     const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers: {},
+    }
+
+    // Only add Content-Type for non-upload requests
+    if (!options.isUpload) {
+      defaultOptions.headers['Content-Type'] = 'application/json'
+    }
+
+    // Add any custom headers
+    if (options.headers) {
+      Object.assign(defaultOptions.headers, options.headers)
     }
 
     // Add auth token from Pinia store if available
@@ -38,6 +45,7 @@ class ApiService {
     const config = {
       ...defaultOptions,
       ...options,
+      headers: defaultOptions.headers, // Ensure headers are properly set
     }
 
     try {
@@ -101,14 +109,17 @@ class ApiService {
 
   // File upload request
   async upload(endpoint, formData, options = {}) {
-    return this.request(endpoint, {
+    // For file uploads, mark as upload and don't set Content-Type
+    const uploadOptions = {
       method: 'POST',
       body: formData,
+      isUpload: true, // Flag to prevent Content-Type being set
       headers: {
-        // Don't set Content-Type for FormData, let browser set it
         ...options.headers,
       },
-    })
+    }
+    
+    return this.request(endpoint, uploadOptions)
   }
 }
 
@@ -146,6 +157,12 @@ export const projectAPI = {
   fetchProjectKnowledges: (id) => apiService.get(`${apiBaseUrl}/v1/projects/${id}/knowledge`),
   updateProject: (id, formData) => apiService.put(`${apiBaseUrl}/v1/projects/${id}`, formData),
   deleteProject: (id) => apiService.delete(`${apiBaseUrl}/v1/projects/${id}`),
+
+  ingestProjectKnowledge: (id, formData) => apiService.upload(`${apiBaseUrl}/v1/projects/${id}/knowledge/ingest`, formData),
+  deleteProjectKnowledge: (projectId, knowledgeId) => apiService.delete(`${apiBaseUrl}/v1/projects/${projectId}/knowledge/${knowledgeId}`),
+  
+  // Conversation/Chat methods
+  getConversationHistory: (projectId, conversationId) => apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/conversations/${conversationId}/history`),
 }
 
 // Chat API methods

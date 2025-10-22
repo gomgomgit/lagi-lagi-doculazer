@@ -1,11 +1,12 @@
-import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject } from "@/services/projectsApi"
-import { ref } from "vue"
+import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, getConversationHistory } from '@/services/projectsApi'
+import { ref } from 'vue'
 
 export function useProjects() {
   // State
   const projects = ref([])
   const projectsWithConversations = ref([])
   const projectKnowledges = ref([])
+  const conversationHistory = ref([])
   const currentProject = ref(null)
   const loading = ref(false)
   const error = ref(null)
@@ -165,10 +166,83 @@ export function useProjects() {
     }
   }
 
+  
+
+  const uploadProjectKnowledge = async (projectId, formData) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await ingestProjectKnowledge(projectId, formData)
+      if (result.success) {
+        console.log('Project knowledge ingested successfully:', result.data)
+        
+        return result
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = 'Failed to upload project knowledge'
+      console.error(err)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deleteProjectKnowledgeById = async (projectId, knowledgeId) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await deleteProjectKnowledge(projectId, knowledgeId)
+      if (result.success) {
+        console.log('Project knowledge deleted successfully:', knowledgeId)
+        
+        return result
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = 'Failed to delete project knowledge'
+      console.error(err)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const fetchConversationHistory = async (projectId, conversationId) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await getConversationHistory(projectId, conversationId)
+      if (result.success) {
+        console.log('Conversation history fetched successfully:', result.data)
+        conversationHistory.value = result.data
+        
+        return result.data
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = 'Failed to fetch conversation history'
+      console.error(err)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     projects,
     projectsWithConversations,
     projectKnowledges,
+    conversationHistory,
     currentProject,
     loading,
     error,
@@ -176,6 +250,9 @@ export function useProjects() {
     fetchProjects,
     fetchProjectsWithConversations,
     fetchProjectKnowledges,
+    fetchConversationHistory,
+    uploadProjectKnowledge,
+    deleteProjectKnowledgeById,
     addProject,
     updateProjectData,
     deleteProjectById,

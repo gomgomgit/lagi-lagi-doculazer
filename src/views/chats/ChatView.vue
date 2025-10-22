@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-full gap-4">
     <!-- Main Chat Area -->
-    <div class="base-card bg-card flex flex-1 grow h-full overflow-scroll">
+    <div class="base-card bg-card flex flex-1 h-full overflow-scroll">
       <div class="flex-1 p-4 flex flex-col">
         <!-- Chat Header with Language Switch -->
         <div class="flex items-center justify-between mb-6">
@@ -59,8 +59,36 @@
           </div>
           
           <!-- Message bubbles would go here -->
-          <div v-for="message in messages" :key="message.id" class="mb-4">
-            <!-- Message rendering logic -->
+          <div v-for="message in messages" :key="message.id" class="chat-message-container">
+            <!-- User Message -->
+            <div v-if="message.role === 'Human'" class="chat-message-row user">
+              <div class="chat-message-bubble user">
+                {{ message.message }}
+              </div>
+            </div>
+            <!-- AI Message -->
+            <div v-else-if="message.role === 'AI'" class="chat-message-row ai">
+              <div class="chat-message-bubble ai">
+                {{ message.message }}
+              </div>
+            </div>
+            <!-- System/Error Messages -->
+            <div v-else class="chat-message-row system">
+              <div class="chat-message-bubble system">
+                {{ message.message }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Typing Indicator -->
+          <div v-if="isTyping" class="chat-message-row ai">
+            <div class="chat-typing-indicator">
+              <div class="chat-typing-dots">
+                <div class="chat-typing-dot"></div>
+                <div class="chat-typing-dot"></div>
+                <div class="chat-typing-dot"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -131,6 +159,7 @@ import { useRoute } from 'vue-router'
 import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
+import { useProjects } from '@/composables/useProjects'
 
 const route = useRoute()
 
@@ -139,20 +168,23 @@ const projectId = computed(() => route.params.projectId)
 const conversationId = computed(() => route.params.conversationId)
 
 // Use projects composable
-// const { 
-//   projectsWithConversations, 
-//   loading, 
-//   error, 
-//   fetchProjectsWithConversations 
-// } = useProjects()
+const { 
+  projectsWithConversations, 
+  conversationHistory,
+  loading, 
+  error, 
+  fetchProjectsWithConversations,
+  fetchConversationHistory
+} = useProjects()
 
 // Use projects from API instead of hardcoded data
-// const projects = computed(() => projectsWithConversations.value || [])
+const projects = computed(() => projectsWithConversations.value || [])
 
 // State
 const messageText = ref('')
-const messages = ref([])
+const messages = ref(conversationHistory.value || [])
 const currentLanguage = ref('id') // Default to Indonesian
+const isTyping = ref(false) // For AI typing indicator
 
 // Mention functionality state
 const messageInput = ref(null)
@@ -227,16 +259,16 @@ const availableDocuments = ref([
 ])
 
 // Computed
-// const currentProject = computed(() => {
-//   if (!projectId.value) return null
-//   return projects.value.find(p => p.id == projectId.value)
-// })
+const currentProject = computed(() => {
+  if (!projectId.value) return null
+  return projects.value.find(p => p.id == projectId.value)
+})
 
-// const currentConversation = computed(() => {
-//   if (!conversationId.value || conversationId.value === 'new') return null
-//   if (!currentProject.value) return null
-//   return currentProject.value.conversations.find(c => c.id == conversationId.value)
-// })
+const currentConversation = computed(() => {
+  if (!conversationId.value || conversationId.value === 'new') return null
+  if (!currentProject.value) return null
+  return currentProject.value.conversations?.find(c => c.id == conversationId.value)
+})
 
 // Methods
 const sendMessage = () => {
@@ -247,6 +279,18 @@ const sendMessage = () => {
   console.log('Conversation ID:', conversationId.value)
   console.log('Language:', currentLanguage.value)
   console.log('Selected Documents:', selectedDocuments.value)
+  
+  // Add user message to chat
+  const userMessage = {
+    id: Date.now(),
+    role: 'Human',
+    message: messageText.value,
+    timestamp: new Date().toISOString()
+  }
+  messages.value.push(userMessage)
+  
+  // Show typing indicator
+  isTyping.value = true
   
   // Here you would typically send the message to your backend
   // The message now includes document references
@@ -259,6 +303,18 @@ const sendMessage = () => {
   }
   
   console.log('Complete message data:', messageData)
+  
+  // Simulate AI response after delay
+  setTimeout(() => {
+    const aiMessage = {
+      id: Date.now() + 1,
+      role: 'AI',
+      message: `I received your message: "${messageText.value}". This is a demo response with selected documents: ${selectedDocuments.value.map(doc => doc.name).join(', ') || 'none'}.`,
+      timestamp: new Date().toISOString()
+    }
+    messages.value.push(aiMessage)
+    isTyping.value = false
+  }, 2000)
   
   // Clear the input and selected documents
   messageText.value = ''
@@ -409,13 +465,57 @@ const removeDocument = (documentId) => {
   console.log('Remaining selected documents:', selectedDocuments.value)
 }
 
+// Function to load conversation history
+const loadConversationHistory = async (projectId, conversationId) => {
+  if (!projectId || !conversationId || conversationId === 'new') {
+    console.log('Skipping history load for new conversation or missing params')
+    messages.value = []
+    return
+  }
+
+  try {
+    console.log(`Loading conversation history for project ${projectId}, conversation ${conversationId}`)
+    const history = await fetchConversationHistory(projectId, conversationId)
+    
+    if (history && history.length > 0) {
+      messages.value = history
+      console.log('Conversation history loaded:', history)
+    } else {
+      console.log('No conversation history found, showing demo messages')
+      // Demo messages for styling demonstration
+      messages.value = [
+        {
+          id: 1,
+          role: 'AI',
+          message: 'Hello! I\'m your AI assistant. I can help you analyze documents and answer questions about your projects. How can I assist you today?',
+          timestamp: new Date(Date.now() - 60000).toISOString()
+        },
+        {
+          id: 2,
+          role: 'Human',
+          message: 'Hi! Can you help me understand the key findings in the annual report?',
+          timestamp: new Date(Date.now() - 30000).toISOString()
+        },
+        {
+          id: 3,
+          role: 'AI',
+          message: 'I\'d be happy to help you with the annual report analysis! I can review the document and provide insights on financial performance, key metrics, strategic initiatives, and more. Would you like me to focus on any specific section?',
+          timestamp: new Date().toISOString()
+        }
+      ]
+    }
+  } catch (error) {
+    console.error('Error loading conversation history:', error)
+    messages.value = []
+  }
+}
+
 // Watch for route changes to load conversation data
-watch([projectId, conversationId], ([newProjectId, newConversationId]) => {
+watch([projectId, conversationId], async ([newProjectId, newConversationId]) => {
   console.log('Route changed:', { projectId: newProjectId, conversationId: newConversationId })
   
-  // Load messages for the conversation
-  // This would typically be an API call
-  messages.value = []
+  // Load conversation history
+  await loadConversationHistory(newProjectId, newConversationId)
 }, { immediate: true })
 
 onMounted(() => {
@@ -425,6 +525,6 @@ onMounted(() => {
   })
   
   // Fetch projects with conversations when component mounts
-  // fetchProjectsWithConversations()
+  fetchProjectsWithConversations()
 })
 </script>

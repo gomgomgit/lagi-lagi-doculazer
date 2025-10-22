@@ -41,7 +41,8 @@ export const getDocument = async (id) => {
 }
 
 // Upload new document
-export const uploadDocument = async (formData, onProgress = null) => {
+export const 
+uploadDocument = async (formData, onProgress = null) => {
   try {
     const config = {
       headers: {
@@ -58,7 +59,7 @@ export const uploadDocument = async (formData, onProgress = null) => {
       }
     }
 
-    const response = await api.post('/documents/upload', formData, config)
+    const response = await api.post('/documents/upload', )
     return {
       success: true,
       data: response.data.data
