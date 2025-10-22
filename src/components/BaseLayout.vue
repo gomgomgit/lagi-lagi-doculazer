@@ -1,7 +1,7 @@
 <template>
   <div class="flex h-screen bg-base gap-4 p-4">
     <!-- Sidebar -->
-    <aside class="w-64 base-card bg-card text-base flex flex-col">
+    <aside class="w-80 base-card bg-card text-base flex flex-col">
       <!-- Sidebar Header -->
       <div class="py-2 pt-0 border-b border-gray-200">
         <h1 class="text-xl font-bold text-gray-800">My Workspace</h1>
