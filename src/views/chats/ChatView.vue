@@ -118,7 +118,6 @@
             :show="showMentionDropdown"
             :documents="availableDocuments"
             :query="mentionQuery"
-            :project-id="projectId"
             @select="selectDocument"
             ref="mentionDropdown"
           />
@@ -395,7 +394,6 @@ const handleInput = (event) => {
   // Update selectedDocuments to only include documents still mentioned in text
   if (currentMentions.length !== selectedDocuments.value.length) {
     selectedDocuments.value = currentMentions
-    console.log('Updated selected documents based on text content:', selectedDocuments.value)
   }
   
   // Find the last @ symbol before cursor
@@ -405,6 +403,7 @@ const handleInput = (event) => {
   if (lastAtPos !== -1) {
     // Check if there's a space after the @ (which would end the mention)
     const textAfterAt = textBeforeCursor.substring(lastAtPos + 1)
+    
     if (!textAfterAt.includes(' ')) {
       // We're in a mention
       mentionStartPos.value = lastAtPos
@@ -422,7 +421,6 @@ const handleInput = (event) => {
 
 const handleKeyDown = (event) => {
   if (showMentionDropdown.value) {
-    console.log('handleKeyDown - dropdown is open, key pressed:', event.key)
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault()
@@ -435,7 +433,6 @@ const handleKeyDown = (event) => {
         mentionDropdown.value?.moveDown()
         break
       case 'Enter':
-        console.log('Enter pressed in dropdown, calling selectCurrent')
         event.preventDefault()
         event.stopPropagation()
         mentionDropdown.value?.selectCurrent()
@@ -450,16 +447,13 @@ const handleKeyDown = (event) => {
     }
   } else if (event.key === 'Enter') {
     // Jika dropdown tidak terbuka dan Enter ditekan, kirim pesan
-    console.log('Enter pressed, sending message')
     event.preventDefault()
     sendMessage()
   }
 }
 
 const selectDocument = (document) => {
-  console.log('selectDocument called with:', document)
   if (mentionStartPos.value === -1) {
-    console.log('mentionStartPos is -1, returning')
     return
   }
   
