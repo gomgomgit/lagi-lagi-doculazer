@@ -227,8 +227,6 @@ export function useMarkdown() {
     
     // Wrap list items in ul/ol
     html = html.replace(/(<li class="markdown-list-item">.*<\/li>)/gs, '<ul class="markdown-unordered-list">$1</ul>')
-    
-    console.log('Basic parsed HTML:', html)
     return html
   }
 

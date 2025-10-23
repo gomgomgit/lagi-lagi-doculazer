@@ -209,9 +209,6 @@
   --chat-message-error-text: #dc2626; /* Error message text - red-600 */
   --chat-message-error-border: #fecaca; /* Error message border - red-300 */
   
-  --chat-message-hover-scale: 1.02; /* Message hover scale transform */
-  --chat-message-transition: all 0.2s ease-in-out; /* Message animations */
-  
   /* Chat Tool Header */
   --chat-tool-header-text: #1f2937; /* Header title text - gray-800 */
   --chat-tool-toggle-bg: #f3f4f6; /* Toggle button default background - gray-100 */
@@ -1176,18 +1173,6 @@
 /* Base Message Container */
 .chat-message-container {
   margin-bottom: 1rem; /* mb-4 */
-  animation: fadeInUp 0.3s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Message Row Alignment */
@@ -1216,13 +1201,8 @@
   font-size: 0.9rem; /* text-sm */
   line-height: 1.5; /* leading-relaxed */
   word-wrap: break-word;
-  transition: var(--chat-message-transition);
   position: relative;
   box-shadow: var(--chat-message-ai-shadow);
-}
-
-.chat-message-bubble:hover {
-  transform: scale(var(--chat-message-hover-scale));
 }
 
 /* User Message Bubble */

@@ -133,7 +133,7 @@
               :key="doc.id"
               class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-medium flex items-center gap-1"
             >
-              {{ doc.name }}
+              {{ doc.file_name }}
               <button 
                 @click="removeDocument(doc.id)"
                 class="ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
@@ -181,10 +181,12 @@ const conversationId = computed(() => route.params.conversationId)
 // Use projects composable
 const { 
   projectsWithConversations, 
+  projectKnowledges,
   conversationHistory,
   loading, 
   error, 
   fetchProjectsWithConversations,
+  fetchProjectKnowledges,
   fetchConversationHistory,
   sendMessage: sendApiMessage
 } = useProjects()
@@ -210,69 +212,10 @@ const mentionQuery = ref('')
 const mentionStartPos = ref(-1)
 const selectedDocuments = ref([])
 
-// Documents data - using same structure as DocumentsView
-const availableDocuments = ref([
-  {
-    id: 1,
-    name: 'Annual_Report_2024.pdf',
-    company: 'PT ABC',
-    uploadDate: '2024-10-01',
-    size: 2048576, // 2MB
-    type: 'pdf',
-    projectId: 1,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  },
-  {
-    id: 2,
-    name: 'Financial_Statement_Q3.pdf',
-    company: 'PT XYZ',
-    uploadDate: '2024-09-15',
-    size: 1536000, // 1.5MB
-    type: 'pdf',
-    projectId: 1,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  },
-  {
-    id: 3,
-    name: 'Contract_Agreement.docx',
-    company: 'CV DEF',
-    uploadDate: '2024-10-10',
-    size: 512000, // 500KB
-    type: 'docx',
-    projectId: 2,
-    url: '#'
-  },
-  {
-    id: 4,
-    name: 'Meeting_Notes.txt',
-    company: 'PT ABC',
-    uploadDate: '2024-10-12',
-    size: 25600, // 25KB
-    type: 'txt',
-    projectId: 1,
-    url: '#'
-  },
-  {
-    id: 5,
-    name: 'Budget_Proposal_2025.pdf',
-    company: 'PT XYZ',
-    uploadDate: '2024-10-05',
-    size: 3072000, // 3MB
-    type: 'pdf',
-    projectId: 2,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  },
-  {
-    id: 6,
-    name: 'Due_Diligence_Report.pdf',
-    company: 'CV DEF',
-    uploadDate: '2024-10-08',
-    size: 4096000, // 4MB
-    type: 'pdf',
-    projectId: 3,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  }
-])
+// Documents data - will be fetched from API
+const availableDocuments = computed(() => {
+  return projectKnowledges.value || []
+})
 
 // Computed
 const currentProject = computed(() => {
@@ -281,6 +224,7 @@ const currentProject = computed(() => {
 })
 
 const currentConversation = computed(() => {
+  console.log('Computing currentConversation for ID:', conversationId)
   if (!conversationId.value || conversationId.value === 'new') return null
   if (!currentProject.value) return null
   return currentProject.value.conversations?.find(c => c.id == conversationId.value)
@@ -290,11 +234,11 @@ const currentConversation = computed(() => {
 const sendMessage = async () => {
   if (!messageText.value.trim()) return
   
-  console.log('Sending message:', messageText.value)
-  console.log('Project ID:', projectId.value)
-  console.log('Conversation ID:', conversationId.value)
-  console.log('Language:', currentLanguage.value)
-  console.log('Selected Documents:', selectedDocuments.value)
+  // console.log('Sending message:', messageText.value)
+  // console.log('Project ID:', projectId.value)
+  // console.log('Conversation ID:', conversationId.value)
+  // console.log('Language:', currentLanguage.value)
+  // console.log('Selected Documents:', selectedDocuments.value)
   
   // Add user message to chat immediately for better UX
   const userMessage = {
@@ -321,10 +265,13 @@ const sendMessage = async () => {
   
   try {
     // Send message to API
+    // Use empty string for conversation_id when it's 'new'
+    const apiConversationId = conversationId.value === 'new' ? '' : conversationId.value
+    
     const response = await sendApiMessage(
       projectId.value, 
       messageToSend, 
-      conversationId.value
+      apiConversationId
     )
     
     if (response) {
@@ -344,7 +291,7 @@ const sendMessage = async () => {
         timestamp: new Date().toISOString()
       }
       messages.value.push(errorMessage)
-      console.error('Failed to get response from API')
+      // console.error('Failed to get response from API')
       scrollToBottom()
     }
   } catch (error) {
@@ -385,7 +332,9 @@ const handleInput = (event) => {
   // Check which documents are still mentioned in the text and remove badges for missing ones
   const currentMentions = []
   selectedDocuments.value.forEach(doc => {
-    const mentionText = `@${doc.name}`
+    // Handle different possible field names from API (name, filename, title, etc.)
+    const docName = doc.file_name
+    const mentionText = `@${docName}`
     if (value.includes(mentionText)) {
       currentMentions.push(doc)
     }
@@ -463,7 +412,9 @@ const selectDocument = (document) => {
   // Replace the @query with the document mention
   const beforeMention = currentText.substring(0, mentionStartPos.value)
   const afterMention = currentText.substring(mentionStartPos.value + mentionQuery.value.length + 1)
-  const mentionText = `@${document.name}`
+  // Handle different possible field names from API (name, filename, title, etc.)
+  const docName = document.file_name
+  const mentionText = `@${docName}`
   
   messageText.value = beforeMention + mentionText + ' ' + afterMention
   
@@ -492,12 +443,14 @@ const removeDocument = (documentId) => {
   // Also remove the @mention from the message text
   const removedDoc = availableDocuments.value.find(doc => doc.id === documentId)
   if (removedDoc) {
-    const mentionText = `@${removedDoc.name}`
+    // Handle different possible field names from API (name, filename, title, etc.)
+    const docName = removedDoc.file_name
+    const mentionText = `@${docName}`
     messageText.value = messageText.value.replace(new RegExp(`${mentionText}\\s*`, 'g'), '')
   }
   
-  console.log('Document removed:', documentId)
-  console.log('Remaining selected documents:', selectedDocuments.value)
+  // console.log('Document removed:', documentId)
+  // console.log('Remaining selected documents:', selectedDocuments.value)
 }
 
 // Function to load conversation history
@@ -509,79 +462,43 @@ const loadConversationHistory = async (projectId, conversationId) => {
   }
 
   try {
-    console.log(`Loading conversation history for project ${projectId}, conversation ${conversationId}`)
+    // console.log(`Loading conversation history for project ${projectId}, conversation ${conversationId}`)
     const history = await fetchConversationHistory(projectId, conversationId)
     
     if (history && history.length > 0) {
       messages.value = history
-      console.log('Conversation history loaded:', history)
-    } else {
-      console.log('No conversation history found, showing demo messages')
-      // Demo messages for styling demonstration
-      messages.value = [
-        {
-          id: 1,
-          role: 'AI',
-          message: `Hello! I'm your **AI assistant**. I can help you analyze documents and answer questions about your projects. 
-
-Here's what I can do:
-- Analyze *financial reports* and documents
-- Answer questions with **detailed explanations**
-- Provide \`code examples\` when needed
-- Create tables and lists
-
-How can I assist you today?`,
-          timestamp: new Date(Date.now() - 60000).toISOString()
-        },
-        {
-          id: 2,
-          role: 'Human',
-          message: 'Hi! Can you help me understand the **key findings** in the annual report? Please provide a summary with some examples.',
-          timestamp: new Date(Date.now() - 30000).toISOString()
-        },
-        {
-          id: 3,
-          role: 'AI',
-          message: `I'd be happy to help you with the annual report analysis! Here's what I can provide:
-
-## Key Areas I Can Analyze:
-
-### 1. Financial Performance
-- **Revenue growth** and trends
-- *Profit margins* and cost analysis
-- Cash flow statements
-
-### 2. Strategic Initiatives
-- Market expansion plans
-- Investment priorities
-- Risk management strategies
-
-### Example Code for Analysis:
-\`\`\`python
-def analyze_revenue_growth(data):
-    growth_rate = (current_year - previous_year) / previous_year
-    return growth_rate * 100
-\`\`\`
-
-> **Note**: I'll need access to the specific document to provide detailed insights.
-
-Would you like me to focus on any **specific section** of the report?`,
-          timestamp: new Date().toISOString()
-        }
-      ]
+      // console.log('Conversation history loaded:', history)
     }
-    
-    // Scroll to bottom after loading messages
-    scrollToBottom()
   } catch (error) {
-    console.error('Error loading conversation history:', error)
+    // console.error('Error loading conversation history:', error)
     messages.value = []
+  }
+}
+
+// Function to load project knowledge documents
+const loadProjectKnowledge = async (projectId) => {
+  if (!projectId) {
+    console.log('Skipping knowledge load for missing project ID')
+    return
+  }
+
+  try {
+    console.log(`Loading project knowledge for project ${projectId}`)
+    await fetchProjectKnowledges(projectId)
+    console.log('Project knowledge loaded:', projectKnowledges.value)
+  } catch (error) {
+    console.error('Error loading project knowledge:', error)
   }
 }
 
 // Watch for route changes to load conversation data
 watch([projectId, conversationId], async ([newProjectId, newConversationId]) => {
   console.log('Route changed:', { projectId: newProjectId, conversationId: newConversationId })
+  
+  // Load project knowledge documents when project changes
+  if (newProjectId) {
+    await loadProjectKnowledge(newProjectId)
+  }
   
   // Load conversation history
   await loadConversationHistory(newProjectId, newConversationId)

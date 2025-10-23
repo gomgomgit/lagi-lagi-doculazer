@@ -20,7 +20,7 @@
         <!-- Document Icon -->
         <div class="flex-shrink-0">
           <component 
-            :is="getDocumentIcon(document.type)" 
+            :is="getDocumentIcon(document.type || 'unknown')" 
             class="w-4 h-4 text-gray-500" 
           />
         </div>
@@ -28,19 +28,19 @@
         <!-- Document Info -->
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium text-gray-900 truncate">
-            {{ document.name }}
+            {{ document.file_name }}
           </div>
           <div class="text-xs text-gray-500 truncate">
-            {{ document.company }} • {{ formatFileSize(document.size) }}
+            {{ document.company || 'No Company' }} • {{ formatFileSize(document.file_size || 0) }}
           </div>
         </div>
         
         <!-- Document Type Badge -->
-        <div class="flex-shrink-0">
-          <span :class="getTypeBadgeClass(document.type)" class="px-2 py-0.5 text-xs font-medium rounded">
-            {{ document.type.toUpperCase() }}
+        <!-- <div class="flex-shrink-0">
+          <span :class="getTypeBadgeClass(document.type || document.file_type || 'unknown')" class="px-2 py-0.5 text-xs font-medium rounded">
+            {{ (document.type || document.file_type || 'unknown').toUpperCase() }}
           </span>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -88,10 +88,12 @@ const filteredDocuments = computed(() => {
   // Filter by search query
   if (props.query.trim()) {
     const query = props.query.toLowerCase().trim()
-    filtered = filtered.filter(doc => 
-      doc.name.toLowerCase().includes(query) ||
-      doc.company.toLowerCase().includes(query)
-    )
+    filtered = filtered.filter(doc => {
+      const docName = doc.file_name || ''
+      const docCompany = doc.company || doc.metadata?.company || ''
+      return docName.toLowerCase().includes(query) ||
+             docCompany.toLowerCase().includes(query)
+    })
   }
 
   // Limit to 10 results
@@ -107,7 +109,8 @@ const getDocumentIcon = (type) => {
     txt: FileTextIcon,
     jpg: ImageIcon,
     png: ImageIcon,
-    gif: ImageIcon
+    gif: ImageIcon,
+    unknown: FileIcon
   }
   return iconMap[type] || FileIcon
 }
@@ -120,7 +123,8 @@ const getTypeBadgeClass = (type) => {
     txt: 'bg-gray-100 text-gray-700',
     jpg: 'bg-green-100 text-green-700',
     png: 'bg-green-100 text-green-700',
-    gif: 'bg-green-100 text-green-700'
+    gif: 'bg-green-100 text-green-700',
+    unknown: 'bg-gray-100 text-gray-700'
   }
   return classMap[type] || 'bg-gray-100 text-gray-700'
 }
