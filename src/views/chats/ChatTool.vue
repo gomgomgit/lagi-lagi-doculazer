@@ -4,6 +4,14 @@ import BaseButton from '@/components/ui/BaseButton.vue';
 import { CircleXIcon, EyeIcon, SlidersHorizontalIcon, SquareXIcon, SearchIcon, CalendarIcon, BuildingIcon, FilterIcon, XIcon, FilesIcon, BrainIcon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 
+// Props
+const props = defineProps({
+  documents: {
+    type: Array,
+    default: () => []
+  }
+});
+
 // View mode state
 const viewMode = ref('tools'); // 'tools' | 'context'
 
@@ -16,30 +24,72 @@ const filterStartDate = ref('')
 const filterEndDate = ref('')
 const filterCompany = ref('')
 
-// Sample files data
-const files = ref([
-  {
-    id: 1,
-    name: 'MoM-Notes-10/12/2024.pdf',
-    date: '2024-10-12',
-    company: 'PT ABC',
-    type: 'pdf'
-  },
-  {
-    id: 2,
-    name: 'Financial-Report-Q3.pdf',
-    date: '2024-10-10',
-    company: 'PT XYZ',
-    type: 'pdf'
-  },
-  {
-    id: 3,
-    name: 'Contract-Agreement.docx',
-    date: '2024-10-08',
-    company: 'CV DEF',
-    type: 'docx'
+// Files data from API
+const files = computed(() => {
+  return props.documents.map((doc: any) => {
+    // Extract file extension from filename
+    const fileExtension = doc.file_name ? doc.file_name.split('.').pop()?.toLowerCase() : 'unknown'
+    console.log('Document date:', doc)
+    return {
+      id: doc.id,
+      name: doc.file_name || 'Unknown File',
+      date: doc.file_date ? new Date(doc.file_date).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
+      company: doc.company || 'No Company',
+      type: fileExtension || 'unknown'
+    }
+  })
+})
+
+// Available companies for filter
+const availableCompanies = computed(() => {
+  const companies = new Set<string>()
+  props.documents.forEach((doc: any) => {
+    const company = doc.company || doc.metadata?.company
+    if (company && company !== 'No Company') {
+      companies.add(company)
+    }
+  })
+  return Array.from(companies).sort()
+})
+
+// Filtered files based on applied filters
+const filteredFiles = computed(() => {
+  let filtered = files.value
+
+  // Filter by keyword
+  if (filterKeyword.value.trim()) {
+    const keyword = filterKeyword.value.toLowerCase()
+    filtered = filtered.filter(file => 
+      file.name.toLowerCase().includes(keyword) ||
+      file.company.toLowerCase().includes(keyword)
+    )
   }
-])
+
+  // Filter by date range
+  if (filterStartDate.value || filterEndDate.value) {
+    filtered = filtered.filter(file => {
+      const fileDate = new Date(file.date).toLocaleDateString('en-US')
+      const startDate = filterStartDate.value ? new Date(filterStartDate.value).toLocaleDateString('en-US') : null
+      const endDate = filterEndDate.value ? new Date(filterEndDate.value).toLocaleDateString('en-US') : null
+      console.log('file:', file)
+      console.log('start:', startDate)
+      console.log('end:', endDate)
+      console.log('Filtering:', fileDate)
+      
+      if (startDate && fileDate <= startDate) return false
+      if (endDate && fileDate >= endDate) return false
+      
+      return true
+    })
+  }
+
+  // Filter by company
+  if (filterCompany.value) {
+    filtered = filtered.filter(file => file.company === filterCompany.value)
+  }
+
+  return filtered
+})
 
 // Computed applied filters
 const appliedFilters = computed(() => {
@@ -94,6 +144,10 @@ const applyFilters = () => {
     dateRange: { start: filterStartDate.value, end: filterEndDate.value },
     company: filterCompany.value
   })
+  
+  // Automatically switch to files tab to show filter results
+  activeTab.value = 'files'
+  
   // Here you would typically emit the filters to parent or make API call
 }
 </script>
@@ -148,7 +202,7 @@ const applyFilters = () => {
         <!-- Files Tab -->
         <div v-if="activeTab === 'files'" class="space-y-3">
           <div 
-            v-for="file in files" 
+            v-for="file in filteredFiles" 
             :key="file.id"
             class="p-3 border rounded-lg transition-colors chat-tool-file"
           >
@@ -170,8 +224,8 @@ const applyFilters = () => {
           </div>
           
           <!-- Empty state for files -->
-          <div v-if="files.length === 0" class="text-center py-8 chat-tool-empty">
-            <p class="text-sm">No files uploaded yet</p>
+          <div v-if="filteredFiles.length === 0" class="text-center py-8 chat-tool-empty">
+            <p class="text-sm">{{ files.length === 0 ? 'No documents available' : 'No documents match the current filters' }}</p>
           </div>
         </div>
 
@@ -228,9 +282,9 @@ const applyFilters = () => {
               class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
             >
               <option value="">All companies</option>
-              <option value="PT ABC">PT ABC</option>
-              <option value="PT XYZ">PT XYZ</option>
-              <option value="CV DEF">CV DEF</option>
+              <option v-for="company in availableCompanies" :key="company" :value="company">
+                {{ company }}
+              </option>
             </select>
           </div>
 

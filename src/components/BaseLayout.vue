@@ -49,7 +49,7 @@
             :key="project.id"
             :project="project"
             :selected-conversation-id="selectedConversationId"
-            :expanded-by-default="project.id === selectedProjectId"
+            :expanded-by-default="project.id == selectedProjectId"
             @conversation-selected="onConversationSelected"
             @add-conversation="onAddConversation"
             @edit-project="onEditProject"
@@ -158,7 +158,7 @@
 
 <script setup>
 import { ChevronDownIcon, ChevronRightIcon, CircleChevronDownIcon, FolderArchiveIcon, LogOutIcon, MessageCircleIcon, PlusIcon, SettingsIcon, UserIcon } from 'lucide-vue-next'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import ProjectAccordion from '@/components/ui/ProjectAccordion.vue'
@@ -185,9 +185,56 @@ const {
 // Use projects from API instead of hardcoded data
 const projects = computed(() => projectsWithConversations.value || [])
 
-// State for navigation
+// State for navigation - simplified approach
 const selectedProjectId = ref(null)
 const selectedConversationId = ref(null)
+
+// Simple computed properties for selection based on current route
+const currentProjectId = computed(() => {
+  const projectId = route.params.projectId
+  if (!projectId) return null
+  const numericId = parseInt(projectId, 10)
+  return isNaN(numericId) ? projectId : numericId
+})
+
+const currentConversationId = computed(() => {
+  const conversationId = route.params.conversationId
+  if (!conversationId || conversationId === 'new') return null
+  const numericId = parseInt(conversationId, 10)
+  return isNaN(numericId) ? conversationId : numericId
+})
+
+// Update selection based on current route
+const updateSelection = () => {
+  selectedProjectId.value = currentProjectId.value
+  selectedConversationId.value = currentConversationId.value
+  console.log('Selection updated:', {
+    project: selectedProjectId.value,
+    conversation: selectedConversationId.value
+  })
+}
+
+// Simple watcher for route changes - handles all scenarios
+watch([() => route.params.projectId, () => route.params.conversationId], 
+  async ([newProjectId, newConversationId], [oldProjectId, oldConversationId]) => {
+    console.log('Route changed:', { 
+      from: { project: oldProjectId, conversation: oldConversationId },
+      to: { project: newProjectId, conversation: newConversationId }
+    })
+    
+    // Update selection based on new route
+    updateSelection()
+    
+    // Handle special case: new conversation created (from 'new' to actual ID)
+    if (oldConversationId === 'new' && newConversationId && newConversationId !== 'new') {
+      console.log('New conversation created, refreshing sidebar...')
+      await fetchProjectsWithConversations()
+      // Re-update selection after data refresh
+      updateSelection()
+    }
+  }, 
+  { immediate: true }
+)
 
 // State for add project modal
 const showModal = ref(false)
@@ -200,13 +247,11 @@ const projectToEdit = ref(null)
 const showUserDropdown = ref(false)
 const userDropdownRef = ref(null)
 
-// Event handlers
+// Event handlers - simplified approach
 const onConversationSelected = (conversation) => {
   console.log('Conversation selected:', conversation)
-  selectedConversationId.value = conversation.conversation_id
-  selectedProjectId.value = conversation.project_id
   
-  // Navigate to chat view with conversation
+  // Simply navigate - let the route watcher handle selection
   router.push({
     name: 'chat-conversation',
     params: {
@@ -217,9 +262,9 @@ const onConversationSelected = (conversation) => {
 }
 
 const onAddConversation = (project) => {
-  selectedProjectId.value = project.id
+  console.log('Add new conversation for project:', project.id)
   
-  // Navigate to new chat for the project
+  // Simply navigate - let the route watcher handle selection
   router.push({
     name: 'chat-conversation',
     params: {
@@ -321,8 +366,7 @@ const onDeleteProject = async (project) => {
         
         // If the deleted project was selected, clear selection
         if (selectedProjectId.value === project.id) {
-          selectedProjectId.value = null
-          selectedConversationId.value = null
+          // Selection will be updated by route watcher when we navigate
           
           // Navigate to default chat view if currently viewing deleted project
           if (route.params.projectId === project.id) {
@@ -382,6 +426,9 @@ onMounted(() => {
   
   // Fetch projects with conversations when component mounts
   fetchProjectsWithConversations()
+  
+  // Initialize selection based on current route
+  updateSelection()
 })
 
 onUnmounted(() => {

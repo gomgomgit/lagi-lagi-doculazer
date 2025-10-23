@@ -158,14 +158,14 @@
     </div>
     <!-- Chat Tools Sidebar -->
     <div class="chat-tool-sidebar">
-      <ChatTool />
+      <ChatTool :documents="availableDocuments" />
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
@@ -173,6 +173,7 @@ import { useProjects } from '@/composables/useProjects'
 import { useMarkdown } from '@/composables/useMarkdown'
 
 const route = useRoute()
+const router = useRouter()
 
 // Get route parameters
 const projectId = computed(() => route.params.projectId)
@@ -282,6 +283,11 @@ const sendMessage = async () => {
       }
       messages.value.push(aiMessage)
       scrollToBottom()
+      
+      // If this was a new conversation, update the URL and refresh sidebar
+      if (conversationId.value === 'new' && response.conversation_id) {
+        await handleNewConversationCreated(response)
+      }
     } else {
       // Handle error case
       const errorMessage = {
@@ -488,6 +494,49 @@ const loadProjectKnowledge = async (projectId) => {
     console.log('Project knowledge loaded:', projectKnowledges.value)
   } catch (error) {
     console.error('Error loading project knowledge:', error)
+  }
+}
+
+// Function to handle when a new conversation is created
+const handleNewConversationCreated = async (response) => {
+  try {
+    console.log('New conversation created:', response)
+    
+    // Extract conversation details from response
+    const newConversationId = response.conversation_id
+    
+    // Create conversation title from response or use first message as fallback
+    let conversationTitle = response.conversation_title || response.title
+    console.log('Initial conversation title from response:', response)
+    if (!conversationTitle && messages.value.length > 0) {
+      // Use first 50 characters of the first user message as title
+      const firstUserMessage = messages.value.find(msg => msg.role === 'Human')
+      if (firstUserMessage) {
+        conversationTitle = firstUserMessage.message.substring(0, 50).trim()
+        if (firstUserMessage.message.length > 50) {
+          conversationTitle += '...'
+        }
+      }
+    }
+    conversationTitle = conversationTitle || 'New Conversation'
+    
+    // Update URL to the new conversation without causing a full page reload
+    await router.replace({
+      name: 'chat-conversation',
+      params: {
+        projectId: projectId.value,
+        conversationId: newConversationId
+      }
+    })
+    
+    // Wait a moment for the route to update, then refresh projects list
+    await nextTick()
+    await fetchProjectsWithConversations()
+    
+    console.log(`Updated URL to conversation ${newConversationId}: ${conversationTitle}`)
+    console.log('Sidebar should now show the new conversation as selected')
+  } catch (error) {
+    console.error('Error handling new conversation creation:', error)
   }
 }
 
