@@ -163,6 +163,13 @@ export const projectAPI = {
   
   // Conversation/Chat methods
   getConversationHistory: (projectId, conversationId) => apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/conversations/${conversationId}/history`),
+  sendInferenceMessage: (projectId, messageInput, conversationId) => {
+    const params = new URLSearchParams({
+      human_message: messageInput,
+      conversation_id: conversationId
+    })
+    return apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/inference?${params.toString()}`)
+  },
 }
 
 // Chat API methods

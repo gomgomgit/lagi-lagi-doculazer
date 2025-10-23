@@ -1,10 +1,10 @@
 <template>
-  <div class="flex h-full gap-4">
+  <div class="chat-view-container flex gap-4">
     <!-- Main Chat Area -->
-    <div class="base-card bg-card flex flex-1 h-full overflow-scroll">
-      <div class="flex-1 p-4 flex flex-col">
+    <div class="base-card bg-card flex flex-1 overflow-hidden">
+      <div class="flex-1 flex flex-col">
         <!-- Chat Header with Language Switch -->
-        <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center justify-between mb-6 flex-shrink-0">
           <!-- Project & Conversation Info -->
           <div v-if="currentProject || currentConversation" class="flex-1">
             <div class="flex items-center gap-3 mb-2">
@@ -51,7 +51,7 @@
         </div>
 
         <!-- Chat Messages Area -->
-        <div class="bg-white grow mb-4 p-6 rounded-lg">
+        <div ref="messagesContainer" class="chat-messages-area mb-4 rounded-lg">
           <div v-if="messages.length === 0" class="text-center text-gray-500 flex items-center justify-center flex-col h-full">
             <MessageCircleIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 class="text-lg font-medium text-gray-900 mb-2">Start a Conversation</h3>
@@ -63,19 +63,28 @@
             <!-- User Message -->
             <div v-if="message.role === 'Human'" class="chat-message-row user">
               <div class="chat-message-bubble user">
-                {{ message.message }}
+                <div 
+                  class="markdown-content"
+                  v-html="parseMarkdownBasic(message.message)"
+                ></div>
               </div>
             </div>
             <!-- AI Message -->
             <div v-else-if="message.role === 'AI'" class="chat-message-row ai">
               <div class="chat-message-bubble ai">
-                {{ message.message }}
+                <div 
+                  class="markdown-content"
+                  v-html="parseMarkdownBasic(message.message)"
+                ></div>
               </div>
             </div>
             <!-- System/Error Messages -->
             <div v-else class="chat-message-row system">
               <div class="chat-message-bubble system">
-                {{ message.message }}
+                <div 
+                  class="markdown-content"
+                  v-html="parseMarkdownBasic(message.message)"
+                ></div>
               </div>
             </div>
           </div>
@@ -93,7 +102,7 @@
         </div>
 
         <!-- Chat Input -->
-        <div class="relative">
+        <div class="chat-input-area">
           <input 
             ref="messageInput"
             v-model="messageText"
@@ -149,7 +158,9 @@
       </div>
     </div>
     <!-- Chat Tools Sidebar -->
-    <ChatTool />
+    <div class="chat-tool-sidebar">
+      <ChatTool />
+    </div>
   </div>
 </template>
 
@@ -160,6 +171,7 @@ import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHor
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
 import { useProjects } from '@/composables/useProjects'
+import { useMarkdown } from '@/composables/useMarkdown'
 
 const route = useRoute()
 
@@ -174,8 +186,12 @@ const {
   loading, 
   error, 
   fetchProjectsWithConversations,
-  fetchConversationHistory
+  fetchConversationHistory,
+  sendMessage: sendApiMessage
 } = useProjects()
+
+// Use markdown composable
+const { parseMarkdown, parseMarkdownSimple, parseMarkdownBasic, hasMarkdownSyntax } = useMarkdown()
 
 // Use projects from API instead of hardcoded data
 const projects = computed(() => projectsWithConversations.value || [])
@@ -188,6 +204,7 @@ const isTyping = ref(false) // For AI typing indicator
 
 // Mention functionality state
 const messageInput = ref(null)
+const messagesContainer = ref(null)
 const mentionDropdown = ref(null)
 const showMentionDropdown = ref(false)
 const mentionQuery = ref('')
@@ -271,7 +288,7 @@ const currentConversation = computed(() => {
 })
 
 // Methods
-const sendMessage = () => {
+const sendMessage = async () => {
   if (!messageText.value.trim()) return
   
   console.log('Sending message:', messageText.value)
@@ -280,7 +297,7 @@ const sendMessage = () => {
   console.log('Language:', currentLanguage.value)
   console.log('Selected Documents:', selectedDocuments.value)
   
-  // Add user message to chat
+  // Add user message to chat immediately for better UX
   const userMessage = {
     id: Date.now(),
     role: 'Human',
@@ -288,40 +305,55 @@ const sendMessage = () => {
     timestamp: new Date().toISOString()
   }
   messages.value.push(userMessage)
+  scrollToBottom()
   
-  // Show typing indicator
-  isTyping.value = true
+  // Store the message text before clearing
+  const messageToSend = messageText.value
   
-  // Here you would typically send the message to your backend
-  // The message now includes document references
-  const messageData = {
-    text: messageText.value,
-    projectId: projectId.value,
-    conversationId: conversationId.value,
-    language: currentLanguage.value,
-    documents: selectedDocuments.value
-  }
-  
-  console.log('Complete message data:', messageData)
-  
-  // Simulate AI response after delay
-  setTimeout(() => {
-    const aiMessage = {
-      id: Date.now() + 1,
-      role: 'AI',
-      message: `I received your message: "${messageText.value}". This is a demo response with selected documents: ${selectedDocuments.value.map(doc => doc.name).join(', ') || 'none'}.`,
-      timestamp: new Date().toISOString()
-    }
-    messages.value.push(aiMessage)
-    isTyping.value = false
-  }, 2000)
-  
-  // Clear the input and selected documents
+  // Clear the input and selected documents immediately for better UX
   messageText.value = ''
   selectedDocuments.value = []
   showMentionDropdown.value = false
   mentionQuery.value = ''
   mentionStartPos.value = -1
+  
+  // Show typing indicator
+  isTyping.value = true
+  
+  try {
+    // Send message to API
+    const response = await sendApiMessage(
+      projectId.value, 
+      messageToSend, 
+      conversationId.value
+    )
+    
+    if (response) {
+      const aiMessage = {
+        id: response.conversation_id,
+        role: 'AI',
+        message: response.ai_message,
+      }
+      messages.value.push(aiMessage)
+      scrollToBottom()
+    } else {
+      // Handle error case
+      const errorMessage = {
+        id: Date.now() + 1,
+        role: 'AI',
+        message: 'Sorry, I encountered an error while processing your message. Please try again.',
+        timestamp: new Date().toISOString()
+      }
+      messages.value.push(errorMessage)
+      console.error('Failed to get response from API')
+      scrollToBottom()
+    }
+  } catch (error) {
+    console.error('Error sending message:', error)
+  } finally {
+    // Hide typing indicator
+    isTyping.value = false
+  }
 }
 
 const setLanguage = (lang) => {
@@ -329,6 +361,15 @@ const setLanguage = (lang) => {
   console.log('Language switched to:', lang)
   
   // This will be used as parameter for AI backend responses
+}
+
+// Scroll to bottom of messages
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (messagesContainer.value) {
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    }
+  })
 }
 
 // Document mention methods
@@ -487,23 +528,57 @@ const loadConversationHistory = async (projectId, conversationId) => {
         {
           id: 1,
           role: 'AI',
-          message: 'Hello! I\'m your AI assistant. I can help you analyze documents and answer questions about your projects. How can I assist you today?',
+          message: `Hello! I'm your **AI assistant**. I can help you analyze documents and answer questions about your projects. 
+
+Here's what I can do:
+- Analyze *financial reports* and documents
+- Answer questions with **detailed explanations**
+- Provide \`code examples\` when needed
+- Create tables and lists
+
+How can I assist you today?`,
           timestamp: new Date(Date.now() - 60000).toISOString()
         },
         {
           id: 2,
           role: 'Human',
-          message: 'Hi! Can you help me understand the key findings in the annual report?',
+          message: 'Hi! Can you help me understand the **key findings** in the annual report? Please provide a summary with some examples.',
           timestamp: new Date(Date.now() - 30000).toISOString()
         },
         {
           id: 3,
           role: 'AI',
-          message: 'I\'d be happy to help you with the annual report analysis! I can review the document and provide insights on financial performance, key metrics, strategic initiatives, and more. Would you like me to focus on any specific section?',
+          message: `I'd be happy to help you with the annual report analysis! Here's what I can provide:
+
+## Key Areas I Can Analyze:
+
+### 1. Financial Performance
+- **Revenue growth** and trends
+- *Profit margins* and cost analysis
+- Cash flow statements
+
+### 2. Strategic Initiatives
+- Market expansion plans
+- Investment priorities
+- Risk management strategies
+
+### Example Code for Analysis:
+\`\`\`python
+def analyze_revenue_growth(data):
+    growth_rate = (current_year - previous_year) / previous_year
+    return growth_rate * 100
+\`\`\`
+
+> **Note**: I'll need access to the specific document to provide detailed insights.
+
+Would you like me to focus on any **specific section** of the report?`,
           timestamp: new Date().toISOString()
         }
       ]
     }
+    
+    // Scroll to bottom after loading messages
+    scrollToBottom()
   } catch (error) {
     console.error('Error loading conversation history:', error)
     messages.value = []

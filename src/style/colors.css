@@ -1389,3 +1389,297 @@
     opacity: 0.7;
   }
 }
+
+/* ================================================ */
+/* MARKDOWN STYLES FOR CHAT MESSAGES */
+/* ================================================ */
+
+/* Markdown Content Container */
+.chat-message-bubble .markdown-content {
+  line-height: 1.6;
+}
+
+/* Markdown Headings */
+.markdown-heading {
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem 0;
+  line-height: 1.25;
+}
+
+.markdown-heading:first-child {
+  margin-top: 0;
+}
+
+.markdown-heading-1 { font-size: 1.25rem; }
+.markdown-heading-2 { font-size: 1.125rem; }
+.markdown-heading-3 { font-size: 1rem; }
+.markdown-heading-4 { font-size: 0.9rem; }
+.markdown-heading-5 { font-size: 0.875rem; }
+.markdown-heading-6 { font-size: 0.875rem; font-weight: 500; }
+
+/* Markdown Paragraphs */
+.markdown-paragraph {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.markdown-paragraph:first-child {
+  margin-top: 0;
+}
+
+.markdown-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+/* Markdown Text Formatting */
+.markdown-strong {
+  font-weight: 600;
+}
+
+.markdown-emphasis {
+  font-style: italic;
+}
+
+/* Markdown Code */
+.markdown-inline-code {
+  background-color: rgba(0, 0, 0, 0.1);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875em;
+}
+
+.chat-message-bubble.user .markdown-inline-code {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.markdown-code-block {
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.chat-message-bubble.user .markdown-code-block {
+  background-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.markdown-code-block code {
+  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: inherit;
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Markdown Lists */
+.markdown-unordered-list,
+.markdown-ordered-list {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.markdown-unordered-list {
+  list-style-type: disc;
+}
+
+.markdown-ordered-list {
+  list-style-type: decimal;
+}
+
+.markdown-list-item {
+  margin: 0.25rem 0;
+  line-height: 1.5;
+}
+
+.markdown-list-item:first-child {
+  margin-top: 0;
+}
+
+.markdown-list-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Nested Lists */
+.markdown-list-item .markdown-unordered-list,
+.markdown-list-item .markdown-ordered-list {
+  margin: 0.25rem 0;
+}
+
+.markdown-list-item .markdown-unordered-list {
+  list-style-type: circle;
+}
+
+.markdown-list-item .markdown-list-item .markdown-unordered-list {
+  list-style-type: square;
+}
+
+/* Markdown Blockquotes */
+.markdown-blockquote {
+  border-left: 3px solid rgba(0, 0, 0, 0.2);
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  font-style: italic;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.chat-message-bubble.user .markdown-blockquote {
+  border-left-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.chat-message-bubble.ai .markdown-blockquote {
+  border-left-color: var(--chat-message-ai-border);
+  color: #64748b;
+}
+
+/* Markdown Links */
+.markdown-link {
+  color: #2563eb;
+  text-decoration: underline;
+  text-decoration-color: rgba(37, 99, 235, 0.4);
+  transition: all 0.2s ease-in-out;
+}
+
+.markdown-link:hover {
+  color: #1d4ed8;
+  text-decoration-color: #1d4ed8;
+}
+
+.chat-message-bubble.user .markdown-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration-color: rgba(255, 255, 255, 0.6);
+}
+
+.chat-message-bubble.user .markdown-link:hover {
+  color: #ffffff;
+  text-decoration-color: #ffffff;
+}
+
+/* Markdown Images */
+.markdown-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+}
+
+/* Markdown Tables */
+.markdown-table-wrapper {
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+
+.markdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.markdown-table th,
+.markdown-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.markdown-table th {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+.chat-message-bubble.user .markdown-table th,
+.chat-message-bubble.user .markdown-table td {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.chat-message-bubble.user .markdown-table th {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Markdown Horizontal Rules */
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin: 1rem 0;
+}
+
+.chat-message-bubble.user .markdown-content hr {
+  border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 640px) {
+  .markdown-code-block {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  .markdown-table-wrapper {
+    font-size: 0.8rem;
+  }
+  
+  .markdown-table th,
+  .markdown-table td {
+    padding: 0.375rem 0.5rem;
+  }
+  
+  .markdown-unordered-list,
+  .markdown-ordered-list {
+    padding-left: 1.25rem;
+  }
+}
+
+/* ================================================ */
+/* CHAT VIEW LAYOUT CONSTRAINTS */
+/* ================================================ */
+
+/* Ensure Chat View doesn't exceed BaseLayout height */
+.chat-view-container {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Chat messages area should be scrollable within constraints */
+.chat-messages-area {
+  flex: 1;
+  min-height: 0; /* Important for flex children to shrink properly */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Chat input should be fixed at bottom */
+.chat-input-area {
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Chat tool sidebar height constraints */
+.chat-tool-sidebar {
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+/* Ensure proper height distribution in BaseLayout */
+.base-layout-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.base-layout-main {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}

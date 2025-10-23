@@ -100,9 +100,9 @@ const applyFilters = () => {
 
 <template>
   <!-- Additional Sidebar (Tools/Context) -->
-  <aside class="w-80 base-card bg-card flex flex-col h-full chat-tool-container">
+  <aside class="w-80 base-card bg-card flex flex-col h-full overflow-hidden">
     <!-- Header with Toggle -->
-    <div class="border-b py-4 pb-0 chat-tool-border">
+    <div class="border-b py-4 pb-0 chat-tool-border flex-shrink-0">
       <div class="flex items-center justify-between mb-3">
         <h3 class="font-semibold chat-tool-header-title">
           {{ viewMode === 'tools' ? 'Chat Tools' : 'Context View' }}
@@ -260,7 +260,7 @@ const applyFilters = () => {
     </div>
 
     <!-- Applied Filters Footer (Only for Tools Mode) -->
-    <div v-if="viewMode === 'tools' && appliedFilters.length > 0" class="border-t chat-tool-border">
+    <div v-if="viewMode === 'tools' && appliedFilters.length > 0" class="border-t chat-tool-border flex-shrink-0">
       <div class="flex items-center justify-between mb-2">
         <h4 class="font-medium text-sm chat-tool-header-title">Applied Filters</h4>
         <button 

@@ -144,3 +144,19 @@ export const getConversationHistory = async (projectId, conversationId) => {
     }
   }
 }
+
+export const sendInferenceMessage = async (projectId, messageInput, conversationId) => {
+  try {
+    const response = await projectAPI.sendInferenceMessage(projectId, messageInput, conversationId)
+    return {
+      success: true,
+      data: response.result,
+    }
+  } catch (error) {
+    console.error('Error sending inference message:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to send message'
+    }
+  }
+}

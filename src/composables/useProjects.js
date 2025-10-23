@@ -1,4 +1,4 @@
-import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, getConversationHistory } from '@/services/projectsApi'
+import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, getConversationHistory, sendInferenceMessage } from '@/services/projectsApi'
 import { ref } from 'vue'
 
 export function useProjects() {
@@ -238,6 +238,29 @@ export function useProjects() {
     }
   }
 
+  const sendMessage = async (projectId, messageInput, conversationId) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await sendInferenceMessage(projectId, messageInput, conversationId)
+      if (result.success) {
+        console.log('Message sent successfully:', result.data)
+        
+        return result.data
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = 'Failed to send message'
+      console.error(err)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     projects,
     projectsWithConversations,
@@ -251,6 +274,7 @@ export function useProjects() {
     fetchProjectsWithConversations,
     fetchProjectKnowledges,
     fetchConversationHistory,
+    sendMessage,
     uploadProjectKnowledge,
     deleteProjectKnowledgeById,
     addProject,
