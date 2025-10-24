@@ -238,12 +238,12 @@ export function useProjects() {
     }
   }
 
-  const sendMessage = async (projectId, messageInput, conversationId) => {
+  const sendMessage = async (projectId, messageInput, conversationId, mentionedDocuments = []) => {
     loading.value = true
     error.value = null
 
     try {
-      const result = await sendInferenceMessage(projectId, messageInput, conversationId)
+      const result = await sendInferenceMessage(projectId, messageInput, conversationId, mentionedDocuments)
       if (result.success) {
         console.log('Message sent successfully:', result.data)
         

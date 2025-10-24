@@ -234,13 +234,7 @@ const currentConversation = computed(() => {
 // Methods
 const sendMessage = async () => {
   if (!messageText.value.trim()) return
-  
-  // console.log('Sending message:', messageText.value)
-  // console.log('Project ID:', projectId.value)
-  // console.log('Conversation ID:', conversationId.value)
-  // console.log('Language:', currentLanguage.value)
-  // console.log('Selected Documents:', selectedDocuments.value)
-  
+
   // Add user message to chat immediately for better UX
   const userMessage = {
     id: Date.now(),
@@ -250,9 +244,12 @@ const sendMessage = async () => {
   }
   messages.value.push(userMessage)
   scrollToBottom()
+
+  console.log('User message added:', userMessage)
   
-  // Store the message text before clearing
+  // Store the message text and selected documents before clearing
   const messageToSend = messageText.value
+  const documentsToSend = [...selectedDocuments.value]
   
   // Clear the input and selected documents immediately for better UX
   messageText.value = ''
@@ -265,14 +262,21 @@ const sendMessage = async () => {
   isTyping.value = true
   
   try {
-    // Send message to API
+    // Send message to API with mentioned documents
     // Use empty string for conversation_id when it's 'new'
     const apiConversationId = conversationId.value === 'new' ? '' : conversationId.value
+    
+    console.log('Sending message with documents:', {
+      message: messageToSend,
+      documents: documentsToSend,
+      conversationId: apiConversationId
+    })
     
     const response = await sendApiMessage(
       projectId.value, 
       messageToSend, 
-      apiConversationId
+      apiConversationId,
+      documentsToSend // Pass the mentioned documents
     )
     
     if (response) {
@@ -333,28 +337,39 @@ const handleInput = (event) => {
   // If input is cleared, clear selected documents
   if (value.trim() === '') {
     selectedDocuments.value = []
+    console.log('Input cleared, selectedDocuments cleared')
+    return
   }
   
-  // Check which documents are still mentioned in the text and remove badges for missing ones
-  const currentMentions = []
-  selectedDocuments.value.forEach(doc => {
-    // Handle different possible field names from API (name, filename, title, etc.)
-    const docName = doc.file_name
-    const mentionText = `@${docName}`
-    if (value.includes(mentionText)) {
-      currentMentions.push(doc)
-    }
-  })
-  
-  // Update selectedDocuments to only include documents still mentioned in text
-  if (currentMentions.length !== selectedDocuments.value.length) {
-    selectedDocuments.value = currentMentions
-  }
-  
-  // Find the last @ symbol before cursor
+  // Only remove documents from selectedDocuments if they are clearly no longer in the text
+  // This prevents removing documents while user is typing new mentions
   const textBeforeCursor = value.substring(0, cursorPos)
   const lastAtPos = textBeforeCursor.lastIndexOf('@')
   
+  // If we're not currently typing a mention, check for removed documents
+  if (lastAtPos === -1 || textBeforeCursor.substring(lastAtPos + 1).includes(' ')) {
+    const currentMentions = []
+    selectedDocuments.value.forEach(doc => {
+      const docName = doc.file_name
+      const mentionText = `@${docName}`
+      if (value.includes(mentionText)) {
+        currentMentions.push(doc)
+      }
+    })
+    
+    console.log('Checking for removed documents...')
+    console.log('Current text:', value)
+    console.log('Selected documents before filtering:', selectedDocuments.value.map(d => d.file_name))
+    console.log('Current mentions found:', currentMentions.map(d => d.file_name))
+    
+    // Update selectedDocuments only if there's a real change
+    if (currentMentions.length !== selectedDocuments.value.length) {
+      selectedDocuments.value = currentMentions
+      console.log('Updated selected documents:', selectedDocuments.value.map(d => d.file_name))
+    }
+  }
+  
+  // Handle mention dropdown logic
   if (lastAtPos !== -1) {
     // Check if there's a space after the @ (which would end the mention)
     const textAfterAt = textBeforeCursor.substring(lastAtPos + 1)
@@ -364,6 +379,7 @@ const handleInput = (event) => {
       mentionStartPos.value = lastAtPos
       mentionQuery.value = textAfterAt
       showMentionDropdown.value = true
+      console.log('In mention mode, query:', textAfterAt)
       return
     }
   }
@@ -408,6 +424,7 @@ const handleKeyDown = (event) => {
 }
 
 const selectDocument = (document) => {
+  console.log('selectDocument called with document YEEEEE:', document)
   if (mentionStartPos.value === -1) {
     return
   }
@@ -424,10 +441,20 @@ const selectDocument = (document) => {
   
   messageText.value = beforeMention + mentionText + ' ' + afterMention
   
+  console.log('Document selected:', document.file_name)
+  console.log('Current selected documents before adding:', selectedDocuments.value.map(d => d.file_name))
+  
   // Add to selected documents for sending with message
   if (!selectedDocuments.value.find(doc => doc.id === document.id)) {
+    console.log('Adding document to selected documents:', document.file_name)
     selectedDocuments.value.push(document)
+    console.log('Document added to selected documents:', document.file_name)
+  } else {
+    selectedDocuments.value.push(document)
+    console.log('Document already in selected documents:', document.file_name)
   }
+  
+  console.log('Current selected documents after adding:', selectedDocuments.value.map(d => d.file_name))
   
   // Hide dropdown
   showMentionDropdown.value = false
@@ -474,6 +501,11 @@ const loadConversationHistory = async (projectId, conversationId) => {
     if (history && history.length > 0) {
       messages.value = history
       // console.log('Conversation history loaded:', history)
+      
+      // Auto scroll to bottom after loading conversation history
+      nextTick(() => {
+        scrollToBottom()
+      })
     }
   } catch (error) {
     // console.error('Error loading conversation history:', error)
@@ -552,6 +584,13 @@ watch([projectId, conversationId], async ([newProjectId, newConversationId]) => 
   // Load conversation history
   await loadConversationHistory(newProjectId, newConversationId)
 }, { immediate: true })
+
+// Watch for messages changes to auto scroll to bottom
+watch(messages, () => {
+  nextTick(() => {
+    scrollToBottom()
+  })
+}, { deep: true })
 
 onMounted(() => {
   console.log('ChatView mounted with params:', {

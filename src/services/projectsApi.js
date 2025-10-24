@@ -145,9 +145,39 @@ export const getConversationHistory = async (projectId, conversationId) => {
   }
 }
 
-export const sendInferenceMessage = async (projectId, messageInput, conversationId) => {
+export const sendInferenceMessage = async (projectId, messageInput, conversationId, mentionedDocuments = []) => {
   try {
-    const response = await projectAPI.sendInferenceMessage(projectId, messageInput, conversationId)
+    // Process message to replace @ mentions with ✝ symbols
+    let processedMessage = messageInput
+    
+    if (mentionedDocuments && mentionedDocuments.length > 0) {
+      mentionedDocuments.forEach(doc => {
+        const fileName = doc.file_name
+        const mentionPattern = `@${fileName}`
+        const replacementPattern = `✝${fileName}✝`
+        
+        // Replace all occurrences of @filename with ✝filename✝
+        processedMessage = processedMessage.replace(new RegExp(mentionPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacementPattern)
+      })
+    }
+    
+    // Build URL parameters
+    const params = new URLSearchParams({
+      human_message: processedMessage,
+      conversation_id: conversationId
+    })
+    
+    // Add mentioned documents as comma-separated string of IDs
+    if (mentionedDocuments && mentionedDocuments.length > 0) {
+      console.log('Sending inference message with document IDs:', mentionedDocuments)
+      const documentIds = mentionedDocuments.map(doc => doc.knowledge_source_id).join(',')
+      params.append('filtered_knowledge_source_ids', documentIds)
+      console.log('Sending inference message params:', params)
+    } else {
+      console.log('Sending inference message without mentioned documents')
+    }
+    
+    const response = await projectAPI.sendInferenceMessage(projectId, params.toString())
     return {
       success: true,
       data: response.result,
