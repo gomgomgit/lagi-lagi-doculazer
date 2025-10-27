@@ -49,9 +49,17 @@ renderer.table = function(header, body) {
   return `<div class="markdown-table-wrapper"><table class="markdown-table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`
 }
 
-// Custom link renderer with security
+// Custom link renderer with security and chunk handling
 renderer.link = function(href, title, text) {
   const titleAttr = title ? ` title="${title}"` : ''
+  
+  // Check if this is a chunk reference link
+  if (href && href.startsWith('#CHUNK-')) {
+    const chunkId = href.replace('#', '')
+    return `<a href="${href}" class="markdown-link markdown-chunk-link" data-chunk-id="${chunkId}" title="Reference to document chunk ${text}">${text}</a>`
+  }
+  
+  // Regular link handling with security
   const safeHref = href.startsWith('javascript:') ? '#' : href
   return `<a href="${safeHref}" class="markdown-link" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`
 }
@@ -102,7 +110,7 @@ const sanitizeToString = (htmlString) => {
       ],
       ALLOWED_ATTR: [
         'href', 'title', 'alt', 'src', 'class',
-        'target', 'rel', 'start'
+        'target', 'rel', 'start', 'data-chunk-id', 'onclick'
       ],
       ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
       RETURN_DOM: false,
@@ -211,6 +219,12 @@ export function useMarkdown() {
       .replace(/^## (.*$)/gim, '<h2 class="markdown-heading markdown-heading-2">$1</h2>')
       .replace(/^# (.*$)/gim, '<h1 class="markdown-heading markdown-heading-1">$1</h1>')
       
+      // Chunk references (must be before general links)
+      .replace(/\[(\d+)\]\(#(CHUNK-[a-f0-9-]+)\)/g, '<a href="#$2" class="markdown-link markdown-chunk-link" data-chunk-id="$2" title="Reference to document chunk $1">[$1]</a>')
+      
+      // Regular links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="markdown-link" target="_blank" rel="noopener noreferrer">[$1]</a>')
+      
       // Bold and Italic
       .replace(/\*\*(.*?)\*\*/g, '<strong class="markdown-strong">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="markdown-emphasis">$1</em>')
@@ -276,10 +290,87 @@ export function useMarkdown() {
     return words.slice(0, wordLimit).join(' ') + '...'
   }
 
+  /**
+   * Extract chunk references from markdown text
+   * @param {string} markdownText - The markdown text to analyze
+   * @returns {Array} - Array of chunk references {id, text, href}
+   */
+  const extractChunkReferences = (markdownText) => {
+    if (!markdownText || typeof markdownText !== 'string') {
+      return []
+    }
+
+    const chunkPattern = /\[(\d+)\]\(#(CHUNK-[a-f0-9-]+)\)/g
+    const chunks = []
+    let match
+
+    while ((match = chunkPattern.exec(markdownText)) !== null) {
+      chunks.push({
+        id: match[2], // CHUNK-xxx-xxx-xxx
+        text: match[1], // Number reference (1, 2, 3, etc.)
+        href: `#${match[2]}`, // Full href
+        fullMatch: match[0] // Full matched string
+      })
+    }
+
+    return chunks
+  }
+
+  /**
+   * Process markdown with enhanced chunk handling
+   * @param {string} markdownText - The markdown text to convert
+   * @param {Function} onChunkClick - Optional callback for chunk clicks
+   * @returns {string} - Processed HTML with chunk handlers
+   */
+  const parseMarkdownWithChunks = (markdownText, onChunkClick = null) => {
+    if (!markdownText || typeof markdownText !== 'string') {
+      return ''
+    }
+
+    try {
+      // First extract chunk references for metadata
+      const chunkRefs = extractChunkReferences(markdownText)
+      
+      // Parse markdown to HTML
+      let html = marked.parse(markdownText)
+      
+      // Ensure we get a string
+      const htmlString = typeof html === 'string' ? html : String(html)
+      
+      // If we have chunk references and a click handler, add click handlers
+      if (chunkRefs.length > 0 && onChunkClick && typeof onChunkClick === 'function') {
+        // Add click handlers to chunk links
+        let processedHtml = htmlString.replace(
+          /class="markdown-link markdown-chunk-link" data-chunk-id="([^"]+)"/g,
+          (match, chunkId) => {
+            return `${match} onclick="window.handleChunkClick && window.handleChunkClick('${chunkId}')"`
+          }
+        )
+        
+        // Store the click handler globally (if in browser environment)
+        if (typeof window !== 'undefined') {
+          window.handleChunkClick = onChunkClick
+        }
+        
+        html = processedHtml
+      }
+      
+      // Use helper function to ensure string output
+      const sanitizedHtml = sanitizeToString(html)
+      
+      return sanitizedHtml
+    } catch (error) {
+      console.error('Error parsing markdown with chunks:', error)
+      return markdownText
+    }
+  }
+
   return {
     parseMarkdown,
     parseMarkdownSimple,
     parseMarkdownBasic,
+    parseMarkdownWithChunks,
+    extractChunkReferences,
     hasMarkdownSyntax,
     getMarkdownPreview
   }
