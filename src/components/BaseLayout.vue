@@ -200,12 +200,15 @@ const currentProjectId = computed(() => {
 const currentConversationId = computed(() => {
   const conversationId = route.params.conversationId
   if (!conversationId || conversationId === 'new') return null
-  const numericId = parseInt(conversationId, 10)
-  return isNaN(numericId) ? conversationId : numericId
+  return conversationId
 })
 
 // Update selection based on current route
 const updateSelection = () => {
+  console.log('Updating selection based on route:', {
+    projectId: currentProjectId.value,
+    conversationId: currentConversationId.value
+  })
   selectedProjectId.value = currentProjectId.value
   selectedConversationId.value = currentConversationId.value
   console.log('Selection updated:', {
