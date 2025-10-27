@@ -29,10 +29,9 @@ const files = computed(() => {
   return props.documents.map((doc: any) => {
     // Extract file extension from filename
     const fileExtension = doc.file_name ? doc.file_name.split('.').pop()?.toLowerCase() : 'unknown'
-    console.log('Document date:', doc)
     return {
-      id: doc.id,
-      name: doc.file_name || 'Unknown File',
+      knowledge_source_id: doc.knowledge_source_id,
+      file_name: doc.file_name || 'Unknown File',
       date: doc.file_date ? new Date(doc.file_date).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
       company: doc.company || 'No Company',
       type: fileExtension || 'unknown'
@@ -60,7 +59,7 @@ const filteredFiles = computed(() => {
   if (filterKeyword.value.trim()) {
     const keyword = filterKeyword.value.toLowerCase()
     filtered = filtered.filter(file => 
-      file.name.toLowerCase().includes(keyword) ||
+      file.file_name.toLowerCase().includes(keyword) ||
       file.company.toLowerCase().includes(keyword)
     )
   }
@@ -138,6 +137,9 @@ const clearAllFilters = () => {
   filterCompany.value = ''
 }
 
+// Define emits
+const emit = defineEmits(['filtersApplied', 'filtersChanged'])
+
 const applyFilters = () => {
   console.log('Applying filters:', {
     keyword: filterKeyword.value,
@@ -148,8 +150,27 @@ const applyFilters = () => {
   // Automatically switch to files tab to show filter results
   activeTab.value = 'files'
   
-  // Here you would typically emit the filters to parent or make API call
+  // Emit filtered results to parent component
+  emit('filtersApplied', {
+    filteredFiles: filteredFiles.value,
+    appliedFilters: appliedFilters.value,
+    filterCount: appliedFilters.value.length
+  })
+  
+  console.log('Emitted filtered files to parent:', filteredFiles.value)
 }
+
+// Expose filtered files and filter functions to parent component
+defineExpose({
+  filteredFiles,
+  appliedFilters,
+  filterKeyword,
+  filterStartDate,
+  filterEndDate,
+  filterCompany,
+  clearAllFilters,
+  applyFilters
+})
 </script>
 
 <template>
@@ -203,12 +224,12 @@ const applyFilters = () => {
         <div v-if="activeTab === 'files'" class="space-y-3">
           <div 
             v-for="file in filteredFiles" 
-            :key="file.id"
+            :key="file.knowledge_source_id"
             class="p-3 border rounded-lg transition-colors chat-tool-file"
           >
             <div class="flex items-center justify-between">
               <div class="flex-1 min-w-0">
-                <h4 class="font-medium text-sm truncate chat-tool-file-title">{{ file.name }}</h4>
+                <h4 class="font-medium text-sm truncate chat-tool-file-title">{{ file.file_name }}</h4>
                 <div class="flex items-center gap-2 mt-1 text-xs chat-tool-file-meta">
                   <CalendarIcon class="w-3 h-3" />
                   <span>{{ file.date }}</span>

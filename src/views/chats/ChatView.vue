@@ -6,16 +6,15 @@
         <!-- Chat Header with Language Switch -->
         <div class="flex items-center justify-between mb-6 flex-shrink-0">
           <!-- Project & Conversation Info -->
-          <div v-if="currentProject || currentConversation" class="flex-1">
-            <div class="flex items-center gap-3 mb-2">
-              <FolderIcon class="w-5 h-5 text-gray-600" />
-              <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
-              <ChevronRightIcon class="w-4 h-4 text-gray-400" />
-              <MessageCircleIcon class="w-4 h-4 text-gray-600" />
-              <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
-            </div>
-            <div class="text-sm text-gray-500">
-              {{ conversationId === 'new' ? 'Start a new conversation' : `${currentConversation?.messageCount || 0} messages` }}
+          <div class="flex-1">
+            <div v-if="currentProject || currentConversation">
+              <div class="flex items-center gap-3 mb-2">
+                <FolderIcon class="w-5 h-5 text-gray-600" />
+                <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
+                <ChevronRightIcon class="w-4 h-4 text-gray-400" />
+                <MessageCircleIcon class="w-4 h-4 text-gray-600" />
+                <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
+              </div>
             </div>
           </div>
           
@@ -135,7 +134,7 @@
             >
               {{ doc.file_name }}
               <button 
-                @click="removeDocument(doc.id)"
+                @click="removeDocument(doc.knowledge_source_id)"
                 class="ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5 transition-colors"
                 type="button"
               >
@@ -158,7 +157,11 @@
     </div>
     <!-- Chat Tools Sidebar -->
     <div class="chat-tool-sidebar">
-      <ChatTool :documents="availableDocuments" />
+      <ChatTool 
+        ref="chatToolRef" 
+        :documents="availableDocuments" 
+        @filtersApplied="handleFiltersApplied"
+      />
     </div>
   </div>
 </template>
@@ -208,10 +211,12 @@ const isTyping = ref(false) // For AI typing indicator
 const messageInput = ref(null)
 const messagesContainer = ref(null)
 const mentionDropdown = ref(null)
+const chatToolRef = ref(null)
 const showMentionDropdown = ref(false)
 const mentionQuery = ref('')
 const mentionStartPos = ref(-1)
 const selectedDocuments = ref([])
+const currentFilteredDocuments = ref([])
 
 // Documents data - will be fetched from API
 const availableDocuments = computed(() => {
@@ -231,6 +236,65 @@ const currentConversation = computed(() => {
   return currentProject.value.conversations?.find(c => c.id == conversationId.value)
 })
 
+// Computed property to get filtered documents from ChatTool
+const filteredDocuments = computed(() => {
+  if (!chatToolRef.value) return []
+  return chatToolRef.value.filteredFiles || []
+})
+
+// Method to get current filtered documents
+const getFilteredDocuments = () => {
+  if (!chatToolRef.value) {
+    console.log('ChatTool ref not available')
+    return []
+  }
+  
+  const filtered = chatToolRef.value.filteredFiles || []
+  console.log('Current filtered documents:', filtered)
+  return filtered
+}
+
+// Method to get applied filters
+const getAppliedFilters = () => {
+  if (!chatToolRef.value) {
+    console.log('ChatTool ref not available')
+    return []
+  }
+  
+  const filters = chatToolRef.value.appliedFilters || []
+  console.log('Current applied filters:', filters)
+  return filters
+}
+
+// Handle filters applied event from ChatTool
+const handleFiltersApplied = (data) => {
+  console.log('🎯 Filters applied event received:', data)
+  console.log('📄 Filtered files count:', data.filteredFiles.length)
+  console.log('🔍 Applied filters count:', data.appliedFilters.length)
+  
+  // Store filtered data in reactive state
+  currentFilteredDocuments.value = data.filteredFiles
+  
+  // Now you can access the filtered data
+  const filteredFiles = data.filteredFiles
+  const appliedFilters = data.appliedFilters
+  
+  // Log the actual filtered documents for debugging
+  console.log('📋 Current filtered documents via event:', filteredFiles.map(f => f.name))
+  
+  // You can use this data for various purposes:
+  // 1. Show notification
+  if (filteredFiles.length > 0) {
+    console.log(`✅ Filter applied: Found ${filteredFiles.length} documents`)
+  } else {
+    console.log('❌ Filter applied: No documents match the criteria')
+  }
+  
+  // 2. Update UI - reactive state will automatically update computed properties
+  // 3. Send to API - you can use filteredFiles for API calls
+  // 4. Store in state - already done above
+}
+
 // Methods
 const sendMessage = async () => {
   if (!messageText.value.trim()) return
@@ -239,8 +303,7 @@ const sendMessage = async () => {
   const userMessage = {
     id: Date.now(),
     role: 'Human',
-    message: messageText.value,
-    timestamp: new Date().toISOString()
+    message: messageText.value
   }
   messages.value.push(userMessage)
   scrollToBottom()
@@ -268,7 +331,7 @@ const sendMessage = async () => {
     
     console.log('Sending message with documents:', {
       message: messageToSend,
-      documents: documentsToSend,
+      documents: [...documentsToSend, ...currentFilteredDocuments.value], 
       conversationId: apiConversationId
     })
     
@@ -276,7 +339,7 @@ const sendMessage = async () => {
       projectId.value, 
       messageToSend, 
       apiConversationId,
-      documentsToSend // Pass the mentioned documents
+      [...documentsToSend, ...currentFilteredDocuments.value]
     )
     
     if (response) {
@@ -297,8 +360,7 @@ const sendMessage = async () => {
       const errorMessage = {
         id: Date.now() + 1,
         role: 'AI',
-        message: 'Sorry, I encountered an error while processing your message. Please try again.',
-        timestamp: new Date().toISOString()
+        message: 'Sorry, I encountered an error while processing your message. Please try again.'
       }
       messages.value.push(errorMessage)
       // console.error('Failed to get response from API')
@@ -379,7 +441,6 @@ const handleInput = (event) => {
       mentionStartPos.value = lastAtPos
       mentionQuery.value = textAfterAt
       showMentionDropdown.value = true
-      console.log('In mention mode, query:', textAfterAt)
       return
     }
   }
@@ -424,7 +485,6 @@ const handleKeyDown = (event) => {
 }
 
 const selectDocument = (document) => {
-  console.log('selectDocument called with document YEEEEE:', document)
   if (mentionStartPos.value === -1) {
     return
   }
@@ -471,10 +531,10 @@ const selectDocument = (document) => {
 
 const removeDocument = (documentId) => {
   // Remove document from selected documents
-  selectedDocuments.value = selectedDocuments.value.filter(doc => doc.id !== documentId)
+  selectedDocuments.value = selectedDocuments.value.filter(doc => doc.knowledge_source_id !== documentId)
   
   // Also remove the @mention from the message text
-  const removedDoc = availableDocuments.value.find(doc => doc.id === documentId)
+  const removedDoc = availableDocuments.value.find(doc => doc.knowledge_source_id === documentId)
   if (removedDoc) {
     // Handle different possible field names from API (name, filename, title, etc.)
     const docName = removedDoc.file_name
@@ -495,7 +555,6 @@ const loadConversationHistory = async (projectId, conversationId) => {
   }
 
   try {
-    // console.log(`Loading conversation history for project ${projectId}, conversation ${conversationId}`)
     const history = await fetchConversationHistory(projectId, conversationId)
     
     if (history && history.length > 0) {
@@ -592,6 +651,16 @@ watch(messages, () => {
   })
 }, { deep: true })
 
+// Watch chatToolRef to ensure it's properly mounted
+watch(chatToolRef, (newRef) => {
+  if (newRef) {
+    console.log('✅ ChatTool ref is now available:', newRef)
+    console.log('🔧 Available methods:', Object.keys(newRef))
+  } else {
+    console.log('❌ ChatTool ref is not available')
+  }
+}, { immediate: true })
+
 onMounted(() => {
   console.log('ChatView mounted with params:', {
     projectId: projectId.value,
@@ -600,5 +669,27 @@ onMounted(() => {
   
   // Fetch projects with conversations when component mounts
   fetchProjectsWithConversations()
+  
+  // Expose methods to window for testing/debugging (development only)
+  if (process.env.NODE_ENV === 'development') {
+    window.getChatFilteredDocuments = getFilteredDocuments
+    window.getChatAppliedFilters = getAppliedFilters
+    window.chatToolRef = chatToolRef
+    window.currentFilteredDocuments = currentFilteredDocuments
+    window.testChatToolRef = () => {
+      console.log('ChatTool ref status:', {
+        available: !!chatToolRef.value,
+        filteredFiles: chatToolRef.value?.filteredFiles || 'Not available',
+        appliedFilters: chatToolRef.value?.appliedFilters || 'Not available'
+      })
+    }
+    console.log('🔧 Debug methods exposed:', [
+      'getChatFilteredDocuments()', 
+      'getChatAppliedFilters()', 
+      'chatToolRef', 
+      'currentFilteredDocuments',
+      'testChatToolRef()'
+    ])
+  }
 })
 </script>

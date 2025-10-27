@@ -176,8 +176,7 @@ const filteredDocuments = computed(() => {
   // Filter by search query (filename)
   if (searchQuery.value) {
     filtered = filtered.filter(doc => 
-      doc.name?.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      doc.filename?.toLowerCase().includes(searchQuery.value.toLowerCase())
+      doc.file_name?.toLowerCase().includes(searchQuery.value.toLowerCase())
     )
   }
 
@@ -189,14 +188,14 @@ const filteredDocuments = computed(() => {
   // Filter by date range
   if (filterDateFrom.value) {
     filtered = filtered.filter(doc => {
-      const docDate = new Date(doc.uploadDate || doc.created_at || doc.createdAt)
+      const docDate = new Date(doc.file_date)
       return docDate >= new Date(filterDateFrom.value)
     })
   }
 
   if (filterDateTo.value) {
     filtered = filtered.filter(doc => {
-      const docDate = new Date(doc.uploadDate || doc.created_at || doc.createdAt)
+      const docDate = new Date(doc.file_date)
       return docDate <= new Date(filterDateTo.value)
     })
   }

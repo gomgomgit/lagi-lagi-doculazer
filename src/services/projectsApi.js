@@ -170,7 +170,9 @@ export const sendInferenceMessage = async (projectId, messageInput, conversation
     // Add mentioned documents as comma-separated string of IDs
     if (mentionedDocuments && mentionedDocuments.length > 0) {
       console.log('Sending inference message with document IDs:', mentionedDocuments)
-      const documentIds = mentionedDocuments.map(doc => doc.knowledge_source_id).join(',')
+      const uniqueIds = [...new Set(mentionedDocuments.map(doc => doc.knowledge_source_id))];
+      const documentIds = uniqueIds.join(',')
+
       params.append('filtered_knowledge_source_ids', documentIds)
       console.log('Sending inference message params:', params)
     } else {

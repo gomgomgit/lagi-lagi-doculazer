@@ -65,7 +65,7 @@
           @click.stop="selectConversation(conversation)"
         >
           <MessageCircleIcon class="w-3 h-3 flex-shrink-0" />
-          <span class="truncate">{{ conversation.title }}</span>
+          <span class="truncate">{{ conversation.conversation_name }}</span>
           <span v-if="conversation.messageCount" class="text-xs px-1.5 py-0.5 rounded-full project-accordion-message-count">
             {{ conversation.messageCount }}
           </span>

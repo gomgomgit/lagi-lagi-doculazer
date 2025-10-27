@@ -101,7 +101,7 @@
               </th>
               <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">
                 <button @click="$emit('sort', 'uploadDate')" class="flex items-center gap-1 hover:text-gray-900">
-                  Upload Date
+                  Date
                   <component :is="getSortIcon('uploadDate')" class="w-3 h-3" />
                 </button>
               </th>
@@ -111,7 +111,7 @@
                   <component :is="getSortIcon('size')" class="w-3 h-3" />
                 </button>
               </th>
-              <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">Type</th>
+              <!-- <th class="px-4 py-3 text-left text-sm font-medium doc-table-header-text">Type</th> -->
               <th class="px-4 py-3 text-center text-sm font-medium doc-table-header-text">Actions</th>
             </tr>
           </thead>
@@ -131,16 +131,16 @@
                 <span class="text-sm doc-table-meta">{{ doc.company }}</span>
               </td>
               <td class="px-4 py-3">
-                <span class="text-sm doc-table-meta">{{ formatDate(doc.uploadDate) }}</span>
+                <span class="text-sm doc-table-meta">{{ formatDate(doc.file_date) }}</span>
               </td>
               <td class="px-4 py-3">
                 <span class="text-sm doc-table-meta">{{ formatFileSize(doc.file_size) }}</span>
               </td>
-              <td class="px-4 py-3">
+              <!-- <td class="px-4 py-3">
                 <span class="inline-block px-2 py-1 text-xs font-medium rounded-full" :class="getTypeClass(doc.mime)">
                   {{ doc.mime?.toUpperCase() }}
                 </span>
-              </td>
+              </td> -->
               <td class="px-4 py-3">
                 <div class="flex items-center justify-center gap-2">
                   <!-- View PDF -->
