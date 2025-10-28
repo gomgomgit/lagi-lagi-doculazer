@@ -192,3 +192,20 @@ export const sendInferenceMessage = async (projectId, messageInput, conversation
     }
   }
 }
+
+export const updateConversation = async (projectId, conversationId, data) => {
+  try {
+    console.log('Updating conversation:', { projectId, conversationId, data })
+    const response = await projectAPI.updateConversation(projectId, conversationId, data)
+    return {
+      success: true,
+      data: response.result,
+    }
+  } catch (error) {
+    console.error('Error updating conversation:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to update conversation'
+    }
+  }
+}

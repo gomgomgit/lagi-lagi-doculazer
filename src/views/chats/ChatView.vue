@@ -285,14 +285,10 @@ const handleFiltersApplied = (data) => {
   // You can use this data for various purposes:
   // 1. Show notification
   if (filteredFiles.length > 0) {
-    console.log(`✅ Filter applied: Found ${filteredFiles.length} documents`)
+    console.log(`Filter applied: Found ${filteredFiles.length} documents`)
   } else {
-    console.log('❌ Filter applied: No documents match the criteria')
+    console.log('Filter applied: No documents match the criteria')
   }
-  
-  // 2. Update UI - reactive state will automatically update computed properties
-  // 3. Send to API - you can use filteredFiles for API calls
-  // 4. Store in state - already done above
 }
 
 // Methods

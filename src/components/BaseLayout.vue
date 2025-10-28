@@ -54,6 +54,8 @@
             @add-conversation="onAddConversation"
             @edit-project="onEditProject"
             @delete-project="onDeleteProject"
+            @edit-conversation="onEditConversation"
+            @delete-conversation="onDeleteConversation"
           />
           
           <!-- Empty state -->
@@ -153,6 +155,16 @@
       @confirm="handleEditProject"
       @cancel="cancelEditProject"
     />
+
+    <!-- Edit Conversation Modal -->
+    <EditConversationModal
+      :show="showEditConversationModal"
+      :conversation="conversationToEdit"
+      :loading="loading"
+      :error="error"
+      @confirm="handleEditConversation"
+      @cancel="cancelEditConversation"
+    />
   </div>
 </template>
 
@@ -164,6 +176,7 @@ import { useAuthStore } from '@/stores/auth'
 import ProjectAccordion from '@/components/ui/ProjectAccordion.vue'
 import AddProjectModal from '@/components/documents/AddProjectModal.vue'
 import EditProjectModal from '@/components/documents/EditProjectModal.vue'
+import EditConversationModal from '@/components/chat/EditConversationModal.vue'
 import { useProjects } from '@/composables/useProjects'
 
 const route = useRoute()
@@ -178,6 +191,7 @@ const {
   fetchProjectsWithConversations,
   addProject,
   updateProjectData,
+  updateConversationData,
   deleteProjectById,
   clearError
 } = useProjects()
@@ -245,6 +259,10 @@ const showModal = ref(false)
 // State for edit project modal
 const showEditModal = ref(false)
 const projectToEdit = ref(null)
+
+// State for edit conversation modal
+const showEditConversationModal = ref(false)
+const conversationToEdit = ref(null)
 
 // State for user dropdown
 const showUserDropdown = ref(false)
@@ -345,6 +363,107 @@ const handleEditProject = async (projectId, updatedData) => {
 const cancelEditProject = () => {
   showEditModal.value = false
   projectToEdit.value = null
+}
+
+// Edit Conversation handlers
+const onEditConversation = (conversation) => {
+  console.log('Edit conversation:', conversation)
+  conversationToEdit.value = conversation
+  clearError() // Clear any previous errors
+  showEditConversationModal.value = true
+}
+
+const handleEditConversation = async (conversationId, updatedData) => {
+  console.log('Update conversation:', conversationId, updatedData)
+  
+  try {
+    // Find the project ID for this conversation
+    let projectId = null
+    for (const project of projectsWithConversations.value) {
+      if (project.conversations) {
+        const conversation = project.conversations.find(
+          conv => conv.conversation_id === conversationId
+        )
+        if (conversation) {
+          projectId = project.id
+          break
+        }
+      }
+    }
+    
+    if (!projectId) {
+      console.error('Failed to find project for conversation:', conversationId)
+      return
+    }
+    
+    // Call API to update conversation
+    const updatedConversation = await updateConversationData(projectId, conversationId, updatedData)
+    
+    if (updatedConversation) {
+      // Close modal on success
+      showEditConversationModal.value = false
+      conversationToEdit.value = null
+      console.log('Conversation updated successfully:', updatedConversation)
+      
+      // Fetch projects with conversations to ensure sync
+      fetchProjectsWithConversations()
+    } else {
+      // Error will be handled by the composable and shown in UI
+      console.error('Failed to update conversation')
+    }
+  } catch (err) {
+    console.error('Error in handleEditConversation:', err)
+  }
+}
+
+const cancelEditConversation = () => {
+  showEditConversationModal.value = false
+  conversationToEdit.value = null
+}
+
+// Delete Conversation handler
+const onDeleteConversation = async (conversation) => {
+  console.log('Delete conversation:', conversation)
+  
+  // Show confirmation dialog
+  const confirmed = window.confirm(
+    `Are you sure you want to delete the conversation "${conversation.conversation_name}"?\n\nThis action cannot be undone and will permanently delete all messages in this conversation.`
+  )
+  
+  if (confirmed) {
+    try {
+      // TODO: Implement conversation delete API call
+      // For now, we'll remove from local state
+      const projects = projectsWithConversations.value
+      let conversationDeleted = false
+      
+      for (const project of projects) {
+        if (project.conversations) {
+          const conversationIndex = project.conversations.findIndex(
+            conv => conv.conversation_id === conversation.conversation_id
+          )
+          if (conversationIndex !== -1) {
+            project.conversations.splice(conversationIndex, 1)
+            conversationDeleted = true
+            
+            // If we're currently viewing this conversation, navigate away
+            if (currentConversationId.value === conversation.conversation_id) {
+              router.push({ name: 'chat' })
+            }
+            break
+          }
+        }
+      }
+      
+      if (conversationDeleted) {
+        console.log('Conversation deleted successfully')
+      } else {
+        console.error('Failed to find conversation to delete')
+      }
+    } catch (err) {
+      console.error('Error in onDeleteConversation:', err)
+    }
+  }
 }
 
 // Delete Project handler

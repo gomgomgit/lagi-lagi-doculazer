@@ -99,6 +99,15 @@ class ApiService {
     })
   }
 
+  // PATCH request
+  async patch(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      ...options,
+    })
+  }
+
   // DELETE request
   async delete(endpoint, options = {}) {
     return this.request(endpoint, {
@@ -167,6 +176,7 @@ export const projectAPI = {
   
   // Conversation/Chat methods
   getConversationHistory: (projectId, conversationId) => apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/conversations/${conversationId}/history`),
+  updateConversation: (projectId, conversationId, data) => apiService.patch(`${apiBaseUrl}/v1/projects/${projectId}/conversations/${conversationId}`, data),
   sendInferenceMessage: (projectId, params) => {
     return apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/inference?${params}`)
   },

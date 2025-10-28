@@ -1,4 +1,4 @@
-import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, getConversationHistory, sendInferenceMessage } from '@/services/projectsApi'
+import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, getConversationHistory, sendInferenceMessage, updateConversation } from '@/services/projectsApi'
 import { ref } from 'vue'
 
 export function useProjects() {
@@ -89,6 +89,28 @@ export function useProjects() {
       }
     } catch (err) {
       error.value = 'Failed to create project'
+      console.error(err)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const updateConversationData = async (projectId, conversationId, updatedData) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await updateConversation(projectId, conversationId, updatedData)
+      if (result.success) {
+        console.log('Conversation updated successfully:', result.data)
+        return result.data
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = 'Failed to update conversation'
       console.error(err)
       return null
     } finally {
@@ -279,6 +301,7 @@ export function useProjects() {
     deleteProjectKnowledgeById,
     addProject,
     updateProjectData,
+    updateConversationData,
     deleteProjectById,
     clearError
   }
