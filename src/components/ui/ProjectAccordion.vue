@@ -56,19 +56,56 @@
       leave-from-class="opacity-100 max-h-96" 
       leave-to-class="opacity-0 max-h-0"
     >
-      <div v-show="isExpanded" class="ml-3 space-y-1 overflow-hidden">
+      <div v-show="isExpanded" class="ml-3 space-y-1">
         <div 
           v-for="conversation in project.conversations" 
           :key="conversation.conversation_id"
-          class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer project-accordion-conversation"
+          class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer project-accordion-conversation group"
           :class="{ 'selected': selectedConversationId === conversation.conversation_id }"
-          @click.stop="selectConversation(conversation)"
         >
-          <MessageCircleIcon class="w-3 h-3 flex-shrink-0" />
-          <span class="truncate">{{ conversation.conversation_name }}</span>
-          <span v-if="conversation.messageCount" class="text-xs px-1.5 py-0.5 rounded-full project-accordion-message-count">
-            {{ conversation.messageCount }}
-          </span>
+          <div 
+            class="flex items-center gap-2 flex-1 min-w-0"
+            @click.stop="selectConversation(conversation)"
+          >
+            <MessageCircleIcon class="w-3 h-3 flex-shrink-0" />
+            <span class="truncate">{{ conversation.conversation_name }}</span>
+            <span v-if="conversation.messageCount" class="text-xs px-1.5 py-0.5 rounded-full project-accordion-message-count">
+              {{ conversation.messageCount }}
+            </span>
+          </div>
+          
+          <!-- Conversation Actions Dropdown -->
+          <div class="relative flex-shrink-0" :data-conversation-dropdown="conversation.conversation_id">
+            <button
+              @click.stop="toggleConversationDropdown(conversation.conversation_id)"
+              class="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700 transition-all opacity-0 group-hover:opacity-100"
+              title="Conversation Options"
+            >
+              <MoreVerticalIcon class="w-3 h-3" />
+            </button>
+            
+            <!-- Dropdown Menu for Conversation -->
+            <div 
+              v-if="showConversationDropdown === conversation.conversation_id"
+              class="dropdown-menu py-1"
+            >
+              <button
+                @click.stop="editConversation(conversation)"
+                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+              >
+                <EditIcon class="w-3 h-3" />
+                <span>Rename Chat</span>
+              </button>
+              <hr class="my-1 border-gray-200">
+              <button
+                @click.stop="deleteConversation(conversation)"
+                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+              >
+                <TrashIcon class="w-3 h-3" />
+                <span>Delete Chat</span>
+              </button>
+            </div>
+          </div>
         </div>
         
         <!-- Add new conversation button -->
@@ -109,12 +146,15 @@ const emit = defineEmits([
   'conversation-selected',
   'add-conversation',
   'edit-project',
-  'delete-project'
+  'delete-project',
+  'edit-conversation',
+  'delete-conversation'
 ])
 
 // State
 const isExpanded = ref(props.expandedByDefault)
 const showDropdown = ref(false)
+const showConversationDropdown = ref(null) // Store conversation ID that has dropdown open
 const dropdownRef = ref(null)
 
 // Methods
@@ -143,16 +183,67 @@ const deleteProject = () => {
 // Dropdown handlers
 const toggleDropdown = () => {
   showDropdown.value = !showDropdown.value
+  // Close conversation dropdown if project dropdown is opened
+  if (showDropdown.value) {
+    showConversationDropdown.value = null
+  }
 }
 
 const closeDropdown = () => {
   showDropdown.value = false
 }
 
+// Conversation dropdown handlers
+const toggleConversationDropdown = (conversationId) => {
+  if (showConversationDropdown.value === conversationId) {
+    showConversationDropdown.value = null
+  } else {
+    showConversationDropdown.value = conversationId
+    // Close project dropdown if conversation dropdown is opened
+    showDropdown.value = false
+  }
+}
+
+const closeConversationDropdown = () => {
+  showConversationDropdown.value = null
+}
+
+// Conversation action handlers
+const editConversation = (conversation) => {
+  closeConversationDropdown()
+  emit('edit-conversation', conversation)
+}
+
+const deleteConversation = (conversation) => {
+  closeConversationDropdown()
+  emit('delete-conversation', conversation)
+}
+
 // Close dropdown when clicking outside
 const handleClickOutside = (event) => {
+  // Close project dropdown
   if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
     closeDropdown()
+  }
+  
+  // Close conversation dropdown
+  if (showConversationDropdown.value) {
+    const conversationDropdownRef = document.querySelector(`[data-conversation-dropdown="${showConversationDropdown.value}"]`)
+    if (conversationDropdownRef && !conversationDropdownRef.contains(event.target)) {
+      closeConversationDropdown()
+    } else {
+      // Check if click is outside any conversation dropdown
+      const allConversationDropdowns = document.querySelectorAll('[data-conversation-dropdown]')
+      let clickedOutside = true
+      allConversationDropdowns.forEach(dropdown => {
+        if (dropdown.contains(event.target)) {
+          clickedOutside = false
+        }
+      })
+      if (clickedOutside) {
+        closeConversationDropdown()
+      }
+    }
   }
 }
 
@@ -197,7 +288,7 @@ onUnmounted(() => {
   right: 0;
   top: 100%;
   margin-top: 0.25rem;
-  z-index: 60;
+  z-index: 100;
   min-width: 10rem;
   background: white;
   border: 1px solid #e5e7eb;
