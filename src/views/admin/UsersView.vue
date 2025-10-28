@@ -28,14 +28,32 @@
         class="admin-form-input px-3 py-2 rounded-lg"
       >
         <option value="">All Roles</option>
-        <option value="admin">Admin</option>
-        <option value="user">User</option>
-        <option value="viewer">Viewer</option>
+        <option value="ADMIN">Admin</option>
+        <option value="USER">User</option>
       </select>
     </div>
 
+    <!-- Loading State -->
+    <div v-if="loading" class="admin-page-card rounded-lg p-8 text-center">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p class="text-gray-500">Loading users...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="admin-page-card rounded-lg p-8 text-center">
+      <div class="text-red-600 mb-4">
+        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <p class="text-red-600 font-medium">{{ error }}</p>
+      <BaseButton @click="fetchUsers" variant="secondary" class="mt-4">
+        Try Again
+      </BaseButton>
+    </div>
+
     <!-- Users Table -->
-    <div class="admin-page-card rounded-lg overflow-hidden">
+    <div v-else class="admin-page-card rounded-lg overflow-hidden">
       <table class="w-full">
         <thead class="admin-table-header">
           <tr>
@@ -45,7 +63,17 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="user in filteredUsers" :key="user.id" class="admin-table-row">
+          <!-- Empty State -->
+          <tr v-if="filteredUsers.length === 0">
+            <td colspan="3" class="px-6 py-8 text-center">
+              <UserIcon class="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p class="text-gray-500 font-medium">No users found</p>
+              <p class="text-gray-400 text-sm">{{ searchQuery || filterRole ? 'Try adjusting your filters' : 'Get started by adding your first user' }}</p>
+            </td>
+          </tr>
+          
+          <!-- User Rows -->
+          <tr v-else v-for="user in filteredUsers" :key="user.id" class="admin-table-row">
             <td class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center">
                 <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
@@ -121,41 +149,17 @@
 import BaseButton from '@/components/ui/BaseButton.vue'
 import UserFormModal from '@/components/admin/UserFormModal.vue'
 import { EditIcon, PlusIcon, SearchIcon, TrashIcon, UserIcon } from 'lucide-vue-next'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useUsers } from '@/composables/useUsers'
+
+// Use users composable
+const { users, loading, error, fetchUsers, addUser, updateUserData, deleteUserById } = useUsers()
 
 // State
 const searchQuery = ref('')
 const filterRole = ref('')
 const showModal = ref(false)
 const selectedUser = ref(null)
-
-// Sample users data
-const users = ref([
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'admin'
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    role: 'user'
-  },
-  {
-    id: 3,
-    name: 'Bob Wilson',
-    email: 'bob.wilson@example.com',
-    role: 'user'
-  },
-  {
-    id: 4,
-    name: 'Alice Johnson',
-    email: 'alice.johnson@example.com',
-    role: 'user'
-  }
-])
 
 // Computed properties
 const filteredUsers = computed(() => {
@@ -178,9 +182,9 @@ const filteredUsers = computed(() => {
 // Methods
 const getRoleColor = (role) => {
   switch (role) {
-    case 'admin':
+    case 'ADMIN':
       return 'bg-red-100 text-red-800'
-    case 'user':
+    case 'USER':
       return 'bg-blue-100 text-blue-800'
     default:
       return 'bg-gray-100 text-gray-800'
@@ -194,40 +198,61 @@ const showAddUserModal = () => {
 }
 
 const editUser = (user) => {
+  console.log('Editing user:', user)
   selectedUser.value = { ...user }
   showModal.value = true
 }
 
-const deleteUser = (user) => {
+const deleteUser = async (user) => {
   if (confirm(`Are you sure you want to delete ${user.name}?`)) {
-    const index = users.value.findIndex(u => u.id === user.id)
-    if (index > -1) {
-      users.value.splice(index, 1)
-      console.log('User deleted:', user.name)
+    const success = await deleteUserById(user.user_id)
+    if (success) {
+      console.log('User deleted successfully:', user.name)
+      fetchUsers()
+    } else {
+      console.error('Failed to delete user:', user.name)
     }
   }
 }
 
-const handleUserSubmit = (userData) => {
-  if (selectedUser.value) {
-    // Edit existing user
-    const index = users.value.findIndex(u => u.id === userData.id)
-    if (index > -1) {
-      users.value[index] = userData
-      console.log('User updated:', userData.name)
+const handleUserSubmit = async (userData) => {
+  try {
+    if (selectedUser.value) {
+      // Edit existing user
+      const result = await updateUserData(selectedUser.value.user_id, userData)
+      if (result) {
+        console.log('User updated successfully:', userData.name)
+        showModal.value = false
+        selectedUser.value = null
+      } else {
+        console.error('Failed to update user')
+      }
+    } else {
+      // Add new user
+      console.log('Adding new user:', userData)
+      const result = await addUser(userData)
+      if (result) {
+        console.log('User added successfully:', userData.name)
+        showModal.value = false
+        selectedUser.value = null
+      } else {
+        console.error('Failed to add user')
+      }
     }
-  } else {
-    // Add new user
-    users.value.push(userData)
-    console.log('User added:', userData.name)
+  } catch (err) {
+    console.error('Error in handleUserSubmit:', err)
+  } finally {
+    fetchUsers()
   }
-  
-  showModal.value = false
-  selectedUser.value = null
 }
 
 const cancelUserForm = () => {
   showModal.value = false
   selectedUser.value = null
 }
+
+// Lifecycle
+onMounted(() => {
+  fetchUsers()
+})
 </script>

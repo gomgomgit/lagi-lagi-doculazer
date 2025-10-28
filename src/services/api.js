@@ -140,6 +140,10 @@ export const userAPI = {
   getProfile: () => apiService.get(apiEndpoints.profile),
   updateProfile: (data) => apiService.put(apiEndpoints.updateProfile, data),
   changePassword: (data) => apiService.post(apiEndpoints.changePassword, data),
+  getUsers: () => apiService.get(`${apiService.baseURL}/v1/users`),
+  createUser: (userData) => apiService.post(`${apiService.baseURL}/v1/users`, userData),
+  updateUser: (userId, userData) => apiService.put(`${apiService.baseURL}/v1/users/${userId}`, userData),
+  deleteUser: (userId) => apiService.delete(`${apiService.baseURL}/v1/users/${userId}`),
 }
 
 // Document API methods
