@@ -13,7 +13,7 @@
                 <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
                 <ChevronRightIcon class="w-4 h-4 text-gray-400" />
                 <MessageCircleIcon class="w-4 h-4 text-gray-600" />
-                <span class="text-gray-700">{{ currentConversation?.title || 'New Conversation' }}</span>
+                <span class="text-gray-700">{{ currentConversation?.conversation_name || 'New Conversation' }}</span>
               </div>
             </div>
           </div>
@@ -230,10 +230,11 @@ const currentProject = computed(() => {
 })
 
 const currentConversation = computed(() => {
-  console.log('Computing currentConversation for ID:', conversationId)
+  console.log('Computing currentConversation for ID:', conversationId.value)
   if (!conversationId.value || conversationId.value === 'new') return null
   if (!currentProject.value) return null
-  return currentProject.value.conversations?.find(c => c.id == conversationId.value)
+  console.log('Available conversations:', currentProject.value.conversations)
+  return currentProject.value.conversations?.find(c => c.conversation_id == conversationId.value)
 })
 
 // Computed property to get filtered documents from ChatTool
