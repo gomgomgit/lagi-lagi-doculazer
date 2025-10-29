@@ -3,13 +3,13 @@
     <!-- Project Header -->
     <div  
       class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors project-accordion-header group"
-      :class="{ 'expanded': isExpanded }"
+      :class="{ 'expanded': props.isExpanded }"
     >
       <div 
         class="flex items-center gap-3 flex-1 cursor-pointer min-w-0"
         @click="toggleExpanded"
       >
-        <FolderOpenIcon v-if="isExpanded" class="w-4 h-4 flex-shrink-0" />
+        <FolderOpenIcon v-if="props.isExpanded" class="w-4 h-4 flex-shrink-0" />
         <FolderIcon v-else class="w-4 h-4 flex-shrink-0" />
         <span class="flex-1 truncate min-w-0">{{ project.name }}</span>
       </div>
@@ -56,7 +56,7 @@
       leave-from-class="opacity-100 max-h-96" 
       leave-to-class="opacity-0 max-h-0"
     >
-      <div v-show="isExpanded" class="ml-3 space-y-1">
+      <div v-show="props.isExpanded" class="ml-3 space-y-1">
         <div 
           v-for="conversation in project.conversations" 
           :key="conversation.conversation_id"
@@ -135,7 +135,7 @@ const props = defineProps({
     type: [Number, String, null],
     default: null
   },
-  expandedByDefault: {
+  isExpanded: {
     type: Boolean,
     default: false
   }
@@ -148,18 +148,16 @@ const emit = defineEmits([
   'edit-project',
   'delete-project',
   'edit-conversation',
-  'delete-conversation'
+  'delete-conversation',
+  'toggle-expanded'
 ])
-
-// State
-const isExpanded = ref(props.expandedByDefault)
 const showDropdown = ref(false)
 const showConversationDropdown = ref(null) // Store conversation ID that has dropdown open
 const dropdownRef = ref(null)
 
 // Methods
 const toggleExpanded = () => {
-  isExpanded.value = !isExpanded.value
+  emit('toggle-expanded', props.project.id)
 }
 
 const selectConversation = (conversation) => {

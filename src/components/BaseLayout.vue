@@ -49,13 +49,14 @@
             :key="project.id"
             :project="project"
             :selected-conversation-id="selectedConversationId"
-            :expanded-by-default="project.id == selectedProjectId"
+            :is-expanded="expandedProjectId === project.id"
             @conversation-selected="onConversationSelected"
             @add-conversation="onAddConversation"
             @edit-project="onEditProject"
             @delete-project="onDeleteProject"
             @edit-conversation="onEditConversation"
             @delete-conversation="onDeleteConversation"
+            @toggle-expanded="onToggleProjectExpanded"
           />
           
           <!-- Empty state -->
@@ -202,6 +203,7 @@ const projects = computed(() => projectsWithConversations.value || [])
 // State for navigation - simplified approach
 const selectedProjectId = ref(null)
 const selectedConversationId = ref(null)
+const expandedProjectId = ref(null)
 
 // Simple computed properties for selection based on current route
 const currentProjectId = computed(() => {
@@ -225,6 +227,11 @@ const updateSelection = () => {
   })
   selectedProjectId.value = currentProjectId.value
   selectedConversationId.value = currentConversationId.value
+  
+  // Auto-expand the current project
+  if (currentProjectId.value) {
+    expandedProjectId.value = currentProjectId.value
+  }
   console.log('Selection updated:', {
     project: selectedProjectId.value,
     conversation: selectedConversationId.value
@@ -293,6 +300,19 @@ const onAddConversation = (project) => {
       conversationId: 'new'
     }
   })
+}
+
+// Project accordion toggle handler
+const onToggleProjectExpanded = (projectId) => {
+  console.log('Toggle project expanded:', projectId)
+  
+  // If clicking the same project, toggle it
+  if (expandedProjectId.value === projectId) {
+    expandedProjectId.value = null
+  } else {
+    // Expand the clicked project (automatically collapses others)
+    expandedProjectId.value = projectId
+  }
 }
 
 // Add Project Modal handlers

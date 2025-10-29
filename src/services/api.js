@@ -1,191 +1,176 @@
 import { config, apiEndpoints } from '@/config'
 
-// Base API class untuk handling HTTP requests
+// Helper untuk mendapatkan auth token
+const getAuthToken = async () => {
+  try {
+    const { useAuthStore } = await import('@/stores/auth')
+    const authStore = useAuthStore()
+    return authStore.token
+  } catch {
+    return localStorage.getItem('auth_token')
+  }
+}
+
+// Helper untuk handle auth error
+const handleAuthError = async () => {
+  try {
+    const { useAuthStore } = await import('@/stores/auth')
+    const authStore = useAuthStore()
+    authStore.logout()
+  } catch (error) {
+    console.warn('Could not logout user:', error)
+  }
+}
+
+// Base API class - lebih simple
 class ApiService {
   constructor() {
     this.baseURL = config.apiBaseUrl
   }
 
-  // Generic request method
+  // Generic request method - disederhanakan
   async request(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
     
-    const defaultOptions = {
-      headers: {},
+    // Setup headers
+    const headers = { ...options.headers }
+    if (!options.isUpload && !headers['Content-Type']) {
+      headers['Content-Type'] = 'application/json'
     }
-
-    // Only add Content-Type for non-upload requests
-    if (!options.isUpload) {
-      defaultOptions.headers['Content-Type'] = 'application/json'
-    }
-
-    // Add any custom headers
-    if (options.headers) {
-      Object.assign(defaultOptions.headers, options.headers)
-    }
-
-    // Add auth token from Pinia store if available
-    try {
-      // Dynamic import to avoid circular dependency
-      const { useAuthStore } = await import('@/stores/auth')
-      const authStore = useAuthStore()
-      
-      if (authStore.token) {
-        defaultOptions.headers.Authorization = `Bearer ${authStore.token}`
-      }
-    } catch (error) {
-      console.warn('Could not access auth store:', error)
-      // Fallback to localStorage
-      const token = localStorage.getItem('auth_token')
-      if (token) {
-        defaultOptions.headers.Authorization = `Bearer ${token}`
-      }
-    }
-
-    const config = {
-      ...defaultOptions,
-      ...options,
-      headers: defaultOptions.headers, // Ensure headers are properly set
+    
+    // Add auth token
+    const token = await getAuthToken()
+    if (token) {
+      headers.Authorization = `Bearer ${token}`
     }
 
     try {
-      const response = await fetch(url, config)
+      const response = await fetch(url, { ...options, headers })
       
       if (!response.ok) {
-        // Handle unauthorized responses
         if (response.status === 401) {
-          // Token might be expired, try to logout user
-          try {
-            const { useAuthStore } = await import('@/stores/auth')
-            const authStore = useAuthStore()
-            authStore.logout()
-          } catch (error) {
-            console.warn('Could not logout user:', error)
-          }
+          await handleAuthError()
         }
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      return await response.json()
+      return response
     } catch (error) {
       console.error('API Request failed:', error)
       throw error
     }
   }
 
-  // GET request
+  // HTTP methods
   async get(endpoint, options = {}) {
-    return this.request(endpoint, {
-      method: 'GET',
-      ...options,
-    })
+    const response = await this.request(endpoint, { method: 'GET', ...options })
+    return response.json()
   }
 
-  // POST request
   async post(endpoint, data, options = {}) {
-    return this.request(endpoint, {
+    const response = await this.request(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
       ...options,
     })
+    return response.json()
   }
 
-  // PUT request
   async put(endpoint, data, options = {}) {
-    return this.request(endpoint, {
+    const response = await this.request(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
       ...options,
     })
+    return response.json()
   }
 
-  // PATCH request
   async patch(endpoint, data, options = {}) {
-    return this.request(endpoint, {
+    const response = await this.request(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(data),
       ...options,
     })
+    return response.json()
   }
 
-  // DELETE request
   async delete(endpoint, options = {}) {
-    return this.request(endpoint, {
-      method: 'DELETE',
-      ...options,
-    })
+    const response = await this.request(endpoint, { method: 'DELETE', ...options })
+    return response.json()
   }
 
-  // File upload request
   async upload(endpoint, formData, options = {}) {
-    // For file uploads, mark as upload and don't set Content-Type
-    const uploadOptions = {
+    const response = await this.request(endpoint, {
       method: 'POST',
       body: formData,
-      isUpload: true, // Flag to prevent Content-Type being set
-      headers: {
-        ...options.headers,
-      },
-    }
-    
-    return this.request(endpoint, uploadOptions)
+      isUpload: true,
+      ...options,
+    })
+    return response.json()
+  }
+
+  async download(endpoint, options = {}) {
+    return this.request(endpoint, { method: 'GET', ...options })
   }
 }
 
 // Create instance
-const apiService = new ApiService()
+const api = new ApiService()
+const baseUrl = config.apiBaseUrl
 
-const apiBaseUrl = config.apiBaseUrl
+// Helper untuk membuat URL endpoint
+const url = (path) => `${baseUrl}${path}`
 
-// Auth API methods
+// Auth API - simple
 export const authAPI = {
-  login: (credentials) => apiService.post(apiEndpoints.login, credentials),
-  register: (userData) => apiService.post(apiEndpoints.register, userData),
-  logout: () => apiService.post(apiEndpoints.logout),
+  login: (credentials) => api.post(apiEndpoints.login, credentials),
+  register: (userData) => api.post(apiEndpoints.register, userData),
+  logout: () => api.post(apiEndpoints.logout),
 }
 
-// User API methods
+// User API - simple
 export const userAPI = {
-  getProfile: () => apiService.get(apiEndpoints.profile),
-  updateProfile: (data) => apiService.put(apiEndpoints.updateProfile, data),
-  changePassword: (data) => apiService.post(apiEndpoints.changePassword, data),
-  getUsers: () => apiService.get(`${apiService.baseURL}/v1/users`),
-  createUser: (userData) => apiService.post(`${apiService.baseURL}/v1/users`, userData),
-  updateUser: (userId, userData) => apiService.put(`${apiService.baseURL}/v1/users/${userId}`, userData),
-  deleteUser: (userId) => apiService.delete(`${apiService.baseURL}/v1/users/${userId}`),
+  getProfile: () => api.get(apiEndpoints.profile),
+  updateProfile: (data) => api.put(apiEndpoints.updateProfile, data),
+  changePassword: (data) => api.post(apiEndpoints.changePassword, data),
+  getUsers: () => api.get(url('/v1/users')),
+  createUser: (userData) => api.post(url('/v1/users'), userData),
+  updateUser: (userId, userData) => api.put(url(`/v1/users/${userId}`), userData),
+  deleteUser: (userId) => api.delete(url(`/v1/users/${userId}`)),
 }
 
-// Document API methods
+// Document API - simple
 export const documentAPI = {
-  getDocuments: () => apiService.get(apiEndpoints.documents),
-  uploadDocument: (formData) => apiService.upload(apiEndpoints.uploadDocument, formData),
-  summarizeDocument: (documentId) => apiService.post(apiEndpoints.summarizeDocument, { documentId }),
+  getDocuments: () => api.get(apiEndpoints.documents),
+  uploadDocument: (formData) => api.upload(apiEndpoints.uploadDocument, formData),
+  summarizeDocument: (documentId) => api.post(apiEndpoints.summarizeDocument, { documentId }),
 }
 
-// Projects API methods
+// Project API - simple dan terorganisir
 export const projectAPI = {
-  createProject: (formData) => apiService.post(`${apiBaseUrl}/v1/projects`, formData),
-  fetchProjects: () => apiService.get(`${apiBaseUrl}/v1/projects`),
-  fetchProjectsWithConversations: () => apiService.get(`${apiBaseUrl}/v1/projects-with-conversations`),
-  fetchProjectKnowledges: (id) => apiService.get(`${apiBaseUrl}/v1/projects/${id}/knowledge`),
-  updateProject: (id, formData) => apiService.put(`${apiBaseUrl}/v1/projects/${id}`, formData),
-  deleteProject: (id) => apiService.delete(`${apiBaseUrl}/v1/projects/${id}`),
+  // Project CRUD
+  createProject: (formData) => api.post(url('/v1/projects'), formData),
+  fetchProjects: () => api.get(url('/v1/projects')),
+  fetchProjectsWithConversations: () => api.get(url('/v1/projects-with-conversations')),
+  updateProject: (id, formData) => api.put(url(`/v1/projects/${id}`), formData),
+  deleteProject: (id) => api.delete(url(`/v1/projects/${id}`)),
 
-  ingestProjectKnowledge: (id, formData) => apiService.upload(`${apiBaseUrl}/v1/projects/${id}/knowledge/ingest`, formData),
-  deleteProjectKnowledge: (projectId, knowledgeId) => apiService.delete(`${apiBaseUrl}/v1/projects/${projectId}/knowledge/${knowledgeId}`),
+  // Knowledge management
+  fetchProjectKnowledges: (id) => api.get(url(`/v1/projects/${id}/knowledge`)),
+  ingestProjectKnowledge: (id, formData) => api.upload(url(`/v1/projects/${id}/knowledge/ingest`), formData),
+  deleteProjectKnowledge: (projectId, knowledgeId) => api.delete(url(`/v1/projects/${projectId}/knowledge/${knowledgeId}`)),
+  downloadProjectKnowledge: (projectId, knowledgeId) => api.download(url(`/v1/projects/${projectId}/knowledge/${knowledgeId}/download`)),
   
-  // Conversation/Chat methods
-  getConversationHistory: (projectId, conversationId) => apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/conversations/${conversationId}/history`),
-  updateConversation: (projectId, conversationId, data) => apiService.patch(`${apiBaseUrl}/v1/projects/${projectId}/conversations/${conversationId}`, data),
-  sendInferenceMessage: (projectId, params) => {
-    return apiService.get(`${apiBaseUrl}/v1/projects/${projectId}/inference?${params}`)
-  },
+  // Conversations
+  getConversationHistory: (projectId, conversationId) => api.get(url(`/v1/projects/${projectId}/conversations/${conversationId}/history`)),
+  updateConversation: (projectId, conversationId, data) => api.patch(url(`/v1/projects/${projectId}/conversations/${conversationId}`), data),
+  sendInferenceMessage: (projectId, params) => api.get(url(`/v1/projects/${projectId}/inference?${params}`)),
 }
 
-// Chat API methods
+// Chat API - simple
 export const chatAPI = {
-  sendMessage: (message) => apiService.post(apiEndpoints.chat, { message }),
-  getChatHistory: () => apiService.get(apiEndpoints.chatHistory),
+  sendMessage: (message) => api.post(apiEndpoints.chat, { message }),
+  getChatHistory: () => api.get(apiEndpoints.chatHistory),
 }
 
-export default apiService
+export default api

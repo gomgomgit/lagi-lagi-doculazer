@@ -324,7 +324,7 @@ const sendMessage = async () => {
   try {
     // Send message to API with mentioned documents
     // Use empty string for conversation_id when it's 'new'
-    const apiConversationId = conversationId.value === 'new' ? '' : conversationId.value
+    const apiConversationId = conversationId.value === 'new' ? undefined : conversationId.value
     
     console.log('Sending message with documents:', {
       message: messageToSend,

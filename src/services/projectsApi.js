@@ -163,9 +163,13 @@ export const sendInferenceMessage = async (projectId, messageInput, conversation
     
     // Build URL parameters
     const params = new URLSearchParams({
-      human_message: processedMessage,
-      conversation_id: conversationId
+      human_message: processedMessage
     })
+    
+    // Only add conversation_id if it's not empty or undefined
+    if (conversationId && conversationId.trim() !== '') {
+      params.append('conversation_id', conversationId)
+    }
     
     // Add mentioned documents as comma-separated string of IDs
     if (mentionedDocuments && mentionedDocuments.length > 0) {
@@ -206,6 +210,42 @@ export const updateConversation = async (projectId, conversationId, data) => {
     return {
       success: false,
       error: error.response?.data?.message || 'Failed to update conversation'
+    }
+  }
+}
+
+export const downloadProjectKnowledge = async (projectId, knowledgeId) => {
+  try {
+    console.log('Downloading project knowledge:', { projectId, knowledgeId })
+    const response = await projectAPI.downloadProjectKnowledge(projectId, knowledgeId)
+    
+    // Get filename from Content-Disposition header if available
+    const contentDisposition = response.headers.get('Content-Disposition')
+    let filename = `document_${knowledgeId}`
+    
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+      if (filenameMatch && filenameMatch[1]) {
+        filename = filenameMatch[1].replace(/['"]/g, '')
+      }
+    }
+    
+    // Convert response to blob
+    const blob = await response.blob()
+    
+    return {
+      success: true,
+      data: {
+        blob,
+        filename,
+        contentType: response.headers.get('Content-Type')
+      }
+    }
+  } catch (error) {
+    console.error('Error downloading project knowledge:', error)
+    return {
+      success: false,
+      error: error.message || 'Failed to download document'
     }
   }
 }

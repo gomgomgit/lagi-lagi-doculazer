@@ -53,7 +53,7 @@ import PDFViewer from '@/components/documents/PDFViewer.vue'
 import DeleteConfirmModal from '@/components/documents/DeleteConfirmModal.vue'
 
 import { useProjects } from '@/composables/useProjects'
-const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById } = useProjects()
+const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, downloadProjectKnowledgeById } = useProjects()
 
 
 // State untuk project selection
@@ -307,12 +307,55 @@ const closePDFViewer = () => {
 }
 
 // Download method
-const downloadDocument = (document) => {
-  const link = document.createElement('a')
-  link.href = document.url
-  link.download = document.name
-  link.click()
-  console.log(`Downloading: ${document.name}`)
+const downloadDocument = async (document) => {
+  try {
+    if (!selectedProject.value) {
+      console.error('No project selected for document download')
+      return
+    }
+
+    console.log(`Downloading document: ${document.file_name} from project ${selectedProject.value.id}`)
+    
+    // Call API to download document
+    const result = await downloadProjectKnowledgeById(selectedProject.value.id, document.knowledge_source_id || document.id)
+
+    if (result) {
+      // Create blob URL and trigger download
+      const blob = result.blob
+      const filename = document.file_name
+      
+      const url = URL.createObjectURL(blob)
+      const link = window.document.createElement('a')
+      link.href = url
+      link.download = filename
+      window.document.body.appendChild(link)
+      link.click()
+      window.document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      console.log(`Download completed for: ${filename}`)
+    } else {
+      console.error('Failed to download document:', result?.error)
+      // Fallback to original method if API fails
+      if (document.url) {
+        const link = window.document.createElement('a')
+        link.href = document.url
+        link.download = document.file_name || document.name
+        link.click()
+        console.log(`Fallback download for: ${document.file_name || document.name}`)
+      }
+    }
+  } catch (error) {
+    console.error('Error downloading document:', error)
+    // Fallback to original method if there's an error
+    if (document.url) {
+      const link = window.document.createElement('a')
+      link.href = document.url
+      link.download = document.file_name || document.name
+      link.click()
+      console.log(`Fallback download for: ${document.file_name || document.name}`)
+    }
+  }
 }
 
 // Delete methods
