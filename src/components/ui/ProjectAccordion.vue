@@ -7,11 +7,16 @@
     >
       <div 
         class="flex items-center gap-3 flex-1 cursor-pointer min-w-0"
-        @click="toggleExpanded"
       >
-        <FolderOpenIcon v-if="props.isExpanded" class="w-4 h-4 flex-shrink-0" />
-        <FolderIcon v-else class="w-4 h-4 flex-shrink-0" />
-        <span class="flex-1 truncate min-w-0">{{ project.name }}</span>
+        <FolderOpenIcon v-if="props.isExpanded" @click="toggleExpanded" class="w-4 h-4 flex-shrink-0" />
+        <FolderIcon v-else @click="toggleExpanded" class="w-4 h-4 flex-shrink-0" />
+        <span 
+          @click="handleProjectClick" 
+          class="flex-1 truncate min-w-0 hover:text-blue-600 transition-colors"
+          :title="`View all conversations in ${project.name}`"
+        >
+          {{ project.name }}
+        </span>
       </div>
       
       <!-- Project Actions Dropdown -->
@@ -62,16 +67,13 @@
           :key="conversation.conversation_id"
           class="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors cursor-pointer project-accordion-conversation group"
           :class="{ 'selected': selectedConversationId === conversation.conversation_id }"
+          @click.stop="selectConversation(conversation)"
         >
           <div 
             class="flex items-center gap-2 flex-1 min-w-0"
-            @click.stop="selectConversation(conversation)"
           >
             <MessageCircleIcon class="w-3 h-3 flex-shrink-0" />
             <span class="truncate">{{ conversation.conversation_name }}</span>
-            <span v-if="conversation.messageCount" class="text-xs px-1.5 py-0.5 rounded-full project-accordion-message-count">
-              {{ conversation.messageCount }}
-            </span>
           </div>
           
           <!-- Conversation Actions Dropdown -->
@@ -149,7 +151,8 @@ const emit = defineEmits([
   'delete-project',
   'edit-conversation',
   'delete-conversation',
-  'toggle-expanded'
+  'toggle-expanded',
+  'project-clicked'
 ])
 const showDropdown = ref(false)
 const showConversationDropdown = ref(null) // Store conversation ID that has dropdown open
@@ -215,6 +218,11 @@ const editConversation = (conversation) => {
 const deleteConversation = (conversation) => {
   closeConversationDropdown()
   emit('delete-conversation', conversation)
+}
+
+// Handle project name click
+const handleProjectClick = () => {
+  emit('project-clicked', props.project)
 }
 
 // Close dropdown when clicking outside

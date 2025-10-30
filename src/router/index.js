@@ -48,6 +48,15 @@ const router = createRouter({
           }
         },
         {
+          path: '/project/:projectId/overview',
+          name: 'chat-project-overview',
+          component: ChatView,
+          meta: {
+            header: 'Project Overview',
+            subtitle: 'View all conversations in this project.'
+          }
+        },
+        {
           path: '/profile',
           name: 'profile',
           component: ProfileView,

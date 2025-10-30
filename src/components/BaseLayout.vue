@@ -57,6 +57,7 @@
             @edit-conversation="onEditConversation"
             @delete-conversation="onDeleteConversation"
             @toggle-expanded="onToggleProjectExpanded"
+            @project-clicked="onProjectClicked"
           />
           
           <!-- Empty state -->
@@ -313,6 +314,16 @@ const onToggleProjectExpanded = (projectId) => {
     // Expand the clicked project (automatically collapses others)
     expandedProjectId.value = projectId
   }
+}
+
+// Project name click handler
+const onProjectClicked = (project) => {
+  router.push({
+    name: 'chat-project-overview',
+    params: {
+      projectId: project.id
+    }
+  })
 }
 
 // Add Project Modal handlers

@@ -11,9 +11,15 @@
               <div class="flex items-center gap-3 mb-2">
                 <FolderIcon class="w-5 h-5 text-gray-600" />
                 <span class="font-medium text-gray-900">{{ currentProject?.name || 'Select Project' }}</span>
-                <ChevronRightIcon class="w-4 h-4 text-gray-400" />
-                <MessageCircleIcon class="w-4 h-4 text-gray-600" />
-                <span class="text-gray-700">{{ currentConversation?.conversation_name || 'New Conversation' }}</span>
+                <template v-if="!isProjectOverviewMode">
+                  <ChevronRightIcon class="w-4 h-4 text-gray-400" />
+                  <MessageCircleIcon class="w-4 h-4 text-gray-600" />
+                  <span class="text-gray-700">{{ currentConversation?.conversation_name || 'New Conversation' }}</span>
+                </template>
+                <template v-else>
+                  <ChevronRightIcon class="w-4 h-4 text-gray-400" />
+                  <span class="text-gray-700">Project Overview</span>
+                </template>
               </div>
             </div>
           </div>
@@ -49,8 +55,82 @@
           </div>
         </div>
 
-        <!-- Chat Messages Area -->
-        <div ref="messagesContainer" class="chat-messages-area mb-4 rounded-lg">
+        <!-- Project Overview Mode -->
+        <div v-if="isProjectOverviewMode" class="project-overview-area mb-4 rounded-lg">
+          <!-- Project Overview Header -->
+          <div class="text-center mb-8">
+            <div class="flex items-center justify-center gap-3 mb-4">
+              <FolderIcon class="w-12 h-12 text-blue-600" />
+              <div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-1">{{ currentProject?.name }}</h2>
+                <p class="text-gray-600">Project Overview</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Project Conversations List -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900">Conversations in this project</h3>
+              <span class="text-sm text-gray-500">{{ projectConversations.length }} conversation{{ projectConversations.length !== 1 ? 's' : '' }}</span>
+            </div>
+            
+            <!-- Conversations Grid -->
+            <div v-if="projectConversations.length > 0" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div 
+                v-for="conversation in projectConversations" 
+                :key="conversation.conversation_id"
+                @click="selectConversationFromOverview(conversation)"
+                class="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer group"
+              >
+                <div class="flex items-start gap-3">
+                  <MessageCircleIcon class="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 mt-0.5" />
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-medium text-gray-900 group-hover:text-blue-900 transition-colors truncate">
+                      {{ conversation.conversation_name }}
+                    </h4>
+                    <div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                      <span>Click to open conversation</span>
+                      <ChevronRightIcon class="w-3 h-3 group-hover:text-blue-600 transition-colors" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div v-else class="text-center py-12">
+              <MessageCircleIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 class="text-lg font-medium text-gray-900 mb-2">No conversations yet</h3>
+              <p class="text-gray-600 mb-4">Start your first conversation in this project</p>
+              <BaseButton
+                @click="startNewConversation"
+                variant="primary"
+                class="inline-flex items-center gap-2"
+              >
+                <MessageCircleIcon class="w-4 h-4" />
+                <span>Start New Conversation</span>
+              </BaseButton>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div v-if="projectConversations.length > 0" class="mt-8 pt-6 border-t border-gray-200">
+              <div class="flex items-center justify-center">
+                <BaseButton
+                  @click="startNewConversation"
+                  variant="primary"
+                  class="inline-flex items-center gap-2"
+                >
+                  <MessageCircleIcon class="w-4 h-4" />
+                  <span>Start New Conversation</span>
+                </BaseButton>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Regular Chat Messages Area -->
+        <div v-else ref="messagesContainer" class="chat-messages-area mb-4 rounded-lg">
           <div v-if="messages.length === 0" class="text-center text-gray-500 flex items-center justify-center flex-col h-full">
             <MessageCircleIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <h3 class="text-lg font-medium text-gray-900 mb-2">Start a Conversation</h3>
@@ -100,8 +180,8 @@
           </div>
         </div>
 
-        <!-- Chat Input -->
-        <div class="chat-input-area">
+        <!-- Chat Input - Hide in project overview mode -->
+        <div v-if="!isProjectOverviewMode" class="chat-input-area">
           <input 
             ref="messageInput"
             v-model="messageText"
@@ -172,6 +252,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
+import BaseButton from '@/components/ui/BaseButton.vue'
 import { useProjects } from '@/composables/useProjects'
 import { useMarkdown } from '@/composables/useMarkdown'
 
@@ -181,6 +262,11 @@ const router = useRouter()
 // Get route parameters
 const projectId = computed(() => route.params.projectId)
 const conversationId = computed(() => route.params.conversationId)
+
+// Check if we're in project overview mode
+const isProjectOverviewMode = computed(() => {
+  return route.name === 'chat-project-overview'
+})
 
 // Use projects composable
 const { 
@@ -235,6 +321,12 @@ const currentConversation = computed(() => {
   if (!currentProject.value) return null
   console.log('Available conversations:', currentProject.value.conversations)
   return currentProject.value.conversations?.find(c => c.conversation_id == conversationId.value)
+})
+
+// Get conversations for current project in overview mode
+const projectConversations = computed(() => {
+  if (!isProjectOverviewMode.value || !currentProject.value) return []
+  return currentProject.value.conversations || []
 })
 
 // Computed property to get filtered documents from ChatTool
@@ -615,6 +707,52 @@ const handleNewConversationCreated = async (response) => {
     console.log('Sidebar should now show the new conversation as selected')
   } catch (error) {
     console.error('Error handling new conversation creation:', error)
+  }
+}
+
+// Methods for project overview mode
+const selectConversationFromOverview = (conversation) => {
+  console.log('Selecting conversation from overview:', conversation.conversation_name)
+  router.push({
+    name: 'chat-conversation',
+    params: {
+      projectId: projectId.value,
+      conversationId: conversation.conversation_id
+    }
+  })
+}
+
+const startNewConversation = () => {
+  console.log('Starting new conversation from project overview')
+  router.push({
+    name: 'chat-conversation',
+    params: {
+      projectId: projectId.value,
+      conversationId: 'new'
+    }
+  })
+}
+
+const formatConversationDate = (dateString) => {
+  if (!dateString) return 'Unknown date'
+  
+  try {
+    const date = new Date(dateString)
+    const now = new Date()
+    const diffTime = Math.abs(now - date)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 1) {
+      return 'Today'
+    } else if (diffDays === 2) {
+      return 'Yesterday'
+    } else if (diffDays <= 7) {
+      return `${diffDays - 1} days ago`
+    } else {
+      return date.toLocaleDateString()
+    }
+  } catch (error) {
+    return 'Unknown date'
   }
 }
 
