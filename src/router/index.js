@@ -26,7 +26,9 @@ const router = createRouter({
       path: '/',
       component: BaseLayout,
       meta: {
-        requiresAuth: true // Semua child routes membutuhkan authentication
+        requiresAuth: true, // Semua child routes membutuhkan authentication
+        requiresRole: 'USER', // Hanya user dengan role USER yang bisa akses BaseLayout
+        allowedRoles: ['USER'] // Explicitly define allowed roles
       },
       children: [
         {
@@ -90,7 +92,9 @@ const router = createRouter({
       component: AdminLayout,
       meta: {
         requiresAuth: true,
-        requiresAdmin: true
+        requiresAdmin: true,
+        requiresRole: 'ADMIN', // Hanya user dengan role ADMIN yang bisa akses AdminLayout
+        allowedRoles: ['ADMIN'] // Explicitly define allowed roles
       },
       children: [
         {
@@ -114,8 +118,26 @@ const router = createRouter({
             header: 'Multi Model Management',
             subtitle: 'Configure and manage Large Language Models and Embeddings'
           }
+        },
+        {
+          path: 'profile',
+          name: 'admin-profile',
+          component: ProfileView,
+          meta: {
+            header: 'Admin Profile',
+            subtitle: 'Manage your admin account settings and preferences.'
+          }
         }
       ]
+    },
+    // Catch-all route for handling unknown paths
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      redirect: (to) => {
+        // This will be handled by the navigation guard
+        return { name: 'login' }
+      }
     }
   ],
 })
@@ -124,12 +146,22 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
+  // Ensure user data is loaded if authenticated
+  if (authStore.isAuthenticated && !authStore.user) {
+    await authStore.fetchUser()
+  }
+  
+  const userRole = authStore.user?.role || null
+  
   console.log('Navigation Guard:', {
     to: to.path,
     requiresAuth: to.matched.some(record => record.meta.requiresAuth),
     requiresGuest: to.matched.some(record => record.meta.requiresGuest),
     requiresAdmin: to.matched.some(record => record.meta.requiresAdmin),
+    requiresRole: to.matched.find(record => record.meta.requiresRole)?.meta.requiresRole,
+    allowedRoles: to.matched.find(record => record.meta.allowedRoles)?.meta.allowedRoles,
     isAuthenticated: authStore.isAuthenticated,
+    userRole: userRole,
     user: authStore.user
   })
 
@@ -137,6 +169,8 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const requiresGuest = to.matched.some(record => record.meta.requiresGuest)
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+  const requiredRole = to.matched.find(record => record.meta.requiresRole)?.meta.requiresRole
+  const allowedRoles = to.matched.find(record => record.meta.allowedRoles)?.meta.allowedRoles
 
   // Redirect to login if not authenticated
   if (requiresAuth && !authStore.isAuthenticated) {
@@ -151,16 +185,58 @@ router.beforeEach(async (to, from, next) => {
   // Redirect authenticated users away from guest-only pages (like login)
   if (requiresGuest && authStore.isAuthenticated) {
     console.log('Redirecting authenticated user away from guest page')
-    next({ name: 'chat' }) // or wherever you want to redirect logged-in users
+    // Redirect based on user role
+    if (userRole === 'ADMIN') {
+      next({ name: 'admin-users' }) // Redirect admin to admin panel
+    } else {
+      next({ name: 'chat' }) // Redirect user to chat
+    }
     return
   }
 
-  // Check admin permissions
+  // Role-based access control
+  if (authStore.isAuthenticated && (requiredRole || allowedRoles)) {
+    if (!userRole) {
+      console.log('User role not found, redirecting to login')
+      await authStore.logout()
+      next({
+        name: 'login',
+        query: { redirect: to.fullPath }
+      })
+      return
+    }
+
+    // Check if user has required role
+    const hasRequiredRole = requiredRole ? userRole === requiredRole : true
+    const hasAllowedRole = allowedRoles ? allowedRoles.includes(userRole) : true
+
+    if (!hasRequiredRole || !hasAllowedRole) {
+      console.log(`Access denied - User role: ${userRole}, Required: ${requiredRole}, Allowed: ${allowedRoles}`)
+      
+      // Redirect to appropriate page based on user role
+      if (userRole === 'ADMIN') {
+        console.log('Redirecting ADMIN to admin panel')
+        next({ name: 'admin-users' })
+      } else if (userRole === 'USER') {
+        console.log('Redirecting USER to chat')
+        next({ name: 'chat' })
+      } else {
+        console.log('Unknown role, logging out')
+        await authStore.logout()
+        next({ name: 'login' })
+      }
+      return
+    }
+  }
+
+  // Legacy admin check (keeping for backward compatibility)
   if (requiresAdmin && authStore.isAuthenticated) {
-    // You can add admin role check here
-    // For now, we'll assume all authenticated users can access admin
-    // In real app, you might check: authStore.user?.role === 'admin'
-    console.log('Admin route accessed')
+    if (userRole !== 'ADMIN') {
+      console.log('Access denied - Admin route requires ADMIN role')
+      next({ name: 'chat' })
+      return
+    }
+    console.log('Admin route accessed by ADMIN user')
   }
 
   // Set page title if provided

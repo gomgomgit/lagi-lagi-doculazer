@@ -35,13 +35,7 @@
       
       <!-- Sidebar Footer -->
       <div>
-        <router-link 
-          to="/"
-          class="flex items-center gap-2 text-sm admin-back-link transition-colors base-button btn-action"
-        >
-          <ArrowLeftIcon class="w-4 h-4" />
-          <span>Back to Main</span>
-        </router-link>
+        <!-- Admin users don't have access to main user area -->
       </div>
     </aside>
 
@@ -55,11 +49,43 @@
             <p class="text-sm admin-header-subtitle">{{ currentSubtitle }}</p>
           </div>
           <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2 admin-header-subtitle">
-              Admin User
-              <button class="px-2 py-2 admin-user-button text-sm rounded-full transition-colors">
-                <ShieldIcon class="w-4 h-4" />
+            <!-- User Dropdown -->
+            <div class="relative" ref="userDropdownRef">
+              <button 
+                @click="toggleUserDropdown"
+                class="flex items-center gap-4 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <div class="flex items-center gap-2">
+                  {{ authStore.user?.email || 'Admin' }}
+                  <div class="px-2 py-2 bg-gray-900 text-white text-sm rounded-full hover:bg-gray-800 transition-colors">
+                    <ShieldIcon class="w-4 h-4" />
+                  </div>
+                </div>
               </button>
+              
+              <!-- Dropdown Menu -->
+              <div 
+                v-if="showUserDropdown"
+                class="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50"
+              >
+                <div class="py-1">
+                  <router-link 
+                    to="/admin/profile"
+                    @click="closeUserDropdown"
+                    class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <UserIcon class="w-4 h-4" />
+                    <span>Profile</span>
+                  </router-link>
+                  <button 
+                    @click="handleLogout"
+                    class="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <LogOutIcon class="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -74,11 +100,18 @@
 </template>
 
 <script setup>
-import { ArrowLeftIcon, BrainIcon, SettingsIcon, ShieldIcon, UsersIcon } from 'lucide-vue-next'
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ArrowLeftIcon, BrainIcon, LogOutIcon, SettingsIcon, ShieldIcon, UserIcon, UsersIcon } from 'lucide-vue-next'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+
+// State for user dropdown
+const showUserDropdown = ref(false)
+const userDropdownRef = ref(null)
 
 // Computed properties untuk mendapatkan header dan subtitle dari route meta
 const currentHeader = computed(() => {
@@ -87,5 +120,47 @@ const currentHeader = computed(() => {
 
 const currentSubtitle = computed(() => {
   return route.meta?.subtitle || 'Manage system settings and configurations'
+})
+
+// User Dropdown handlers
+const toggleUserDropdown = () => {
+  showUserDropdown.value = !showUserDropdown.value
+}
+
+const closeUserDropdown = () => {
+  showUserDropdown.value = false
+}
+
+const handleLogout = async () => {
+  console.log('Admin logout clicked')
+  closeUserDropdown()
+  
+  try {
+    // Call logout method from auth store
+    await authStore.logout()
+    
+    // Redirect to login page
+    router.push('/login')
+  } catch (error) {
+    console.error('Logout error:', error)
+    // Even if logout fails, redirect to login
+    router.push('/login')
+  }
+}
+
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  if (userDropdownRef.value && !userDropdownRef.value.contains(event.target)) {
+    closeUserDropdown()
+  }
+}
+
+// Setup event listeners
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>

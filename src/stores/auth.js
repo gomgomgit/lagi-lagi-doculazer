@@ -10,7 +10,10 @@ export const useAuthStore = defineStore('auth', () => {
   // Getters
   const isAuthenticated = computed(() => !!token.value)
   const isGuest = computed(() => !token.value)
-  const userId = computed(() => user.user_id || null)
+  const userId = computed(() => user.value?.user_id || null)
+  const userRole = computed(() => user.value?.role || null)
+  const isAdmin = computed(() => user.value?.role === 'ADMIN')
+  const isUser = computed(() => user.value?.role === 'USER')
 
   // Actions
   const setToken = (newToken) => {
@@ -53,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
         
         console.log('User data extracted:', userData) // Debug log
         console.log('User ID:', userData.user_id) // Debug log
+        console.log('User Role:', userData.role) // Debug log
         
         setUser(userData)
         
@@ -198,7 +202,9 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isGuest,
     userId,
-    user,
+    userRole,
+    isAdmin,
+    isUser,
     
     // Actions
     setToken,

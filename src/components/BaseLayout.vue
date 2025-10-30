@@ -90,10 +90,6 @@
             <p class="text-sm text-gray-600">{{ currentSubtitle }}</p>
           </div>
           <div class="flex items-center gap-4">
-            <router-link to="/admin" class="mr-4">
-              <SettingsIcon class="w-5 h-5 text-gray-600 cursor-pointer hover:text-gray-800 transition-colors" />
-            </router-link>
-            
             <!-- User Dropdown -->
             <div class="relative" ref="userDropdownRef">
               <button 
