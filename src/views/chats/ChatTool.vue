@@ -22,18 +22,29 @@ const activeTab = ref('files'); // 'files' | 'filter'
 const filterKeyword = ref('')
 const filterStartDate = ref('')
 const filterEndDate = ref('')
-const filterCompany = ref('')
+const filterCompanies = ref<string[]>([])
+const filterTags = ref<string[]>([])
 
 // Files data from API
 const files = computed(() => {
   return props.documents.map((doc: any) => {
     // Extract file extension from filename
     const fileExtension = doc.file_name ? doc.file_name.split('.').pop()?.toLowerCase() : 'unknown'
+    
+    // Get company names from knowledge_metadata or fallback to old structure
+    const companyNames = doc.knowledge_metadata?.company_names || []
+    const company = companyNames.length > 0 ? companyNames[0] : (doc.company || 'No Company')
+    
+    // Use content_date if available, otherwise use file_date
+    const documentDate = doc.knowledge_metadata?.content_date || doc.file_date
+    
     return {
-      knowledge_source_id: doc.knowledge_source_id,
+      knowledge_source_id: doc.knowledge_source_id || doc.knowledge_metadata?.knowledge_source_id,
       file_name: doc.file_name || 'Unknown File',
-      date: doc.file_date ? new Date(doc.file_date).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
-      company: doc.company || 'No Company',
+      date: documentDate ? new Date(documentDate).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
+      company: company,
+      companies: companyNames, // Keep all company names for advanced filtering
+      keywords: doc.knowledge_metadata?.keywords || [],
       type: fileExtension || 'unknown'
     }
   })
@@ -42,26 +53,64 @@ const files = computed(() => {
 // Available companies for filter
 const availableCompanies = computed(() => {
   const companies = new Set<string>()
-  props.documents.forEach((doc: any) => {
-    const company = doc.company || doc.metadata?.company
-    if (company && company !== 'No Company') {
-      companies.add(company)
+  files.value.forEach((file: any) => {
+    // Add primary company
+    if (file.company && file.company !== 'No Company') {
+      companies.add(file.company)
+    }
+    // Add all companies from companies array
+    if (file.companies && Array.isArray(file.companies)) {
+      file.companies.forEach((company: string) => {
+        if (company && company.trim() !== '') {
+          companies.add(company)
+        }
+      })
     }
   })
   return Array.from(companies).sort()
+})
+
+// Available keywords/tags for filter
+const availableKeywords = computed(() => {
+  const keywords = new Set<string>()
+  files.value.forEach((file: any) => {
+    if (file.keywords && Array.isArray(file.keywords)) {
+      file.keywords.forEach((keyword: string) => {
+        if (keyword && keyword.trim() !== '') {
+          keywords.add(keyword)
+        }
+      })
+    }
+  })
+  return Array.from(keywords).sort()
 })
 
 // Filtered files based on applied filters
 const filteredFiles = computed(() => {
   let filtered = files.value
 
-  // Filter by keyword
+  // Filter by keyword (search in filename, company, and keywords)
   if (filterKeyword.value.trim()) {
     const keyword = filterKeyword.value.toLowerCase()
-    filtered = filtered.filter(file => 
-      file.file_name.toLowerCase().includes(keyword) ||
-      file.company.toLowerCase().includes(keyword)
-    )
+    filtered = filtered.filter(file => {
+      // Search in filename
+      if (file.file_name.toLowerCase().includes(keyword)) return true
+      
+      // Search in company
+      if (file.company.toLowerCase().includes(keyword)) return true
+      
+      // Search in all companies
+      if (file.companies && file.companies.some((company: string) => 
+        company.toLowerCase().includes(keyword)
+      )) return true
+      
+      // Search in keywords
+      if (file.keywords && file.keywords.some((kw: string) => 
+        kw.toLowerCase().includes(keyword)
+      )) return true
+      
+      return false
+    })
   }
 
   // Filter by date range
@@ -82,9 +131,29 @@ const filteredFiles = computed(() => {
     })
   }
 
-  // Filter by company
-  if (filterCompany.value) {
-    filtered = filtered.filter(file => file.company === filterCompany.value)
+  // Filter by companies (multiple selection)
+  if (filterCompanies.value.length > 0) {
+    filtered = filtered.filter(file => {
+      // Check if any selected company matches primary company
+      if (filterCompanies.value.includes(file.company)) return true
+      
+      // Check if any selected company is in companies array
+      if (file.companies && file.companies.some((company: string) => 
+        filterCompanies.value.includes(company)
+      )) return true
+      
+      return false
+    })
+  }
+
+  // Filter by tags/keywords (multiple selection)
+  if (filterTags.value.length > 0) {
+    filtered = filtered.filter(file => {
+      if (file.keywords && file.keywords.some((keyword: string) => 
+        filterTags.value.includes(keyword)
+      )) return true
+      return false
+    })
   }
 
   return filtered
@@ -100,8 +169,15 @@ const appliedFilters = computed(() => {
     const dateRange = `${filterStartDate.value || 'Start'} - ${filterEndDate.value || 'End'}`
     filters.push({ type: 'date', label: `Date: ${dateRange}`, value: `${filterStartDate.value},${filterEndDate.value}` })
   }
-  if (filterCompany.value) {
-    filters.push({ type: 'company', label: `Company: ${filterCompany.value}`, value: filterCompany.value })
+  if (filterCompanies.value.length > 0) {
+    filterCompanies.value.forEach(company => {
+      filters.push({ type: 'company', label: `Company: ${company}`, value: company })
+    })
+  }
+  if (filterTags.value.length > 0) {
+    filterTags.value.forEach(tag => {
+      filters.push({ type: 'tag', label: `Tag: ${tag}`, value: tag })
+    })
   }
   return filters
 })
@@ -115,7 +191,7 @@ const toggleViewMode = () => {
   viewMode.value = viewMode.value === 'tools' ? 'context' : 'tools'
 }
 
-const removeFilter = (filterType: string) => {
+const removeFilter = (filterType: string, filterValue?: string) => {
   switch (filterType) {
     case 'keyword':
       filterKeyword.value = ''
@@ -125,7 +201,18 @@ const removeFilter = (filterType: string) => {
       filterEndDate.value = ''
       break
     case 'company':
-      filterCompany.value = ''
+      if (filterValue) {
+        filterCompanies.value = filterCompanies.value.filter(company => company !== filterValue)
+      } else {
+        filterCompanies.value = []
+      }
+      break
+    case 'tag':
+      if (filterValue) {
+        filterTags.value = filterTags.value.filter(tag => tag !== filterValue)
+      } else {
+        filterTags.value = []
+      }
       break
   }
 }
@@ -134,7 +221,8 @@ const clearAllFilters = () => {
   filterKeyword.value = ''
   filterStartDate.value = ''
   filterEndDate.value = ''
-  filterCompany.value = ''
+  filterCompanies.value = []
+  filterTags.value = []
 }
 
 // Define emits
@@ -144,7 +232,8 @@ const applyFilters = () => {
   console.log('Applying filters:', {
     keyword: filterKeyword.value,
     dateRange: { start: filterStartDate.value, end: filterEndDate.value },
-    company: filterCompany.value
+    companies: filterCompanies.value,
+    tags: filterTags.value
   })
   
   // Automatically switch to files tab to show filter results
@@ -160,6 +249,17 @@ const applyFilters = () => {
   console.log('Emitted filtered files to parent:', filteredFiles.value)
 }
 
+// Utility function to format file size
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes'
+  
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
 // Expose filtered files and filter functions to parent component
 defineExpose({
   filteredFiles,
@@ -167,7 +267,8 @@ defineExpose({
   filterKeyword,
   filterStartDate,
   filterEndDate,
-  filterCompany,
+  filterCompanies,
+  filterTags,
   clearAllFilters,
   applyFilters
 })
@@ -227,15 +328,35 @@ defineExpose({
             :key="file.knowledge_source_id"
             class="p-3 border rounded-lg transition-colors chat-tool-file"
           >
-            <div class="flex items-center justify-between">
+            <div class="flex items-start justify-between">
               <div class="flex-1 min-w-0">
                 <h4 class="font-medium text-sm truncate chat-tool-file-title">{{ file.file_name }}</h4>
-                <div class="flex items-center gap-2 mt-1 text-xs chat-tool-file-meta">
-                  <CalendarIcon class="w-3 h-3" />
-                  <span>{{ file.date }}</span>
-                  <span>•</span>
-                  <BuildingIcon class="w-3 h-3" />
-                  <span>{{ file.company }}</span>
+                <div class="mt-1 text-xs chat-tool-file-meta">
+                  <div class="flex items-center gap-1 mb-1">
+                    <BuildingIcon class="w-3 h-3" />
+                    <span>{{ file.company }}</span>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <CalendarIcon class="w-3 h-3" />
+                    <span>{{ file.date }}</span>    
+                  </div>
+                </div>
+                
+                <!-- Keywords tags -->
+                <div v-if="file.keywords && file.keywords.length > 0" class="flex flex-wrap gap-1 mt-2">
+                  <span 
+                    v-for="keyword in file.keywords.slice(0, 3)" 
+                    :key="keyword"
+                    class="px-1 py-0.2 text-xs rounded-full bg-blue-100 text-blue-700"
+                  >
+                    {{ keyword }}
+                  </span>
+                  <span 
+                    v-if="file.keywords.length > 3"
+                    class="px-1 py-0.2 text-xs rounded-full bg-gray-100 text-gray-600"
+                  >
+                    +{{ file.keywords.length - 3 }}
+                  </span>
                 </div>
               </div>
               <button class="p-1 rounded chat-tool-file-action">
@@ -292,21 +413,56 @@ defineExpose({
             </div>
           </div>
 
-          <!-- Company Filter -->
+          <!-- Company Filter (Multiple Selection) -->
           <div>
             <label class="block text-sm font-medium mb-2 chat-tool-form-label">
               <BuildingIcon class="w-4 h-4 inline mr-1" />
-              Company Mentioned
+              Companies ({{ filterCompanies.length }} selected)
             </label>
-            <select
-              v-model="filterCompany"
-              class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
-            >
-              <option value="">All companies</option>
-              <option v-for="company in availableCompanies" :key="company" :value="company">
-                {{ company }}
-              </option>
-            </select>
+            <div class="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
+              <label 
+                v-for="company in availableCompanies" 
+                :key="company"
+                class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+              >
+                <input
+                  type="checkbox"
+                  :value="company"
+                  v-model="filterCompanies"
+                  class="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span>{{ company }}</span>
+              </label>
+              <div v-if="availableCompanies.length === 0" class="text-xs text-gray-500 p-1">
+                No companies available
+              </div>
+            </div>
+          </div>
+
+          <!-- Keywords/Tags Filter (Multiple Selection) -->
+          <div>
+            <label class="block text-sm font-medium mb-2 chat-tool-form-label">
+              <SlidersHorizontalIcon class="w-4 h-4 inline mr-1" />
+              Keywords/Tags ({{ filterTags.length }} selected)
+            </label>
+            <div class="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
+              <label 
+                v-for="keyword in availableKeywords" 
+                :key="keyword"
+                class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
+              >
+                <input
+                  type="checkbox"
+                  :value="keyword"
+                  v-model="filterTags"
+                  class="rounded text-blue-600 focus:ring-blue-500"
+                />
+                <span>{{ keyword }}</span>
+              </label>
+              <div v-if="availableKeywords.length === 0" class="text-xs text-gray-500 p-1">
+                No keywords available
+              </div>
+            </div>
           </div>
 
           <!-- Filter Actions -->
@@ -348,12 +504,12 @@ defineExpose({
       <div class="flex flex-wrap gap-1.5">
         <span 
           v-for="filter in appliedFilters" 
-          :key="filter.type"
+          :key="`${filter.type}-${filter.value}`"
           class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full chat-tool-filter-badge"
         >
           {{ filter.label }}
           <button 
-            @click="removeFilter(filter.type)"
+            @click="removeFilter(filter.type, filter.value)"
             class="rounded-full p-0.5"
           >
             <XIcon class="w-3 h-3" />

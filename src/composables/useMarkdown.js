@@ -223,7 +223,7 @@ export function useMarkdown() {
       .replace(/\[(\d+)\]\(#(CHUNK-[a-f0-9-]+)\)/g, '<a href="#$2" class="markdown-link markdown-chunk-link" data-chunk-id="$2" title="Reference to document chunk $1">[$1]</a>')
       
       // Regular links
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="markdown-link" target="_blank" rel="noopener noreferrer">[$1]</a>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="markdown-link" target="_blank" rel="noopener noreferrer">$1</a>')
       
       // Bold and Italic
       .replace(/\*\*(.*?)\*\*/g, '<strong class="markdown-strong">$1</strong>')

@@ -637,9 +637,7 @@ const loadConversationHistory = async (projectId, conversationId) => {
     const history = await fetchConversationHistory(projectId, conversationId)
     
     if (history && history.length > 0) {
-      messages.value = history
-      // console.log('Conversation history loaded:', history)
-      
+      messages.value = history      
       // Auto scroll to bottom after loading conversation history
       nextTick(() => {
         scrollToBottom()
