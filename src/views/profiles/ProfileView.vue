@@ -106,12 +106,30 @@
           title="Change Password" 
           subtitle="Please enter your current password and the new password" 
         />
+        
+        <!-- Success Message -->
+        <div v-if="passwordSuccess" class="my-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded-lg">
+          {{ passwordSuccess }}
+        </div>
+        
+        <!-- Error Message -->
+        <div v-if="passwordError" class="my-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+          {{ passwordError }}
+        </div>
+        
         <div class="my-4">
           <div class="mb-2 text-md">
             Old Password
           </div>
           <div>
-            <input class="border border-gray-300 rounded-lg p-2 w-full" type="password" name="old-password" id="old-password">
+            <input 
+              v-model="passwordForm.oldPassword"
+              class="border border-gray-300 rounded-lg p-2 w-full" 
+              type="password" 
+              name="old-password" 
+              id="old-password"
+              placeholder="Enter your current password"
+            >
           </div>
         </div>
         <div class="mt-4">
@@ -119,7 +137,14 @@
             New Password
           </div>
           <div>
-            <input class="border border-gray-300 rounded-lg p-2 w-full" type="password" name="new-password" id="new-password">
+            <input 
+              v-model="passwordForm.newPassword"
+              class="border border-gray-300 rounded-lg p-2 w-full" 
+              type="password" 
+              name="new-password" 
+              id="new-password"
+              placeholder="Enter your new password (min. 6 characters)"
+            >
           </div>
         </div>
         <div class="mt-4">
@@ -127,7 +152,14 @@
             Confirm New Password
           </div>
           <div>
-            <input class="border border-gray-300 rounded-lg p-2 w-full" type="password" name="confirm-new-password" id="confirm-new-password">
+            <input 
+              v-model="passwordForm.confirmPassword"
+              class="border border-gray-300 rounded-lg p-2 w-full" 
+              type="password" 
+              name="confirm-new-password" 
+              id="confirm-new-password"
+              placeholder="Confirm your new password"
+            >
           </div>
         </div>
         <div class="flex justify-between mt-4">
@@ -135,14 +167,18 @@
             variant="secondary"
             :icon="CircleArrowLeftIcon"
             @click="showProfile"
+            :disabled="authStore.isLoading"
           >
             Back
           </BaseButton>
           <BaseButton
             variant="primary"
             :icon="SaveIcon"
+            @click="handleChangePassword"
+            :disabled="authStore.isLoading"
           >
-            Change Password
+            <span v-if="authStore.isLoading">Changing...</span>
+            <span v-else>Change Password</span>
           </BaseButton>
         </div>
       </div>
@@ -180,6 +216,17 @@ const profileForm = ref({
   email: ''
 })
 
+// Form data untuk change password
+const passwordForm = ref({
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+})
+
+// Error states
+const passwordError = ref('')
+const passwordSuccess = ref('')
+
 // Initialize form data when user data is available
 const initializeForm = () => {
   profileForm.value.fullname = userFullname.value
@@ -197,26 +244,89 @@ const showEditProfile = () => {
 }
 
 const showChangePassword = () => {
+  // Reset form data and errors
+  passwordForm.value = {
+    oldPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  }
+  passwordError.value = ''
+  passwordSuccess.value = ''
   currentView.value = 'change-password'
 }
 
 // Handle save profile changes
-// const handleSaveProfile = async () => {
-//   try {
-//     const result = await authStore.updateProfile({
-//       name: profileForm.value.fullname,
-//       email: profileForm.value.email
-//     })
+const handleSaveProfile = async () => {
+  try {
+    const result = await authStore.updateProfile({
+      name: profileForm.value.fullname,
+      email: profileForm.value.email
+    })
     
-//     if (result.success) {
-//       // Show success message or notification
-//       console.log('Profile updated successfully')
-//       showProfile() // Go back to profile view
-//     } else {
-//       console.error('Failed to update profile:', result.error)
-//     }
-//   } catch (error) {
-//     console.error('Error updating profile:', error)
-//   }
-// }
+    if (result.success) {
+      // Show success message or notification
+      console.log('Profile updated successfully')
+      showProfile() // Go back to profile view
+    } else {
+      console.error('Failed to update profile:', result.error)
+    }
+  } catch (error) {
+    console.error('Error updating profile:', error)
+  }
+}
+
+// Handle password change
+const handleChangePassword = async () => {
+  // Reset errors
+  passwordError.value = ''
+  passwordSuccess.value = ''
+
+  // Validate form
+  if (!passwordForm.value.oldPassword) {
+    passwordError.value = 'Old password is required'
+    return
+  }
+
+  if (!passwordForm.value.newPassword) {
+    passwordError.value = 'New password is required'
+    return
+  }
+
+  if (passwordForm.value.newPassword.length < 6) {
+    passwordError.value = 'New password must be at least 6 characters long'
+    return
+  }
+
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
+    passwordError.value = 'New password and confirm password do not match'
+    return
+  }
+
+  try {
+    const result = await authStore.changePassword({
+      old_password: passwordForm.value.oldPassword,
+      new_password: passwordForm.value.newPassword
+    })
+    
+    if (result.success) {
+      passwordSuccess.value = 'Password changed successfully!'
+      // Reset form
+      passwordForm.value = {
+        oldPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+      
+      // Auto redirect after 2 seconds
+      setTimeout(() => {
+        showProfile()
+      }, 2000)
+    } else {
+      passwordError.value = result.error || 'Failed to change password'
+    }
+  } catch (error) {
+    console.error('Error changing password:', error)
+    passwordError.value = 'An error occurred while changing password'
+  }
+}
 </script>
