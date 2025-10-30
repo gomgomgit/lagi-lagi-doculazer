@@ -154,7 +154,7 @@ export const sendInferenceMessage = async (projectId, messageInput, conversation
       mentionedDocuments.forEach(doc => {
         console.log('Processing mentioned document for message:', doc)
         const mentionPattern = `@${doc.file_name}`
-        const replacementPattern = `✝[${doc.file_name}](#KNOWLEDGE-${doc.knowledge_source_id})✝`
+        const replacementPattern = `✝[${doc.file_name}](KNOWLEDGE-${doc.knowledge_source_id})✝`
 
         // Replace all occurrences of @filename with new format for backend processing
         processedMessage = processedMessage.replace(new RegExp(mentionPattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replacementPattern)
