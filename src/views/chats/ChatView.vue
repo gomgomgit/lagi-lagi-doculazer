@@ -360,7 +360,6 @@ const sendMessage = async () => {
         message: 'Sorry, I encountered an error while processing your message. Please try again.'
       }
       messages.value.push(errorMessage)
-      // console.error('Failed to get response from API')
       scrollToBottom()
     }
   } catch (error) {
@@ -374,8 +373,6 @@ const sendMessage = async () => {
 const setLanguage = (lang) => {
   currentLanguage.value = lang
   console.log('Language switched to:', lang)
-  
-  // This will be used as parameter for AI backend responses
 }
 
 // Scroll to bottom of messages
@@ -400,8 +397,6 @@ const handleInput = (event) => {
     return
   }
   
-  // Only remove documents from selectedDocuments if they are clearly no longer in the text
-  // This prevents removing documents while user is typing new mentions
   const textBeforeCursor = value.substring(0, cursorPos)
   const lastAtPos = textBeforeCursor.lastIndexOf('@')
   
@@ -415,11 +410,6 @@ const handleInput = (event) => {
         currentMentions.push(doc)
       }
     })
-    
-    console.log('Checking for removed documents...')
-    console.log('Current text:', value)
-    console.log('Selected documents before filtering:', selectedDocuments.value.map(d => d.file_name))
-    console.log('Current mentions found:', currentMentions.map(d => d.file_name))
     
     // Update selectedDocuments only if there's a real change
     if (currentMentions.length !== selectedDocuments.value.length) {
