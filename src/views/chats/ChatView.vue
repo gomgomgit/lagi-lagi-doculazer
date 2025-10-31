@@ -767,10 +767,12 @@ watch([projectId, conversationId], async ([newProjectId, newConversationId]) => 
   await loadConversationHistory(newProjectId, newConversationId)
 }, { immediate: true })
 
-// Watch for messages changes to auto scroll to bottom
+// Watch for messages changes to auto scroll to bottom and re-setup chunk listeners
 watch(messages, () => {
   nextTick(() => {
     scrollToBottom()
+    // Re-setup chunk link listeners after new messages are rendered
+    setupChunkLinkEventListener()
   })
 }, { deep: true })
 
@@ -784,6 +786,55 @@ watch(chatToolRef, (newRef) => {
   }
 }, { immediate: true })
 
+// Setup chunk link event listener for markdown content
+const setupChunkLinkEventListener = () => {
+  nextTick(() => {
+    const container = messagesContainer.value
+    
+    if (!container) {
+      console.warn('Messages container not found')
+      return
+    }
+    
+    // Remove existing listener to prevent duplicates
+    container.removeEventListener('click', handleChunkLinkClick)
+    
+    // Add new listener
+    container.addEventListener('click', handleChunkLinkClick)
+    console.log('✅ Chunk link event listener setup complete')
+  })
+}
+
+// Handle chunk link clicks
+const handleChunkLinkClick = (e) => {
+  const link = e.target.closest('a')
+  
+  if (link) {
+    const href = link.getAttribute('href')
+    const chunkId = link.getAttribute('data-chunk-id')
+    
+    // Check if this is a chunk reference link
+    if (href && href.startsWith('#CHUNK-') && chunkId) {
+      e.preventDefault()
+      console.log('🔗 Chunk link clicked:', {
+        href,
+        chunkId,
+        linkText: link.textContent,
+        fullLink: link.outerHTML
+      })
+      
+      // Handle the chunk click - you can customize this behavior
+      handleChunkReference(chunkId, link)
+    }
+  }
+}
+
+// Handle chunk reference action
+const handleChunkReference = (chunkId, linkElement) => {
+  console.log('📄 Processing chunk reference:', chunkId, projectId.value)
+  
+}
+
 onMounted(() => {
   console.log('ChatView mounted with params:', {
     projectId: projectId.value,
@@ -792,6 +843,9 @@ onMounted(() => {
   
   // Fetch projects with conversations when component mounts
   fetchProjectsWithConversations()
+  
+  // Setup chunk link event listener
+  setupChunkLinkEventListener()
   
   // Expose methods to window for testing/debugging (development only)
   if (process.env.NODE_ENV === 'development') {

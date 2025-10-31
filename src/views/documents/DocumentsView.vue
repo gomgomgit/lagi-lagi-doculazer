@@ -2,6 +2,7 @@
   <div class="w-full base-card bg-card flex-1 grow h-full overflow-scroll">
     <!-- Project List View -->
     <ProjectList
+      ref="projectListRef"
       v-if="currentView === 'project-list'"
       :projects="projects"
       :get-document-count="getProjectDocumentCount"
@@ -53,14 +54,14 @@ import PDFViewer from '@/components/documents/PDFViewer.vue'
 import DeleteConfirmModal from '@/components/documents/DeleteConfirmModal.vue'
 
 import { useProjects } from '@/composables/useProjects'
-const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, downloadProjectKnowledgeById } = useProjects()
+const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, downloadProjectKnowledgeById, addProject } = useProjects()
 
 
 // State untuk project selection
 const selectedProject = ref(null)
 const currentView = ref('project-list') // 'project-list' | 'document-management'
 
-// Sample projects data with conversations
+// Projects data - will be updated via addProject API
 const projects = ref([])
 
 // State untuk file upload
@@ -76,69 +77,10 @@ const documentToDelete = ref(null)
 const sortField = ref('uploadDate')
 const sortDirection = ref('desc')
 
-// Sample documents data (replace with actual API call)
-const documents = ref([
-  {
-    id: 1,
-    name: 'Annual_Report_2024.pdf',
-    company: 'PT ABC',
-    uploadDate: '2024-10-01',
-    size: 2048576, // 2MB
-    type: 'pdf',
-    projectId: 1,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  },
-  {
-    id: 2,
-    name: 'Financial_Statement_Q3.pdf',
-    company: 'PT XYZ',
-    uploadDate: '2024-09-15',
-    size: 1536000, // 1.5MB
-    type: 'pdf',
-    projectId: 1,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  },
-  {
-    id: 3,
-    name: 'Contract_Agreement.docx',
-    company: 'CV DEF',
-    uploadDate: '2024-10-10',
-    size: 512000, // 500KB
-    type: 'docx',
-    projectId: 2,
-    url: '#'
-  },
-  {
-    id: 4,
-    name: 'Meeting_Notes.txt',
-    company: 'PT ABC',
-    uploadDate: '2024-10-12',
-    size: 25600, // 25KB
-    type: 'txt',
-    projectId: 1,
-    url: '#'
-  },
-  {
-    id: 5,
-    name: 'Budget_Proposal_2025.pdf',
-    company: 'PT XYZ',
-    uploadDate: '2024-10-05',
-    size: 3072000, // 3MB
-    type: 'pdf',
-    projectId: 2,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  },
-  {
-    id: 6,
-    name: 'Due_Diligence_Report.pdf',
-    company: 'CV DEF',
-    uploadDate: '2024-10-08',
-    size: 4096000, // 4MB
-    type: 'pdf',
-    projectId: 3,
-    url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'
-  }
-])
+const documents = ref([])
+
+// Ref untuk ProjectList component
+const projectListRef = ref(null)
 
 // Computed untuk document count per project
 const getProjectDocumentCount = (projectId) => {
@@ -149,7 +91,6 @@ const getProjectDocumentCount = (projectId) => {
 const selectProject = (project) => {
   selectedProject.value = project
   currentView.value = 'document-management'
-  console.log(`Selected project: ${project.name}`)
 }
 
 const backToProjects = () => {
@@ -158,26 +99,26 @@ const backToProjects = () => {
   uploadQueue.value = []
 }
 
-const addNewProject = (projectName) => {
-  console.log('Add new project:', projectName)
-  
-  // Generate new project ID
-  const newId = Math.max(...projects.value.map(p => p.id), 0) + 1
-  
-  // Create new project
-  const newProject = {
-    id: newId,
-    name: projectName,
-    description: '',
-    documentCount: 0,
-    createdDate: new Date().toISOString().split('T')[0],
-    lastUpdated: new Date().toISOString().split('T')[0]
+const addNewProject = async (projectData) => {
+  try {
+    console.log('Creating new project via API:', projectData)
+    
+    // Call API to create project
+    const newProject = await addProject(projectData)
+    
+    if (newProject) {
+      console.log('Project added successfully:', newProject)
+      
+      // Call fetchProjects on ProjectList to refresh data
+      if (projectListRef.value && projectListRef.value.fetchProjects) {
+        await projectListRef.value.fetchProjects()
+      }
+    } else {
+      console.error('Failed to create project')
+    }
+  } catch (error) {
+    console.error('Error creating project:', error)
   }
-  
-  // Add to projects array
-  projects.value.push(newProject)
-  
-  console.log('Project added successfully:', newProject)
 }
 
 // File upload handlers

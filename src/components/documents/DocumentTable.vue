@@ -276,19 +276,6 @@ const getFileIcon = (mime) => {
   return iconMap[mime] || FileIcon
 }
 
-const getTypeClass = (type) => {
-  const classMap = {
-    pdf: 'bg-red-100 text-red-700',
-    docx: 'bg-blue-100 text-blue-700',
-    doc: 'bg-blue-100 text-blue-700',
-    txt: 'bg-gray-100 text-gray-700',
-    jpg: 'bg-green-100 text-green-700',
-    png: 'bg-green-100 text-green-700',
-    gif: 'bg-green-100 text-green-700'
-  }
-  return classMap[type] || 'bg-gray-100 text-gray-700'
-}
-
 const formatDate = (dateString) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('id-ID', {

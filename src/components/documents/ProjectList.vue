@@ -114,6 +114,11 @@ const formatDate = (dateString) => {
   })
 }
 
+// Expose methods to parent component
+defineExpose({
+  fetchProjects
+})
+
 // Lifecycle
 onMounted(() => {
   fetchProjects()
