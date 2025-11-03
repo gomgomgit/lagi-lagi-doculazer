@@ -127,8 +127,8 @@
                   <span class="font-medium doc-table-text">{{ doc.file_name }}</span>
                 </div>
               </td>
-              <td class="px-4 py-3">
-                <span class="text-sm doc-table-meta">{{ doc.company }}</span>
+              <td class="px-4 py-3 max-w-72">
+                <span class="text-sm doc-table-meta">{{ doc.knowledge_metadata.company_names.join(', ') }}</span>
               </td>
               <td class="px-4 py-3">
                 <span class="text-sm doc-table-meta">{{ formatDate(doc.file_date) }}</span>
@@ -145,7 +145,6 @@
                 <div class="flex items-center justify-center gap-2">
                   <!-- View PDF -->
                   <button
-                    v-if="doc.mime === 'application/pdf'"
                     @click="$emit('view-pdf', doc)"
                     class="p-1 text-blue-600 hover:text-blue-800 transition-colors"
                     title="View PDF"
