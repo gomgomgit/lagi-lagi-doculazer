@@ -249,3 +249,20 @@ export const downloadProjectKnowledge = async (projectId, knowledgeId) => {
     }
   }
 }
+
+export const getChunkByMessage = async (projectId, chunkId, messageId) => {
+  try {
+    console.log('Fetching chunk data:', { projectId, chunkId, messageId })
+    const response = await projectAPI.getChunkByMessage(projectId, chunkId, messageId)
+    return {
+      success: true,
+      data: response.result,
+    }
+  } catch (error) {
+    console.error('Error fetching chunk data:', error)
+    return {
+      success: false,
+      error: error.response?.data?.message || 'Failed to fetch chunk data'
+    }
+  }
+}

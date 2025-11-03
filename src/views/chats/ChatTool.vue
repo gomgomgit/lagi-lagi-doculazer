@@ -18,12 +18,29 @@ const viewMode = ref('tools'); // 'tools' | 'context'
 // Active tab state (for tools mode)
 const activeTab = ref('files'); // 'files' | 'filter'
 
-// Filter state
-const filterKeyword = ref('')
+// Draft filter state (edited by user, not yet applied)
+const filterFilename = ref('')
 const filterStartDate = ref('')
 const filterEndDate = ref('')
 const filterCompanies = ref<string[]>([])
 const filterTags = ref<string[]>([])
+
+// Applied filter state (actually used for filtering)
+const appliedFilename = ref('')
+const appliedStartDate = ref('')
+const appliedEndDate = ref('')
+const appliedCompanies = ref<string[]>([])
+const appliedTags = ref<string[]>([])
+
+// Company filter input state
+const companySearchQuery = ref('')
+const showCompanySuggestions = ref(false)
+const companyInput = ref<HTMLInputElement | null>(null)
+
+// Tag filter input state
+const tagSearchQuery = ref('')
+const showTagSuggestions = ref(false)
+const tagInput = ref<HTMLInputElement | null>(null)
 
 // Files data from API
 const files = computed(() => {
@@ -85,44 +102,51 @@ const availableKeywords = computed(() => {
   return Array.from(keywords).sort()
 })
 
+// Filtered company suggestions based on search query
+const filteredCompanySuggestions = computed(() => {
+  if (!companySearchQuery.value) {
+    return availableCompanies.value
+  }
+  
+  const query = companySearchQuery.value.toLowerCase()
+  return availableCompanies.value.filter(company => 
+    company.toLowerCase().includes(query)
+  )
+})
+
+// Filtered tag suggestions based on search query
+const filteredTagSuggestions = computed(() => {
+  if (!tagSearchQuery.value) {
+    return availableKeywords.value
+  }
+  
+  const query = tagSearchQuery.value.toLowerCase()
+  return availableKeywords.value.filter(tag => 
+    tag.toLowerCase().includes(query)
+  )
+})
+
 // Filtered files based on applied filters
 const filteredFiles = computed(() => {
   let filtered = files.value
 
-  // Filter by keyword (search in filename, company, and keywords)
-  if (filterKeyword.value.trim()) {
-    const keyword = filterKeyword.value.toLowerCase()
+  // Filter by filename
+  if (appliedFilename.value.trim()) {
+    const keyword = appliedFilename.value.toLowerCase()
     filtered = filtered.filter(file => {
       // Search in filename
       if (file.file_name.toLowerCase().includes(keyword)) return true
-      
-      // Search in company
-      if (file.company.toLowerCase().includes(keyword)) return true
-      
-      // Search in all companies
-      if (file.companies && file.companies.some((company: string) => 
-        company.toLowerCase().includes(keyword)
-      )) return true
-      
-      // Search in keywords
-      if (file.keywords && file.keywords.some((kw: string) => 
-        kw.toLowerCase().includes(keyword)
-      )) return true
-      
+
       return false
     })
   }
 
   // Filter by date range
-  if (filterStartDate.value || filterEndDate.value) {
+  if (appliedStartDate.value || appliedEndDate.value) {
     filtered = filtered.filter(file => {
       const fileDate = new Date(file.date).toLocaleDateString('en-US')
-      const startDate = filterStartDate.value ? new Date(filterStartDate.value).toLocaleDateString('en-US') : null
-      const endDate = filterEndDate.value ? new Date(filterEndDate.value).toLocaleDateString('en-US') : null
-      console.log('file:', file)
-      console.log('start:', startDate)
-      console.log('end:', endDate)
-      console.log('Filtering:', fileDate)
+      const startDate = appliedStartDate.value ? new Date(appliedStartDate.value).toLocaleDateString('en-US') : null
+      const endDate = appliedEndDate.value ? new Date(appliedEndDate.value).toLocaleDateString('en-US') : null
       
       if (startDate && fileDate <= startDate) return false
       if (endDate && fileDate >= endDate) return false
@@ -132,14 +156,14 @@ const filteredFiles = computed(() => {
   }
 
   // Filter by companies (multiple selection)
-  if (filterCompanies.value.length > 0) {
+  if (appliedCompanies.value.length > 0) {
     filtered = filtered.filter(file => {
       // Check if any selected company matches primary company
-      if (filterCompanies.value.includes(file.company)) return true
+      if (appliedCompanies.value.includes(file.company)) return true
       
       // Check if any selected company is in companies array
       if (file.companies && file.companies.some((company: string) => 
-        filterCompanies.value.includes(company)
+        appliedCompanies.value.includes(company)
       )) return true
       
       return false
@@ -147,10 +171,10 @@ const filteredFiles = computed(() => {
   }
 
   // Filter by tags/keywords (multiple selection)
-  if (filterTags.value.length > 0) {
+  if (appliedTags.value.length > 0) {
     filtered = filtered.filter(file => {
       if (file.keywords && file.keywords.some((keyword: string) => 
-        filterTags.value.includes(keyword)
+        appliedTags.value.includes(keyword)
       )) return true
       return false
     })
@@ -162,20 +186,20 @@ const filteredFiles = computed(() => {
 // Computed applied filters
 const appliedFilters = computed(() => {
   const filters = []
-  if (filterKeyword.value) {
-    filters.push({ type: 'keyword', label: `Keyword: ${filterKeyword.value}`, value: filterKeyword.value })
+  if (appliedFilename.value) {
+    filters.push({ type: 'filename', label: `Filename: ${appliedFilename.value}`, value: appliedFilename.value })
   }
-  if (filterStartDate.value || filterEndDate.value) {
-    const dateRange = `${filterStartDate.value || 'Start'} - ${filterEndDate.value || 'End'}`
-    filters.push({ type: 'date', label: `Date: ${dateRange}`, value: `${filterStartDate.value},${filterEndDate.value}` })
+  if (appliedStartDate.value || appliedEndDate.value) {
+    const dateRange = `${appliedStartDate.value || 'Start'} - ${appliedEndDate.value || 'End'}`
+    filters.push({ type: 'date', label: `Date: ${dateRange}`, value: `${appliedStartDate.value},${appliedEndDate.value}` })
   }
-  if (filterCompanies.value.length > 0) {
-    filterCompanies.value.forEach(company => {
+  if (appliedCompanies.value.length > 0) {
+    appliedCompanies.value.forEach(company => {
       filters.push({ type: 'company', label: `Company: ${company}`, value: company })
     })
   }
-  if (filterTags.value.length > 0) {
-    filterTags.value.forEach(tag => {
+  if (appliedTags.value.length > 0) {
+    appliedTags.value.forEach(tag => {
       filters.push({ type: 'tag', label: `Tag: ${tag}`, value: tag })
     })
   }
@@ -193,47 +217,107 @@ const toggleViewMode = () => {
 
 const removeFilter = (filterType: string, filterValue?: string) => {
   switch (filterType) {
-    case 'keyword':
-      filterKeyword.value = ''
+    case 'filename':
+      filterFilename.value = ''
+      appliedFilename.value = ''
       break
     case 'date':
       filterStartDate.value = ''
       filterEndDate.value = ''
+      appliedStartDate.value = ''
+      appliedEndDate.value = ''
       break
     case 'company':
       if (filterValue) {
         filterCompanies.value = filterCompanies.value.filter(company => company !== filterValue)
+        appliedCompanies.value = appliedCompanies.value.filter(company => company !== filterValue)
       } else {
         filterCompanies.value = []
+        appliedCompanies.value = []
       }
       break
     case 'tag':
       if (filterValue) {
         filterTags.value = filterTags.value.filter(tag => tag !== filterValue)
+        appliedTags.value = appliedTags.value.filter(tag => tag !== filterValue)
       } else {
         filterTags.value = []
+        appliedTags.value = []
       }
       break
   }
 }
 
 const clearAllFilters = () => {
-  filterKeyword.value = ''
+  // Clear draft filters
+  filterFilename.value = ''
   filterStartDate.value = ''
   filterEndDate.value = ''
   filterCompanies.value = []
   filterTags.value = []
+  companySearchQuery.value = ''
+  tagSearchQuery.value = ''
+  showCompanySuggestions.value = false
+  showTagSuggestions.value = false
+  
+  // Clear applied filters
+  appliedFilename.value = ''
+  appliedStartDate.value = ''
+  appliedEndDate.value = ''
+  appliedCompanies.value = []
+  appliedTags.value = []
+}
+
+// Company filter methods
+const addCompanyFilter = (company: string) => {
+  if (!filterCompanies.value.includes(company)) {
+    filterCompanies.value.push(company)
+  }
+  companySearchQuery.value = ''
+  showCompanySuggestions.value = false
+}
+
+const removeCompanyFilter = (company: string) => {
+  filterCompanies.value = filterCompanies.value.filter(c => c !== company)
+}
+
+const focusCompanyInput = () => {
+  companyInput.value?.focus()
+}
+
+// Tag filter methods
+const addTagFilter = (tag: string) => {
+  if (!filterTags.value.includes(tag)) {
+    filterTags.value.push(tag)
+  }
+  tagSearchQuery.value = ''
+  showTagSuggestions.value = false
+}
+
+const removeTagFilter = (tag: string) => {
+  filterTags.value = filterTags.value.filter(t => t !== tag)
+}
+
+const focusTagInput = () => {
+  tagInput.value?.focus()
 }
 
 // Define emits
 const emit = defineEmits(['filtersApplied', 'filtersChanged'])
 
 const applyFilters = () => {
+  // Copy draft filters to applied filters
+  appliedFilename.value = filterFilename.value
+  appliedStartDate.value = filterStartDate.value
+  appliedEndDate.value = filterEndDate.value
+  appliedCompanies.value = [...filterCompanies.value]
+  appliedTags.value = [...filterTags.value]
+  
   console.log('Applying filters:', {
-    keyword: filterKeyword.value,
-    dateRange: { start: filterStartDate.value, end: filterEndDate.value },
-    companies: filterCompanies.value,
-    tags: filterTags.value
+    filename: appliedFilename.value,
+    dateRange: { start: appliedStartDate.value, end: appliedEndDate.value },
+    companies: appliedCompanies.value,
+    tags: appliedTags.value
   })
   
   // Automatically switch to files tab to show filter results
@@ -264,7 +348,7 @@ const formatFileSize = (bytes: number): string => {
 defineExpose({
   filteredFiles,
   appliedFilters,
-  filterKeyword,
+  filterFilename,
   filterStartDate,
   filterEndDate,
   filterCompanies,
@@ -373,16 +457,16 @@ defineExpose({
 
         <!-- Filter Tab -->
         <div v-if="activeTab === 'filter'" class="space-y-4">
-          <!-- Keyword Filter -->
+          <!-- Filename Filter -->
           <div>
             <label class="block text-sm font-medium mb-2 chat-tool-form-label">
               <SearchIcon class="w-4 h-4 inline mr-1" />
-              Search Keyword
+              Search Filename
             </label>
             <input
-              v-model="filterKeyword"
+              v-model="filterFilename"
               type="text"
-              placeholder="Enter keyword to search..."
+              placeholder="Enter filename to search..."
               class="w-full px-3 py-2 border rounded-lg text-sm chat-tool-form-input"
             />
           </div>
@@ -419,22 +503,60 @@ defineExpose({
               <BuildingIcon class="w-4 h-4 inline mr-1" />
               Companies ({{ filterCompanies.length }} selected)
             </label>
-            <div class="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
-              <label 
-                v-for="company in availableCompanies" 
-                :key="company"
-                class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-              >
+            
+            <!-- Input field with badges inside -->
+            <div 
+              @click="focusCompanyInput"
+              class="w-full min-h-[38px] px-2 py-1.5 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white cursor-text chat-tool-form-input"
+            >
+              <div class="flex flex-wrap gap-1 items-center">
+                <!-- Selected companies badges inside input -->
+                <span 
+                  v-for="company in filterCompanies" 
+                  :key="company"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
+                >
+                  {{ company }}
+                  <button
+                    @click.stop="removeCompanyFilter(company)"
+                    class="hover:bg-blue-200 rounded-full p-0.5"
+                    type="button"
+                  >
+                    <XIcon class="w-3 h-3" />
+                  </button>
+                </span>
+                
+                <!-- Input field -->
                 <input
-                  type="checkbox"
-                  :value="company"
-                  v-model="filterCompanies"
-                  class="rounded text-blue-600 focus:ring-blue-500"
+                  ref="companyInput"
+                  v-model="companySearchQuery"
+                  @focus="showCompanySuggestions = true"
+                  @input="showCompanySuggestions = true"
+                  type="text"
+                  placeholder="Type to search companies..."
+                  class="flex-1 min-w-[120px] outline-none border-none text-sm p-0 bg-transparent"
                 />
+              </div>
+            </div>
+            
+            <!-- Suggestions dropdown -->
+            <div 
+              v-if="showCompanySuggestions && filteredCompanySuggestions.length > 0"
+              class="relative z-10 mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+            >
+              <div
+                v-for="company in filteredCompanySuggestions"
+                :key="company"
+                @click="addCompanyFilter(company)"
+                class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm flex items-center justify-between"
+              >
                 <span>{{ company }}</span>
-              </label>
-              <div v-if="availableCompanies.length === 0" class="text-xs text-gray-500 p-1">
-                No companies available
+                <span 
+                  v-if="filterCompanies.includes(company)"
+                  class="text-blue-600 text-xs"
+                >
+                  ✓ Selected
+                </span>
               </div>
             </div>
           </div>
@@ -445,22 +567,60 @@ defineExpose({
               <SlidersHorizontalIcon class="w-4 h-4 inline mr-1" />
               Keywords/Tags ({{ filterTags.length }} selected)
             </label>
-            <div class="max-h-32 overflow-y-auto border rounded-lg p-2 space-y-1">
-              <label 
-                v-for="keyword in availableKeywords" 
-                :key="keyword"
-                class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 p-1 rounded"
-              >
+            
+            <!-- Input field with badges inside -->
+            <div 
+              @click="focusTagInput"
+              class="w-full min-h-[38px] px-2 py-1.5 border rounded-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white cursor-text chat-tool-form-input"
+            >
+              <div class="flex flex-wrap gap-1 items-center">
+                <!-- Selected tags badges inside input -->
+                <span 
+                  v-for="tag in filterTags" 
+                  :key="tag"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full"
+                >
+                  {{ tag }}
+                  <button
+                    @click.stop="removeTagFilter(tag)"
+                    class="hover:bg-green-200 rounded-full p-0.5"
+                    type="button"
+                  >
+                    <XIcon class="w-3 h-3" />
+                  </button>
+                </span>
+                
+                <!-- Input field -->
                 <input
-                  type="checkbox"
-                  :value="keyword"
-                  v-model="filterTags"
-                  class="rounded text-blue-600 focus:ring-blue-500"
+                  ref="tagInput"
+                  v-model="tagSearchQuery"
+                  @focus="showTagSuggestions = true"
+                  @input="showTagSuggestions = true"
+                  type="text"
+                  placeholder="Type to search keywords/tags..."
+                  class="flex-1 min-w-[120px] outline-none border-none text-sm p-0 bg-transparent"
                 />
-                <span>{{ keyword }}</span>
-              </label>
-              <div v-if="availableKeywords.length === 0" class="text-xs text-gray-500 p-1">
-                No keywords available
+              </div>
+            </div>
+            
+            <!-- Suggestions dropdown -->
+            <div 
+              v-if="showTagSuggestions && filteredTagSuggestions.length > 0"
+              class="relative z-10 mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto"
+            >
+              <div
+                v-for="tag in filteredTagSuggestions"
+                :key="tag"
+                @click="addTagFilter(tag)"
+                class="px-3 py-2 hover:bg-green-50 cursor-pointer text-sm flex items-center justify-between"
+              >
+                <span>{{ tag }}</span>
+                <span 
+                  v-if="filterTags.includes(tag)"
+                  class="text-green-600 text-xs"
+                >
+                  ✓ Selected
+                </span>
               </div>
             </div>
           </div>

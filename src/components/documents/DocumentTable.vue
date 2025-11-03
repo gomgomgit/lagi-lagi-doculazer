@@ -33,18 +33,64 @@
         </div>
 
         <!-- Filter by company -->
-        <div>
+        <div class="relative">
           <label class="block text-sm font-medium mb-1">Company</label>
-          <select
-            :value="filterCompany"
-            @input="$emit('update:filterCompany', $event.target.value)"
-            class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+          
+          <!-- Input field with badges inside -->
+          <div 
+            @click="focusInput"
+            class="w-full min-h-[38px] px-2 py-1.5 border border-gray-300 rounded focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white cursor-text"
           >
-            <option value="">All Companies</option>
-            <option value="PT ABC">PT ABC</option>
-            <option value="PT XYZ">PT XYZ</option>
-            <option value="CV DEF">CV DEF</option>
-          </select>
+            <div class="flex flex-wrap gap-1 items-center">
+              <!-- Selected companies badges inside input -->
+              <span 
+                v-for="company in filterCompanies" 
+                :key="company"
+                class="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full"
+              >
+                {{ company }}
+                <button
+                  @click.stop="removeCompanyFilter(company)"
+                  class="hover:bg-blue-200 rounded-full p-0.5"
+                  type="button"
+                >
+                  <XIcon class="w-3 h-3" />
+                </button>
+              </span>
+              
+              <!-- Input field -->
+              <input
+                ref="companyInput"
+                v-model="companySearchQuery"
+                @focus="showCompanySuggestions = true"
+                @input="showCompanySuggestions = true"
+                type="text"
+                placeholder="Type to search companies..."
+                class="flex-1 min-w-[120px] outline-none border-none text-sm p-0"
+              />
+            </div>
+          </div>
+          
+          <!-- Suggestions dropdown -->
+          <div 
+            v-if="showCompanySuggestions && filteredSuggestions.length > 0"
+            class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+          >
+            <div
+              v-for="company in filteredSuggestions"
+              :key="company"
+              @click="addCompanyFilter(company)"
+              class="px-3 py-2 hover:bg-blue-50 cursor-pointer text-sm flex items-center justify-between"
+            >
+              <span>{{ company }}</span>
+              <span 
+                v-if="filterCompanies.includes(company)"
+                class="text-blue-600 text-xs"
+              >
+                ✓ Selected
+              </span>
+            </div>
+          </div>
         </div>
 
         <!-- Date range filter -->
@@ -199,6 +245,7 @@
 </template>
 
 <script setup>
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import {
   SearchIcon,
   XIcon,
@@ -225,8 +272,8 @@ const props = defineProps({
     type: String,
     required: true
   },
-  filterCompany: {
-    type: String,
+  filterCompanies: {
+    type: Array,
     required: true
   },
   filterDateFrom: {
@@ -248,9 +295,9 @@ const props = defineProps({
 })
 
 // Emits
-defineEmits([
+const emit = defineEmits([
   'update:searchQuery',
-  'update:filterCompany', 
+  'update:filterCompanies', 
   'update:filterDateFrom',
   'update:filterDateTo',
   'clear-filters',
@@ -261,7 +308,73 @@ defineEmits([
   'delete'
 ])
 
+// Local state for company filter
+const companySearchQuery = ref('')
+const showCompanySuggestions = ref(false)
+const companyInput = ref(null)
+
+// Computed: Extract available companies from documents
+const availableCompanies = computed(() => {
+  const companies = new Set()
+  props.filteredDocuments.forEach(doc => {
+    if (doc.knowledge_metadata?.company_names && Array.isArray(doc.knowledge_metadata.company_names)) {
+      doc.knowledge_metadata.company_names.forEach(company => {
+        if (company && company.trim()) {
+          companies.add(company.trim())
+        }
+      })
+    }
+  })
+  return Array.from(companies).sort()
+})
+
+// Computed: Filtered suggestions based on search query
+const filteredSuggestions = computed(() => {
+  if (!companySearchQuery.value) {
+    return availableCompanies.value
+  }
+  
+  const query = companySearchQuery.value.toLowerCase()
+  return availableCompanies.value.filter(company => 
+    company.toLowerCase().includes(query)
+  )
+})
+
 // Methods
+const addCompanyFilter = (company) => {
+  if (!props.filterCompanies.includes(company)) {
+    const currentFilters = [...props.filterCompanies, company]
+    emit('update:filterCompanies', currentFilters)
+  }
+  companySearchQuery.value = ''
+  showCompanySuggestions.value = false
+}
+
+const removeCompanyFilter = (company) => {
+  const currentFilters = props.filterCompanies.filter(c => c !== company)
+  emit('update:filterCompanies', currentFilters)
+}
+
+const focusInput = () => {
+  companyInput.value?.focus()
+}
+
+// Close suggestions when clicking outside
+const handleClickOutside = (event) => {
+  const target = event.target
+  if (!target.closest('.relative')) {
+    showCompanySuggestions.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
 const getFileIcon = (mime) => {
   const iconMap = {
     'application/pdf': FileTextIcon,

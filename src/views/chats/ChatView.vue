@@ -138,7 +138,12 @@
           </div>
           
           <!-- Message bubbles would go here -->
-          <div v-for="message in messages" :key="message.id" class="chat-message-container">
+          <div 
+            v-for="message in messages" 
+            :key="message.message_id" 
+            :data-message-id="message.message_id"
+            class="chat-message-container"
+          >
             <!-- User Message -->
             <div v-if="message.role === 'Human'" class="chat-message-row user">
               <div class="chat-message-bubble user">
@@ -278,6 +283,7 @@ const {
   fetchProjectsWithConversations,
   fetchProjectKnowledges,
   fetchConversationHistory,
+  fetchChunkByMessage,
   sendMessage: sendApiMessage
 } = useProjects()
 
@@ -816,23 +822,53 @@ const handleChunkLinkClick = (e) => {
     // Check if this is a chunk reference link
     if (href && href.startsWith('#CHUNK-') && chunkId) {
       e.preventDefault()
+      
+      // Get message_id from parent message container
+      const messageContainer = link.closest('.chat-message-container')
+      const messageId = messageContainer?.getAttribute('data-message-id')
+      
       console.log('🔗 Chunk link clicked:', {
         href,
         chunkId,
+        messageId,
         linkText: link.textContent,
         fullLink: link.outerHTML
       })
       
-      // Handle the chunk click - you can customize this behavior
-      handleChunkReference(chunkId, link)
+      handleChunkReference(chunkId, messageId)
     }
   }
 }
 
 // Handle chunk reference action
-const handleChunkReference = (chunkId, linkElement) => {
-  console.log('📄 Processing chunk reference:', chunkId, projectId.value)
+const handleChunkReference = async (chunkId, messageId) => {
+  console.log('📄 Processing chunk reference:', { chunkId, messageId, projectId: projectId.value })
   
+  if (!projectId.value || !chunkId || !messageId) {
+    console.error('❌ Missing required parameters:', { projectId: projectId.value, chunkId, messageId })
+    return
+  }
+  
+  // Remove "CHUNK-" prefix if present
+  const cleanChunkId = chunkId.replace(/^CHUNK-/, '')
+  console.log('🧹 Cleaned chunk ID:', { original: chunkId, cleaned: cleanChunkId })
+  
+  try {
+    console.log('🔄 Fetching chunk data via composable...')
+    const chunkData = await fetchChunkByMessage(projectId.value, cleanChunkId, messageId)
+    
+    if (chunkData) {
+      console.log('✅ Chunk data received:', chunkData)
+      
+      // TODO: Handle chunk data - you can show it in a modal, sidebar, etc.
+      // For now, just logging it
+    } else {
+      console.error('❌ No chunk data returned')
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to fetch chunk data:', error)
+  }
 }
 
 onMounted(() => {

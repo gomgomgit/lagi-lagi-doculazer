@@ -165,6 +165,9 @@ export const projectAPI = {
   getConversationHistory: (projectId, conversationId) => api.get(url(`/v1/projects/${projectId}/conversations/${conversationId}/history`)),
   updateConversation: (projectId, conversationId, data) => api.patch(url(`/v1/projects/${projectId}/conversations/${conversationId}`), data),
   sendInferenceMessage: (projectId, params) => api.get(url(`/v1/projects/${projectId}/inference?${params}`)),
+  
+  // Chunk reference
+  getChunkByMessage: (projectId, chunkId, messageId) => api.get(url(`/v1/projects/${projectId}/chunk/${chunkId}/message/${messageId}`)),
 }
 
 // Chat API - simple

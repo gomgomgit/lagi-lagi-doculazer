@@ -1,4 +1,4 @@
-import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, downloadProjectKnowledge, getConversationHistory, sendInferenceMessage, updateConversation } from '@/services/projectsApi'
+import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, downloadProjectKnowledge, getConversationHistory, sendInferenceMessage, updateConversation, getChunkByMessage } from '@/services/projectsApi'
 import { ref } from 'vue'
 
 export function useProjects() {
@@ -305,6 +305,28 @@ export function useProjects() {
     }
   }
 
+  const fetchChunkByMessage = async (projectId, chunkId, messageId) => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const result = await getChunkByMessage(projectId, chunkId, messageId)
+      if (result.success) {
+        console.log('Chunk data fetched successfully:', result.data)
+        return result.data
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = 'Failed to fetch chunk data'
+      console.error(err)
+      return null
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     projects,
     projectsWithConversations,
@@ -318,6 +340,7 @@ export function useProjects() {
     fetchProjectsWithConversations,
     fetchProjectKnowledges,
     fetchConversationHistory,
+    fetchChunkByMessage,
     sendMessage,
     uploadProjectKnowledge,
     deleteProjectKnowledgeById,

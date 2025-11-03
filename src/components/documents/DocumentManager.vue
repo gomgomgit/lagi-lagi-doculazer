@@ -97,7 +97,7 @@
       v-else
       :filtered-documents="filteredDocuments"
       v-model:search-query="searchQuery"
-      v-model:filter-company="filterCompany"
+      v-model:filter-companies="filterCompanies"
       v-model:filter-date-from="filterDateFrom"
       v-model:filter-date-to="filterDateTo"
       :sort-field="sortField"
@@ -162,7 +162,7 @@ const emit = defineEmits([
 
 // Local state for filters
 const searchQuery = ref('')
-const filterCompany = ref('')
+const filterCompanies = ref([])
 const filterDateFrom = ref('')
 const filterDateTo = ref('')
 
@@ -180,9 +180,14 @@ const filteredDocuments = computed(() => {
     )
   }
 
-  // Filter by company (jika ada field company)
-  if (filterCompany.value && filterCompany.value !== 'all') {
-    filtered = filtered.filter(doc => doc.company === filterCompany.value)
+  // Filter by companies (check if any selected company matches any company in document's company_names array)
+  if (filterCompanies.value && filterCompanies.value.length > 0) {
+    filtered = filtered.filter(doc => {
+      const docCompanies = doc.knowledge_metadata?.company_names || []
+      return filterCompanies.value.some(selectedCompany => 
+        docCompanies.includes(selectedCompany)
+      )
+    })
   }
 
   // Filter by date range
@@ -238,7 +243,7 @@ const uploadFile = (item, index) => {
 
 const clearFilters = () => {
   searchQuery.value = ''
-  filterCompany.value = ''
+  filterCompanies.value = []
   filterDateFrom.value = ''
   filterDateTo.value = ''
 }
