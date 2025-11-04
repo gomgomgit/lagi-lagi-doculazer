@@ -59,6 +59,12 @@ renderer.link = function(href, title, text) {
     return `<a href="${href}" class="markdown-link markdown-chunk-link" data-chunk-id="${chunkId}" title="Reference to document chunk ${text}">${text}</a>`
   }
   
+  // Check if this is a knowledge/document reference link
+  if (href && (href.startsWith('#KNOWLEDGE-') || href.startsWith('knowledge://'))) {
+    const knowledgeId = href.replace('#KNOWLEDGE-', '').replace('knowledge://', '')
+    return `<a href="${href}" class="markdown-link markdown-knowledge-link" data-knowledge-id="${knowledgeId}" title="View document: ${text}">${text}</a>`
+  }
+  
   // Regular link handling with security
   const safeHref = href.startsWith('javascript:') ? '#' : href
   return `<a href="${safeHref}" class="markdown-link" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`
@@ -228,6 +234,10 @@ export function useMarkdown() {
       
       // Chunk references (must be before general links)
       .replace(/\[(\d+)\]\(#(CHUNK-[a-f0-9-]+)\)/g, '<a href="#$2" class="markdown-link markdown-chunk-link" data-chunk-id="$2" title="Reference to document chunk $1">[$1]</a>')
+      
+      // Knowledge/Document references (must be before general links)
+      .replace(/\[([^\]]+)\]\((KNOWLEDGE-[a-f0-9-]+)\)/g, '<a href="#$2" class="markdown-link markdown-knowledge-link" data-knowledge-id="$2" title="View document: $1">$1</a>')
+      .replace(/\[([^\]]+)\]\(knowledge:\/\/([a-f0-9-]+)\)/g, '<a href="knowledge://$2" class="markdown-link markdown-knowledge-link" data-knowledge-id="$2" title="View document: $1">$1</a>')
       
       // Regular links
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="markdown-link" target="_blank" rel="noopener noreferrer">$1</a>')

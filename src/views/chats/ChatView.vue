@@ -834,6 +834,7 @@ const handleChunkLinkClick = (e) => {
   if (link) {
     const href = link.getAttribute('href')
     const chunkId = link.getAttribute('data-chunk-id')
+    const knowledgeId = link.getAttribute('data-knowledge-id')
     
     // Check if this is a chunk reference link
     if (href && href.startsWith('#CHUNK-') && chunkId) {
@@ -844,6 +845,14 @@ const handleChunkLinkClick = (e) => {
       const messageId = messageContainer?.getAttribute('data-message-id')
 
       handleChunkReference(chunkId, messageId)
+      return
+    }
+    
+    // Check if this is a knowledge/document reference link
+    if ((href && (href.startsWith('#KNOWLEDGE-'))) && knowledgeId) {
+      e.preventDefault()
+      handleKnowledgeReference(knowledgeId)
+      return
     }
   }
 }
@@ -882,6 +891,30 @@ const handleChunkReference = async (chunkId, messageId) => {
     
   } catch (error) {
     console.error('❌ Failed to fetch chunk data:', error)
+  }
+}
+
+// Handle knowledge/document reference action
+const handleKnowledgeReference = async (knowledgeId) => {
+  
+  // Remove "KNOWLEDGE-" prefix if present
+  const cleanKnowledgeId = knowledgeId.replace(/^KNOWLEDGE-/, '')
+  
+  try {
+    // Find document in availableDocuments
+    const document = availableDocuments.value.find(doc => 
+      doc.knowledge_source_id === cleanKnowledgeId || 
+      doc.id === cleanKnowledgeId
+    )
+    
+    if (document) {
+      await viewPDF(document, projectId.value)
+    } else {
+      console.error('❌ Document not found for ID:', cleanKnowledgeId)
+    }
+    
+  } catch (error) {
+    console.error('❌ Failed to open document:', error)
   }
 }
 

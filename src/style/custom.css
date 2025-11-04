@@ -1555,6 +1555,63 @@
   text-decoration-color: #ffffff;
 }
 
+/* Markdown Chunk Links (Reference to document chunks) */
+.markdown-chunk-link {
+  color: #7c3aed !important;
+  background-color: rgba(124, 58, 237, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.markdown-chunk-link:hover {
+  background-color: rgba(124, 58, 237, 0.2);
+  color: #6d28d9 !important;
+}
+
+.chat-message-bubble.user .markdown-chunk-link {
+  color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.chat-message-bubble.user .markdown-chunk-link:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+}
+
+/* Markdown Knowledge Links (Reference to documents/PDFs) */
+.markdown-knowledge-link {
+  color: #059669 !important;
+  background-color: rgba(5, 150, 105, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.markdown-knowledge-link:hover {
+  background-color: rgba(5, 150, 105, 0.2);
+  color: #047857 !important;
+}
+
+.chat-message-bubble.user .markdown-knowledge-link {
+  color: rgba(255, 255, 255, 0.95) !important;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.chat-message-bubble.user .markdown-knowledge-link:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff !important;
+}
+
 /* Markdown Images */
 .markdown-image {
   max-width: 100%;
