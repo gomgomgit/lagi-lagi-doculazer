@@ -16,7 +16,10 @@ const props = defineProps({
 const viewMode = ref('tools'); // 'tools' | 'context'
 
 // Active tab state (for tools mode)
-const activeTab = ref('files'); // 'files' | 'filter'
+const activeTab = ref('files'); // 'files' | 'context'
+
+// Filter modal state
+const showFilterModal = ref(false)
 
 // Draft filter state (edited by user, not yet applied)
 const filterFilename = ref('')
@@ -212,7 +215,16 @@ const setActiveTab = (tab: string) => {
 }
 
 const toggleViewMode = () => {
-  viewMode.value = viewMode.value === 'tools' ? 'context' : 'tools'
+  // No longer needed, removing toggle functionality
+  // viewMode will be controlled by tabs
+}
+
+const openFilterModal = () => {
+  showFilterModal.value = true
+}
+
+const closeFilterModal = () => {
+  showFilterModal.value = false
 }
 
 const removeFilter = (filterType: string, filterValue?: string) => {
@@ -266,6 +278,9 @@ const clearAllFilters = () => {
   appliedEndDate.value = ''
   appliedCompanies.value = []
   appliedTags.value = []
+  
+  // Close modal
+  closeFilterModal()
 }
 
 // Company filter methods
@@ -320,8 +335,8 @@ const applyFilters = () => {
     tags: appliedTags.value
   })
   
-  // Automatically switch to files tab to show filter results
-  activeTab.value = 'files'
+  // Close filter modal
+  closeFilterModal()
   
   // Emit filtered results to parent component
   emit('filtersApplied', {
@@ -360,28 +375,11 @@ defineExpose({
 
 <template>
   <!-- Additional Sidebar (Tools/Context) -->
-  <aside class="w-80 base-card bg-card flex flex-col h-full overflow-hidden">
-    <!-- Header with Toggle -->
-    <div class="border-b py-4 pb-0 chat-tool-border flex-shrink-0">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-semibold chat-tool-header-title">
-          {{ viewMode === 'tools' ? 'Chat Tools' : 'Context View' }}
-        </h3>
-        <div class="flex items-center gap-2">
-          <!-- Toggle Button -->
-          <button
-            @click="toggleViewMode"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors chat-tool-toggle"
-            :class="viewMode === 'context' ? 'active' : ''"
-          >
-            <BrainIcon class="w-3.5 h-3.5" />
-            <span>{{ viewMode === 'tools' ? 'Context' : 'Tools' }}</span>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Tab Navigation (Only for Tools Mode) -->
-      <div v-if="viewMode === 'tools'" class="flex gap-1 text-sm">
+  <aside class="w-80 base-card bg-card flex flex-col h-full overflow-hidden relative">
+    <!-- Header with Tab Navigation -->
+    <div class="border-b chat-tool-border flex-shrink-0">
+      <!-- Tab Navigation -->
+      <div class="flex gap-1 text-sm">
         <button 
           @click="setActiveTab('files')"
           class="px-3 py-2 rounded-t-lg transition-colors chat-tool-tab"
@@ -391,22 +389,21 @@ defineExpose({
           Files
         </button>
         <button 
-          @click="setActiveTab('filter')"
+          @click="setActiveTab('context')"
           class="px-3 py-2 rounded-t-lg transition-colors chat-tool-tab"
-          :class="activeTab === 'filter' ? 'active border-b-2' : ''"
+          :class="activeTab === 'context' ? 'active border-b-2' : ''"
         >
-          <FilterIcon class="w-4 h-4 inline mr-1" />
-          Filter
+          <BrainIcon class="w-4 h-4 inline mr-1" />
+          Context
         </button>
       </div>
     </div>
 
     <!-- Content Area -->
     <div class="flex-1 overflow-y-auto">
-      <!-- Tools Mode -->
-      <div v-if="viewMode === 'tools'" class="pt-4">
-        <!-- Files Tab -->
-        <div v-if="activeTab === 'files'" class="space-y-3">
+      <!-- Files Tab -->
+      <div v-if="activeTab === 'files'" class="pt-4">
+        <div class="space-y-3">
           <div 
             v-for="file in filteredFiles" 
             :key="file.knowledge_source_id"
@@ -454,9 +451,78 @@ defineExpose({
             <p class="text-sm">{{ files.length === 0 ? 'No documents available' : 'No documents match the current filters' }}</p>
           </div>
         </div>
+      </div>
 
-        <!-- Filter Tab -->
-        <div v-if="activeTab === 'filter'" class="space-y-4">
+      <!-- Context View Tab -->
+      <div v-else-if="activeTab === 'context'">
+        <ContextView />
+      </div>
+    </div>
+
+    <!-- Applied Filters Footer -->
+    <div v-if="activeTab === 'files' && appliedFilters.length > 0" class="border-t chat-tool-border p-3 flex-shrink-0">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="font-medium text-sm chat-tool-header-title">Applied Filters</h4>
+        <button 
+          @click="clearAllFilters"
+          class="text-xs chat-tool-clear"
+        >
+          Clear All
+        </button>
+      </div>
+      <div class="flex flex-wrap gap-1.5">
+        <span 
+          v-for="filter in appliedFilters" 
+          :key="`${filter.type}-${filter.value}`"
+          class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full chat-tool-filter-badge"
+        >
+          {{ filter.label }}
+          <button 
+            @click="removeFilter(filter.type, filter.value)"
+            class="rounded-full p-0.5"
+          >
+            <XIcon class="w-3 h-3" />
+          </button>
+        </span>
+      </div>
+    </div>
+    
+    <!-- Filter Button (Fixed at bottom of Files tab) -->
+    <div v-if="activeTab === 'files'" class="border-t chat-tool-border p-3 flex-shrink-0">
+      <BaseButton 
+        @click="openFilterModal"
+        variant="primary"
+        size="md" 
+        class="w-full justify-center gap-2"
+      >
+        <SlidersHorizontalIcon class="w-4 h-4" />
+        <span>Filters</span>
+        <span v-if="appliedFilters.length > 0" class="ml-1 px-2 py-0.5 bg-white text-blue-600 rounded-full text-xs font-semibold">
+          {{ appliedFilters.length }}
+        </span>
+      </BaseButton>
+    </div>
+
+    <!-- Filter Modal Overlay -->
+    <div 
+      v-if="showFilterModal"
+      class="absolute inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+      @click.self="closeFilterModal"
+    >
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-4 border-b">
+          <h3 class="font-semibold text-lg">Filter Documents</h3>
+          <button 
+            @click="closeFilterModal"
+            class="p-1 hover:bg-gray-100 rounded-full transition-colors"
+          >
+            <XIcon class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Modal Content (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-4">
           <!-- Filename Filter -->
           <div>
             <label class="block text-sm font-medium mb-2 chat-tool-form-label">
@@ -644,37 +710,6 @@ defineExpose({
             </BaseButton>
           </div>
         </div>
-      </div>
-
-      <!-- Context Mode -->
-      <ContextView v-else />
-    </div>
-
-    <!-- Applied Filters Footer (Only for Tools Mode) -->
-    <div v-if="viewMode === 'tools' && appliedFilters.length > 0" class="border-t chat-tool-border flex-shrink-0">
-      <div class="flex items-center justify-between mb-2">
-        <h4 class="font-medium text-sm chat-tool-header-title">Applied Filters</h4>
-        <button 
-          @click="clearAllFilters"
-          class="text-xs chat-tool-clear"
-        >
-          Clear All
-        </button>
-      </div>
-      <div class="flex flex-wrap gap-1.5">
-        <span 
-          v-for="filter in appliedFilters" 
-          :key="`${filter.type}-${filter.value}`"
-          class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full chat-tool-filter-badge"
-        >
-          {{ filter.label }}
-          <button 
-            @click="removeFilter(filter.type, filter.value)"
-            class="rounded-full p-0.5"
-          >
-            <XIcon class="w-3 h-3" />
-          </button>
-        </span>
       </div>
     </div>
   </aside>
