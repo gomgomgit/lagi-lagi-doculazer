@@ -3,6 +3,10 @@ import ContextView from '../../components/context/ContextView.vue';
 import BaseButton from '@/components/ui/BaseButton.vue';
 import { CircleXIcon, EyeIcon, SlidersHorizontalIcon, SquareXIcon, SearchIcon, CalendarIcon, BuildingIcon, FilterIcon, XIcon, FilesIcon, BrainIcon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
+import { usePDFViewer } from '@/composables/usePDFViewer';
+
+// Use PDF Viewer composable
+const { viewPDF } = usePDFViewer()
 
 // Props
 const props = defineProps({
@@ -12,6 +16,10 @@ const props = defineProps({
   },
   chunkData: {
     type: Object,
+    default: null
+  },
+  projectId: {
+    type: [String, Number],
     default: null
   }
 });
@@ -218,11 +226,6 @@ const setActiveTab = (tab: string) => {
   activeTab.value = tab
 }
 
-const toggleViewMode = () => {
-  // No longer needed, removing toggle functionality
-  // viewMode will be controlled by tabs
-}
-
 const openFilterModal = () => {
   showFilterModal.value = true
 }
@@ -321,6 +324,17 @@ const focusTagInput = () => {
   tagInput.value?.focus()
 }
 
+// PDF Viewer method
+const handleViewPDF = async (file: any) => {
+  if (!props.projectId) {
+    console.error('No project ID available for PDF viewer')
+    return
+  }
+  
+  console.log('Opening PDF viewer for file:', file.file_name)
+  await viewPDF(file, props.projectId)
+}
+
 // Define emits
 const emit = defineEmits(['filtersApplied', 'filtersChanged'])
 
@@ -350,17 +364,6 @@ const applyFilters = () => {
   })
   
   console.log('Emitted filtered files to parent:', filteredFiles.value)
-}
-
-// Utility function to format file size
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes'
-  
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
 // Expose filtered files and filter functions to parent component
@@ -417,15 +420,25 @@ defineExpose({
             <div class="flex items-start justify-between">
               <div class="flex-1 min-w-0">
                 <h4 class="font-medium text-sm truncate chat-tool-file-title">{{ file.file_name }}</h4>
-                <div class="mt-1 text-xs chat-tool-file-meta">
-                  <div class="flex items-center gap-1 mb-1">
-                    <BuildingIcon class="w-3 h-3" />
-                    <span>{{ file.company }}</span>
+                <div class="flex items-center justify-between">
+                  <div class="mt-1 text-xs chat-tool-file-meta">
+                    <div class="flex items-center gap-1 mb-1">
+                      <BuildingIcon class="w-3 h-3" />
+                      <span>{{ file.company }}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <CalendarIcon class="w-3 h-3" />
+                      <span>{{ file.date }}</span>    
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1">
-                    <CalendarIcon class="w-3 h-3" />
-                    <span>{{ file.date }}</span>    
-                  </div>
+                  
+                  <button 
+                    @click="handleViewPDF(file)"
+                    class="p-1 rounded chat-tool-file-action hover:bg-blue-50 transition-colors"
+                    title="View PDF"
+                  >
+                    <EyeIcon class="w-4 h-4 chat-tool-file-meta" />
+                  </button>
                 </div>
                 
                 <!-- Keywords tags -->
@@ -445,9 +458,6 @@ defineExpose({
                   </span>
                 </div>
               </div>
-              <button class="p-1 rounded chat-tool-file-action">
-                <EyeIcon class="w-4 h-4 chat-tool-file-meta" />
-              </button>
             </div>
           </div>
           

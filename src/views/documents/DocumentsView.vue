@@ -23,7 +23,7 @@
       @file-error="onFileError"
       @upload-file="uploadFile"
       @refresh-documents="refreshDocuments"
-      @view-pdf="viewPDF"
+      @view-pdf="handleViewPDF"
       @download-document="downloadDocument"
       @confirm-delete="confirmDelete"
       @sort-by="sortBy"
@@ -54,8 +54,12 @@ import PDFViewer from '@/components/documents/PDFViewer.vue'
 import DeleteConfirmModal from '@/components/documents/DeleteConfirmModal.vue'
 
 import { useProjects } from '@/composables/useProjects'
-const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, downloadProjectKnowledgeById, addProject } = useProjects()
+import { usePDFViewer } from '@/composables/usePDFViewer'
 
+const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, addProject } = useProjects()
+
+// Use PDF Viewer composable
+const { showPDFViewer, selectedDocument, viewPDF, closePDFViewer } = usePDFViewer()
 
 // State untuk project selection
 const selectedProject = ref(null)
@@ -68,9 +72,7 @@ const projects = ref([])
 const uploadQueue = ref([])
 
 // State untuk modals
-const showPDFViewer = ref(false)
 const showDeleteModal = ref(false)
-const selectedDocument = ref(null)
 const documentToDelete = ref(null)
 
 // Sorting state
@@ -228,85 +230,14 @@ const refreshDocuments = async () => {
   }
 }
 
-// PDF Viewer methods
-const viewPDF = async (document) => {
-  try {
-    if (!selectedProject.value) {
-      console.error('No project selected for PDF viewer')
-      return
-    }
-
-    console.log(`Loading PDF for view: ${document.file_name} from project ${selectedProject.value.id}`)
-    console.log('Document data:', document)
-    
-    // Call API to download document blob (same as download function)
-    const result = await downloadProjectKnowledgeById(selectedProject.value.id, document.knowledge_source_id || document.id)
-
-    console.log('Full API result:', result)
-
-    if (result && result.blob) {
-      
-      // Get content type from result or default to PDF
-      const contentType = result.contentType || 'application/pdf'
-      console.log('Using content type:', contentType)
-      
-      // Create blob URL directly from the blob
-      // Don't wrap it in another Blob if it's already a Blob
-      let pdfBlob = result.blob
-      
-      // Only create new Blob if content type is missing or incorrect
-      if (!pdfBlob.type || pdfBlob.type !== 'application/pdf') {
-        console.log('Creating new blob with correct content type')
-        pdfBlob = new Blob([pdfBlob], { type: 'application/pdf' })
-      }
-      
-      const blobUrl = URL.createObjectURL(pdfBlob)
-      
-      // Set document with blob URL for PDF viewer
-      selectedDocument.value = {
-        ...document,
-        url: blobUrl,
-        blobUrl: blobUrl,
-        contentType: pdfBlob.type
-      }
-      
-      showPDFViewer.value = true
-      
-    } else {
-      console.error('Failed to load PDF - no blob in result:', result)
-      
-      // Fallback to original document URL if available
-      if (document.url) {
-        console.log('Using fallback URL:', document.url)
-        selectedDocument.value = document
-        showPDFViewer.value = true
-      } else {
-        console.error('No URL available for PDF viewing')
-        alert('Unable to load PDF. Please try downloading the file instead.')
-      }
-    }
-  } catch (error) {
-    console.error('Error loading PDF for view:', error)
-    
-    // Fallback to original document URL if available
-    if (document.url) {
-      selectedDocument.value = document
-      showPDFViewer.value = true
-      console.log(`Fallback to existing URL for: ${document.file_name}`)
-    } else {
-      alert('Error loading PDF: ' + error.message)
-    }
-  }
-}
-
-const closePDFViewer = () => {
-  // Clean up blob URL if it was created
-  if (selectedDocument.value?.blobUrl) {
-    URL.revokeObjectURL(selectedDocument.value.blobUrl)
+// PDF Viewer methods - now using composable, just need wrapper for selectedProject
+const handleViewPDF = async (document) => {
+  if (!selectedProject.value) {
+    console.error('No project selected for PDF viewer')
+    return
   }
   
-  showPDFViewer.value = false
-  selectedDocument.value = null
+  await viewPDF(document, selectedProject.value.id)
 }
 
 // Download method

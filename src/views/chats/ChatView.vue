@@ -246,9 +246,17 @@
         ref="chatToolRef" 
         :documents="availableDocuments"
         :chunk-data="currentChunkData"
+        :project-id="projectId"
         @filtersApplied="handleFiltersApplied"
       />
     </div>
+    
+    <!-- PDF Viewer -->
+    <PDFViewer
+      :show="showPDFViewer"
+      :document="selectedDocument"
+      @close="closePDFViewer"
+    />
   </div>
 </template>
 
@@ -259,8 +267,10 @@ import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHor
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import PDFViewer from '@/components/documents/PDFViewer.vue'
 import { useProjects } from '@/composables/useProjects'
 import { useMarkdown } from '@/composables/useMarkdown'
+import { usePDFViewer } from '@/composables/usePDFViewer'
 
 const route = useRoute()
 const router = useRouter()
@@ -287,6 +297,9 @@ const {
   fetchChunkByMessage,
   sendMessage: sendApiMessage
 } = useProjects()
+
+// Use PDF Viewer composable
+const { showPDFViewer, selectedDocument, viewPDF, closePDFViewer } = usePDFViewer()
 
 // Use markdown composable
 const { parseMarkdown, parseMarkdownSimple, parseMarkdownBasic, hasMarkdownSyntax } = useMarkdown()
