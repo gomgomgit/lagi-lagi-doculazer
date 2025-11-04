@@ -1,52 +1,74 @@
 <template>
-  <div class="h-full py-4">
-    <!-- Mindmap Header -->
-    <div class="mb-4">
-      <h3 class="text-lg font-medium text-gray-800">Information Panel</h3>
+  <div class="h-full py-4 px-4">
+    <!-- Empty State -->
+    <div v-if="!chunkData" class="flex flex-col items-center justify-center h-full text-center">
+      <BrainIcon class="w-16 h-16 text-gray-300 mb-4" />
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No Context Selected</h3>
+      <p class="text-sm text-gray-600">Click on a chunk reference in the chat to view its context here</p>
     </div>
 
-    <!-- Mindmap Canvas -->
-    <div class="bg-gray-50 rounded-lg p-4 h-full overflow-auto">
-      <!-- Sample Mindmap Structure -->
-      <div class="mindmap-container">
+    <!-- Chunk Data Display -->
+    <div v-else class="space-y-4">
 
-        <div class="mindmap-branch branch-4">
-          <div class="mindmap-node branch-node">
-            <div class="node-content">
-              <h5 class="font-medium text-red-800">Concerns</h5>
-              <ul class="text-xs text-red-700 mt-1">
-                <li>• Compliance Issues</li>
-                <li>• Budget Constraints</li>
-                <li>• Timeline Pressure</li>
-              </ul>
-            </div>
+      <!-- Chunk Content -->
+      <div class="">
+        <div class="flex justify-between">
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">Content:</h4>
+          <p class="text-sm text-gray-600">Page : {{ chunkData.page_number_start == chunkData.page_number_end ? chunkData.page_number_start : chunkData.page_number_start + ' - ' + chunkData.page_number_end }}</p>
+        </div>
+        <div 
+          class="text-sm text-gray-900 leading-relaxed markdown-content"
+          v-html="chunkData.content ? '...' + parseMarkdownBasic(chunkData.content) + '...' : 'No content available'"
+        ></div>
+      </div>
+
+      <!-- Chunk Metadata -->
+      <!-- <div v-if="chunkData.metadata" class="space-y-2">
+        <h4 class="text-sm font-semibold text-gray-700">Metadata:</h4>
+        <div class="bg-white rounded-lg border border-gray-200 divide-y">
+          <div 
+            v-for="(value, key) in chunkData.metadata" 
+            :key="key"
+            class="px-4 py-2 flex items-start gap-3"
+          >
+            <span class="text-xs font-medium text-gray-500 min-w-[100px]">{{ formatKey(key) }}:</span>
+            <span class="text-sm text-gray-900 flex-1">{{ formatValue(value) }}</span>
           </div>
         </div>
-      </div>
-      <!-- Empty State -->
-      <div v-if="!hasAIResponse" class="text-center py-12 text-gray-500">
-        <BrainIcon class="w-16 h-16 text-gray-300 mx-auto mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">No AI Analysis Yet</h3>
-        <p class="text-gray-600">Send a message to generate mindmap visualization</p>
-      </div>
+      </div> -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { BrainIcon } from 'lucide-vue-next'
+import { useMarkdown } from '@/composables/useMarkdown'
+
+// Use markdown composable
+const { parseMarkdownBasic } = useMarkdown()
 
 // Props
-defineProps({
-  aiResponse: {
+const props = defineProps({
+  chunkData: {
     type: Object,
     default: null
   }
 })
 
-// State
-const hasAIResponse = ref(true) // Set to false for empty state
+// Format metadata key for display
+const formatKey = (key) => {
+  return key
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, l => l.toUpperCase())
+}
+
+// Format metadata value for display
+const formatValue = (value) => {
+  if (value === null || value === undefined) return 'N/A'
+  if (typeof value === 'object') return JSON.stringify(value)
+  return String(value)
+}
 </script>
 
 <style scoped>

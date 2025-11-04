@@ -91,6 +91,13 @@ renderer.em = function(text) {
   return `<em class="markdown-emphasis">${text}</em>`
 }
 
+// Custom highlight renderer (for ==highlight== syntax)
+renderer.text = function(text) {
+  // Process highlight syntax ==text==
+  const highlighted = text.replace(/==([^=]+)==/g, '<mark class="markdown-highlight">$1</mark>')
+  return highlighted
+}
+
 // Set the custom renderer
 marked.setOptions({ renderer })
 
@@ -106,7 +113,7 @@ const sanitizeToString = (htmlString) => {
         'blockquote',
         'a', 'img',
         'table', 'thead', 'tbody', 'tr', 'th', 'td',
-        'div', 'span'
+        'div', 'span', 'mark'
       ],
       ALLOWED_ATTR: [
         'href', 'title', 'alt', 'src', 'class',
@@ -229,6 +236,9 @@ export function useMarkdown() {
       .replace(/\*\*(.*?)\*\*/g, '<strong class="markdown-strong">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="markdown-emphasis">$1</em>')
       
+      // Highlight
+      .replace(/==([^=]+)==/g, '<mark class="markdown-highlight">$1</mark>')
+      
       // Inline code
       .replace(/`([^`]+)`/g, '<code class="markdown-inline-code">$1</code>')
       
@@ -256,6 +266,7 @@ export function useMarkdown() {
       /^\s*#{1,6}\s+.+$/m, // Headers
       /\*\*.*?\*\*/, // Bold
       /\*.*?\*/, // Italic
+      /==.*?==/, // Highlight
       /`.*?`/, // Inline code
       /```[\s\S]*?```/, // Code blocks
       /^\s*[-*+]\s+/m, // Unordered lists

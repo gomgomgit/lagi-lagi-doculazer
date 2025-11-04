@@ -244,7 +244,8 @@
     <div class="chat-tool-sidebar">
       <ChatTool 
         ref="chatToolRef" 
-        :documents="availableDocuments" 
+        :documents="availableDocuments"
+        :chunk-data="currentChunkData"
         @filtersApplied="handleFiltersApplied"
       />
     </div>
@@ -309,6 +310,7 @@ const mentionQuery = ref('')
 const mentionStartPos = ref(-1)
 const selectedDocuments = ref([])
 const currentFilteredDocuments = ref([])
+const currentChunkData = ref(null) // State untuk menyimpan chunk data yang akan ditampilkan di ContextView
 
 // Documents data - will be fetched from API
 const availableDocuments = computed(() => {
@@ -442,6 +444,7 @@ const sendMessage = async () => {
         id: response.conversation_id,
         role: 'AI',
         message: response.ai_message,
+        message_id: response.message_id
       }
       messages.value.push(aiMessage)
       scrollToBottom()
@@ -826,15 +829,7 @@ const handleChunkLinkClick = (e) => {
       // Get message_id from parent message container
       const messageContainer = link.closest('.chat-message-container')
       const messageId = messageContainer?.getAttribute('data-message-id')
-      
-      console.log('🔗 Chunk link clicked:', {
-        href,
-        chunkId,
-        messageId,
-        linkText: link.textContent,
-        fullLink: link.outerHTML
-      })
-      
+
       handleChunkReference(chunkId, messageId)
     }
   }
@@ -860,8 +855,14 @@ const handleChunkReference = async (chunkId, messageId) => {
     if (chunkData) {
       console.log('✅ Chunk data received:', chunkData)
       
-      // TODO: Handle chunk data - you can show it in a modal, sidebar, etc.
-      // For now, just logging it
+      // Simpan chunk data ke state
+      currentChunkData.value = chunkData
+      
+      // Switch ke tab Context di ChatTool untuk menampilkan chunk data
+      if (chatToolRef.value && chatToolRef.value.setActiveTab) {
+        chatToolRef.value.setActiveTab('context')
+        console.log('🔄 Switched to Context tab')
+      }
     } else {
       console.error('❌ No chunk data returned')
     }

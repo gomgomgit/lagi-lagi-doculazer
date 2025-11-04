@@ -9,6 +9,10 @@ const props = defineProps({
   documents: {
     type: Array,
     default: () => []
+  },
+  chunkData: {
+    type: Object,
+    default: null
   }
 });
 
@@ -369,7 +373,8 @@ defineExpose({
   filterCompanies,
   filterTags,
   clearAllFilters,
-  applyFilters
+  applyFilters,
+  setActiveTab
 })
 </script>
 
@@ -455,7 +460,7 @@ defineExpose({
 
       <!-- Context View Tab -->
       <div v-else-if="activeTab === 'context'">
-        <ContextView />
+        <ContextView :chunk-data="chunkData" />
       </div>
     </div>
 

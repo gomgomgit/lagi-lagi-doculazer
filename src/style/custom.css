@@ -1,14 +1,15 @@
 /* ================================================ */
-/* DOCULAZER - COLOR SYSTEM */
+/* UI CHAT - CUSTOM STYLES */
 /* ================================================ */
 /* 
- * This file contains the complete color system for Doculazer app.
+ * This file contains custom styles and color system for Doculazer app.
  * 
  * STRUCTURE:
  * 1. Brand Color Palette - Base colors with tints & shades
  * 2. Commonly Used Colors - Easy to customize variables
  * 3. Component-specific Colors - Individual component themes
  * 4. Component Classes - CSS classes for components
+ * 5. Markdown Styles - Styling for markdown content
  * 
  * CUSTOMIZATION:
  * - To change the main theme color, update --primary-color
