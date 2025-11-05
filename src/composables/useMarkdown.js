@@ -386,6 +386,37 @@ export function useMarkdown() {
     }
   }
 
+  /**
+   * Remove chunk and knowledge references from text
+   * Removes all markdown-style CHUNK and KNOWLEDGE links
+   * @param {string} text - The text to clean
+   * @returns {string} - Text without chunk/knowledge references
+   */
+  const removeChunkAndKnowledgeReferences = (text) => {
+    if (!text || typeof text !== 'string') {
+      return ''
+    }
+
+    let cleanText = text
+    
+    // Remove markdown-style KNOWLEDGE links: [@filename.pdf](KNOWLEDGE-xxx)
+    cleanText = cleanText.replace(/\[@[^\]]+\]\(KNOWLEDGE-[^)]+\)/g, '')
+    
+    // Remove markdown-style CHUNK links: [1](#CHUNK-xxx)
+    cleanText = cleanText.replace(/\[[^\]]+\]\(#CHUNK-[^)]+\)/g, '')
+    
+    // Remove other CHUNK references: [#CHUNK-xxx]
+    cleanText = cleanText.replace(/\[#CHUNK-[^\]]+\]/g, '')
+    
+    // Remove other KNOWLEDGE references: [#KNOWLEDGE-xxx]
+    cleanText = cleanText.replace(/\[#KNOWLEDGE-[^\]]+\]/g, '')
+    
+    // Clean up extra spaces that might result from removal
+    cleanText = cleanText.replace(/\s+/g, ' ').trim()
+    
+    return cleanText
+  }
+
   return {
     parseMarkdown,
     parseMarkdownSimple,
@@ -393,6 +424,7 @@ export function useMarkdown() {
     parseMarkdownWithChunks,
     extractChunkReferences,
     hasMarkdownSyntax,
-    getMarkdownPreview
+    getMarkdownPreview,
+    removeChunkAndKnowledgeReferences
   }
 }

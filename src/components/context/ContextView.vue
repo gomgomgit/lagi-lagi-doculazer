@@ -1,10 +1,17 @@
 <template>
   <div class="h-full py-4 px-4">
+    <!-- Loading State -->
+    <div v-if="loading" class="flex flex-col items-center justify-center h-full text-center">
+      <div class="mb-4 w-20 h-20 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Loading Citation...</h3>
+      <p class="text-sm text-gray-600">Fetching context from knowledge base</p>
+    </div>
+
     <!-- Empty State -->
-    <div v-if="!chunkData" class="flex flex-col items-center justify-center h-full text-center">
+    <div v-else-if="!chunkData && !loading" class="flex flex-col items-center justify-center h-full text-center">
       <BrainIcon class="w-16 h-16 text-gray-300 mb-4" />
-      <h3 class="text-lg font-medium text-gray-900 mb-2">No Context Selected</h3>
-      <p class="text-sm text-gray-600">Click on a chunk reference in the chat to view its context here</p>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">No Citation Selected</h3>
+      <p class="text-sm text-gray-600">Click on a citation reference in the message to view its context here</p>
     </div>
 
     <!-- Chunk Data Display -->
@@ -53,6 +60,10 @@ const props = defineProps({
   chunkData: {
     type: Object,
     default: null
+  },
+  loading: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -86,5 +97,28 @@ const formatValue = (value) => {
   border: 2px solid #e2e8f0;
   min-width: 140px;
   max-width: 180px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

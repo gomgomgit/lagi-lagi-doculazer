@@ -146,20 +146,38 @@
           >
             <!-- User Message -->
             <div v-if="message.role === 'Human'" class="chat-message-row user">
-              <div class="chat-message-bubble user">
+              <div class="chat-message-bubble user group">
                 <div 
                   class="markdown-content"
                   v-html="parseMarkdownBasic(message.message)"
                 ></div>
+                <button
+                  @click="copyMessage(message.message, message.message_id)"
+                  class="chat-copy-button opacity-0 group-hover:opacity-100 rounded-full"
+                  :class="{ 'copied': copiedMessageId === message.message_id }"
+                  :title="copiedMessageId === message.message_id ? 'Copied!' : 'Copy message'"
+                >
+                  <CheckIcon v-if="copiedMessageId === message.message_id" class="w-4 h-4" />
+                  <CopyIcon v-else class="w-4 h-4" />
+                </button>
               </div>
             </div>
             <!-- AI Message -->
             <div v-else-if="message.role === 'AI'" class="chat-message-row ai">
-              <div class="chat-message-bubble ai">
+              <div class="chat-message-bubble ai group">
                 <div 
                   class="markdown-content"
                   v-html="parseMarkdownBasic(message.message)"
                 ></div>
+                <button
+                  @click="copyMessage(message.message, message.message_id)"
+                  class="chat-copy-button opacity-0 group-hover:opacity-100 rounded-full"
+                  :class="{ 'copied': copiedMessageId === message.message_id }"
+                  :title="copiedMessageId === message.message_id ? 'Copied!' : 'Copy message'"
+                >
+                  <CheckIcon v-if="copiedMessageId === message.message_id" class="w-4 h-4" />
+                  <CopyIcon v-else class="w-4 h-4" />
+                </button>
               </div>
             </div>
             <!-- System/Error Messages -->
@@ -246,6 +264,7 @@
         ref="chatToolRef" 
         :documents="availableDocuments"
         :chunk-data="currentChunkData"
+        :is-loading-chunk="isLoadingChunk"
         :project-id="projectId"
         @filtersApplied="handleFiltersApplied"
       />
@@ -263,7 +282,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon } from 'lucide-vue-next'
+import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon, CopyIcon, CheckIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -302,7 +321,7 @@ const {
 const { showPDFViewer, selectedDocument, viewPDF, closePDFViewer } = usePDFViewer()
 
 // Use markdown composable
-const { parseMarkdown, parseMarkdownSimple, parseMarkdownBasic, hasMarkdownSyntax } = useMarkdown()
+const { parseMarkdown, parseMarkdownSimple, parseMarkdownBasic, hasMarkdownSyntax, removeChunkAndKnowledgeReferences } = useMarkdown()
 
 // Use projects from API instead of hardcoded data
 const projects = computed(() => projectsWithConversations.value || [])
@@ -324,6 +343,8 @@ const mentionStartPos = ref(-1)
 const selectedDocuments = ref([])
 const currentFilteredDocuments = ref([])
 const currentChunkData = ref(null) // State untuk menyimpan chunk data yang akan ditampilkan di ContextView
+const isLoadingChunk = ref(false) // Loading state untuk chunk data
+const copiedMessageId = ref(null) // Track which message was copied
 
 // Documents data - will be fetched from API
 const availableDocuments = computed(() => {
@@ -780,6 +801,10 @@ const formatConversationDate = (dateString) => {
 watch([projectId, conversationId], async ([newProjectId, newConversationId]) => {
   console.log('Route changed:', { projectId: newProjectId, conversationId: newConversationId })
   
+  // Clear chunk data when conversation changes
+  currentChunkData.value = null
+  isLoadingChunk.value = false
+  
   // Load project knowledge documents when project changes
   if (newProjectId) {
     await loadProjectKnowledge(newProjectId)
@@ -871,6 +896,9 @@ const handleChunkReference = async (chunkId, messageId) => {
   console.log('🧹 Cleaned chunk ID:', { original: chunkId, cleaned: cleanChunkId })
   
   try {
+    // Set loading state
+    isLoadingChunk.value = true
+    
     console.log('🔄 Fetching chunk data via composable...')
     const chunkData = await fetchChunkByMessage(projectId.value, cleanChunkId, messageId)
     
@@ -891,6 +919,9 @@ const handleChunkReference = async (chunkId, messageId) => {
     
   } catch (error) {
     console.error('❌ Failed to fetch chunk data:', error)
+  } finally {
+    // Clear loading state
+    isLoadingChunk.value = false
   }
 }
 
@@ -918,6 +949,33 @@ const handleKnowledgeReference = async (knowledgeId) => {
   }
 }
 
+// Copy message to clipboard
+const copyMessage = async (messageText, messageId) => {
+  try {
+    // Remove HTML tags and decode HTML entities for plain text copy
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = messageText
+    let plainText = tempDiv.textContent || tempDiv.innerText || ''
+    
+    // Use the composable function to remove chunk and knowledge references
+    plainText = removeChunkAndKnowledgeReferences(plainText)
+    
+    await navigator.clipboard.writeText(plainText)
+    
+    // Show success feedback
+    copiedMessageId.value = messageId
+    
+    // Clear feedback after 2 seconds
+    setTimeout(() => {
+      copiedMessageId.value = null
+    }, 2000)
+    
+    console.log('✅ Message copied to clipboard')
+  } catch (error) {
+    console.error('❌ Failed to copy message:', error)
+  }
+}
+
 onMounted(() => {
   console.log('ChatView mounted with params:', {
     projectId: projectId.value,
@@ -929,27 +987,43 @@ onMounted(() => {
   
   // Setup chunk link event listener
   setupChunkLinkEventListener()
-  
-  // Expose methods to window for testing/debugging (development only)
-  if (process.env.NODE_ENV === 'development') {
-    window.getChatFilteredDocuments = getFilteredDocuments
-    window.getChatAppliedFilters = getAppliedFilters
-    window.chatToolRef = chatToolRef
-    window.currentFilteredDocuments = currentFilteredDocuments
-    window.testChatToolRef = () => {
-      console.log('ChatTool ref status:', {
-        available: !!chatToolRef.value,
-        filteredFiles: chatToolRef.value?.filteredFiles || 'Not available',
-        appliedFilters: chatToolRef.value?.appliedFilters || 'Not available'
-      })
-    }
-    console.log('🔧 Debug methods exposed:', [
-      'getChatFilteredDocuments()', 
-      'getChatAppliedFilters()', 
-      'chatToolRef', 
-      'currentFilteredDocuments',
-      'testChatToolRef()'
-    ])
-  }
 })
 </script>
+<style scoped>
+/* Copy button styling */
+.chat-message-bubble {
+  position: relative;
+}
+
+.chat-copy-button {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.chat-copy-button.copied {
+  background-color: #10b981;
+  border-color: #10b981;
+  opacity: 1 !important;
+}
+
+/* For AI messages, adjust background for better contrast */
+.chat-message-row.ai .chat-copy-button {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* For user messages */
+.chat-message-row.user .chat-copy-button {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+</style>

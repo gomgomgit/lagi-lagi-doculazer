@@ -18,6 +18,10 @@ const props = defineProps({
     type: Object,
     default: null
   },
+  isLoadingChunk: {
+    type: Boolean,
+    default: false
+  },
   projectId: {
     type: [String, Number],
     default: null
@@ -469,8 +473,8 @@ defineExpose({
       </div>
 
       <!-- Context View Tab -->
-      <div v-else-if="activeTab === 'context'">
-        <ContextView :chunk-data="chunkData" />
+      <div class="h-full" v-else-if="activeTab === 'context'">
+        <ContextView :chunk-data="chunkData" :loading="isLoadingChunk" />
       </div>
     </div>
 
