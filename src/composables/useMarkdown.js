@@ -399,8 +399,8 @@ export function useMarkdown() {
 
     let cleanText = text
     
-    // Remove markdown-style KNOWLEDGE links: [@filename.pdf](KNOWLEDGE-xxx)
-    cleanText = cleanText.replace(/\[@[^\]]+\]\(KNOWLEDGE-[^)]+\)/g, '')
+    // Remove markdown-style KNOWLEDGE links: [@filename.pdf](KNOWLEDGE-xxx) -> keep @filename.pdf
+    cleanText = cleanText.replace(/\[(@[^\]]+)\]\(KNOWLEDGE-[^)]+\)/g, '$1')
     
     // Remove markdown-style CHUNK links: [1](#CHUNK-xxx)
     cleanText = cleanText.replace(/\[[^\]]+\]\(#CHUNK-[^)]+\)/g, '')

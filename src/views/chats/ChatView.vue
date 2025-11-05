@@ -210,7 +210,7 @@
             v-model="messageText"
             type="text" 
             :placeholder="conversationId === 'new' ? 'Start your conversation...' : 'Write your message ...'"
-            class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-16"
+            class="w-full px-4 py-3 border border-gray-300 rounded-full focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none pr-28"
             @keydown="handleKeyDown"
             @input="handleInput"
           >
@@ -246,7 +246,33 @@
             </span>
           </div>
           
+          <!-- Deep Research Mode Badge -->
+          <div 
+            v-if="isDeepResearchEnabled" 
+            class="absolute right-3 -top-8 flex items-center gap-1 text-xs"
+          >
+            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+              <SearchCheckIcon class="w-3 h-3" />
+              Deep Research Mode
+            </span>
+          </div>
+          
           <div class="absolute right-1 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+            <!-- Deep Research Toggle Button -->
+            <button 
+              @click="toggleDeepResearch"
+              :class="[
+                'px-3 py-3 text-sm rounded-full transition-all duration-200',
+                isDeepResearchEnabled 
+                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                  : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+              ]"
+              :title="isDeepResearchEnabled ? 'Deep Research: ON' : 'Deep Research: OFF'"
+            >
+              <SearchCheckIcon class="w-4 h-4" />
+            </button>
+            
+            <!-- Send Button -->
             <button 
               @click="sendMessage"
               :disabled="!messageText.trim()"
@@ -282,7 +308,7 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon, CopyIcon, CheckIcon } from 'lucide-vue-next'
+import { FolderIcon, MessageCircleIcon, ChevronRightIcon, PaperclipIcon, SendHorizonalIcon, XIcon, CopyIcon, CheckIcon, SearchCheckIcon } from 'lucide-vue-next'
 import ChatTool from './ChatTool.vue'
 import DocumentMentionDropdown from '@/components/chat/DocumentMentionDropdown.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
@@ -331,6 +357,7 @@ const messageText = ref('')
 const messages = ref(conversationHistory.value || [])
 const currentLanguage = ref('id') // Default to Indonesian
 const isTyping = ref(false) // For AI typing indicator
+const isDeepResearchEnabled = ref(false) // Deep research toggle state
 
 // Mention functionality state
 const messageInput = ref(null)
@@ -371,42 +398,8 @@ const projectConversations = computed(() => {
   return currentProject.value.conversations || []
 })
 
-// Computed property to get filtered documents from ChatTool
-const filteredDocuments = computed(() => {
-  if (!chatToolRef.value) return []
-  return chatToolRef.value.filteredFiles || []
-})
-
-// Method to get current filtered documents
-const getFilteredDocuments = () => {
-  if (!chatToolRef.value) {
-    console.log('ChatTool ref not available')
-    return []
-  }
-  
-  const filtered = chatToolRef.value.filteredFiles || []
-  console.log('Current filtered documents:', filtered)
-  return filtered
-}
-
-// Method to get applied filters
-const getAppliedFilters = () => {
-  if (!chatToolRef.value) {
-    console.log('ChatTool ref not available')
-    return []
-  }
-  
-  const filters = chatToolRef.value.appliedFilters || []
-  console.log('Current applied filters:', filters)
-  return filters
-}
-
 // Handle filters applied event from ChatTool
 const handleFiltersApplied = (data) => {
-  console.log('🎯 Filters applied event received:', data)
-  console.log('📄 Filtered files count:', data.filteredFiles.length)
-  console.log('🔍 Applied filters count:', data.appliedFilters.length)
-  
   // Store filtered data in reactive state
   currentFilteredDocuments.value = data.filteredFiles
   
@@ -438,8 +431,6 @@ const sendMessage = async () => {
   }
   messages.value.push(userMessage)
   scrollToBottom()
-
-  console.log('User message added:', userMessage)
   
   // Store the message text and selected documents before clearing
   const messageToSend = messageText.value
@@ -463,14 +454,17 @@ const sendMessage = async () => {
     console.log('Sending message with documents:', {
       message: messageToSend,
       documents: [...documentsToSend, ...currentFilteredDocuments.value], 
-      conversationId: apiConversationId
+      conversationId: apiConversationId,
+      deepResearch: isDeepResearchEnabled.value,
+      mechanism: isDeepResearchEnabled.value ? 'adaptive' : 'simple'
     })
     
     const response = await sendApiMessage(
       projectId.value, 
       messageToSend, 
       apiConversationId,
-      [...documentsToSend, ...currentFilteredDocuments.value]
+      [...documentsToSend, ...currentFilteredDocuments.value],
+      isDeepResearchEnabled.value ? 'adaptive' : 'simple'
     )
     
     if (response) {
@@ -508,6 +502,11 @@ const sendMessage = async () => {
 const setLanguage = (lang) => {
   currentLanguage.value = lang
   console.log('Language switched to:', lang)
+}
+
+// Toggle deep research mode
+const toggleDeepResearch = () => {
+  isDeepResearchEnabled.value = !isDeepResearchEnabled.value
 }
 
 // Scroll to bottom of messages
@@ -982,15 +981,11 @@ onMounted(() => {
     conversationId: conversationId.value
   })
   
-  // Fetch projects with conversations when component mounts
   fetchProjectsWithConversations()
-  
-  // Setup chunk link event listener
   setupChunkLinkEventListener()
 })
 </script>
 <style scoped>
-/* Copy button styling */
 .chat-message-bubble {
   position: relative;
 }

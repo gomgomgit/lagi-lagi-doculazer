@@ -145,7 +145,7 @@ export const getConversationHistory = async (projectId, conversationId) => {
   }
 }
 
-export const sendInferenceMessage = async (projectId, messageInput, conversationId, mentionedDocuments = []) => {
+export const sendInferenceMessage = async (projectId, messageInput, conversationId, mentionedDocuments = [], mechanism = 'simple') => {
   try {
     // Process message to replace @ mentions with ✝ symbols
     let processedMessage = messageInput
@@ -163,7 +163,8 @@ export const sendInferenceMessage = async (projectId, messageInput, conversation
     
     // Build URL parameters
     const params = new URLSearchParams({
-      human_message: processedMessage
+      human_message: processedMessage,
+      mechanism: mechanism  
     })
     
     // Only add conversation_id if it's not empty or undefined
