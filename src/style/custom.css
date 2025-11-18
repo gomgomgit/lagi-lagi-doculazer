@@ -1183,11 +1183,12 @@
 }
 
 .chat-message-row.user {
-  justify-content: flex-end; /* User messages aligned to right */
+  gap: 0.25rem; /* gap-1 */
 }
 
 .chat-message-row.ai {
   justify-content: flex-start; /* AI messages aligned to left */
+  gap: 0.25rem; /* gap-1 */
 }
 
 .chat-message-row.system {
@@ -1804,15 +1805,66 @@
 }
 
 /* ================================================ */
-/* CHAT VIEW LAYOUT CONSTRAINTS */
+/* CHAT VIEW COMPONENTS & INTERACTIONS */
 /* ================================================ */
 
-/* Ensure Chat View doesn't exceed BaseLayout height */
+/* Chat View Container */
 .chat-view-container {
   height: 100%;
   max-height: 100%;
   overflow: hidden;
 }
+
+/* Chat Copy Button Styles */
+.chat-copy-button {
+  position: relative;
+  padding: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+}
+
+.chat-copy-button.copied {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+  opacity: 1 !important;
+}
+
+.chat-copy-button:hover {
+  background-color: rgba(255, 255, 255, 1);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Copy Button Layout in Message Rows */
+.chat-message-row.user {
+  flex-direction: row-reverse;
+}
+
+.chat-message-row.user .chat-copy-button {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.chat-message-row.ai .chat-copy-button {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Chat Message Bubble Positioning */
+.chat-message-bubble {
+  position: relative;
+}
+
+/* ================================================ */
+/* CHAT VIEW LAYOUT CONSTRAINTS */
+/* ================================================ */
 
 /* Chat messages area should be scrollable within constraints */
 .chat-messages-area {

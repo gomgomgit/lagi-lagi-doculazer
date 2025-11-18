@@ -145,12 +145,14 @@
             class="chat-message-container"
           >
             <!-- User Message -->
-            <div v-if="message.role === 'Human'" class="chat-message-row user">
-              <div class="chat-message-bubble user group">
+            <div v-if="message.role === 'Human'" class="chat-message-row user group">
+              <div class="chat-message-bubble user">
                 <div 
                   class="markdown-content"
                   v-html="parseMarkdownBasic(message.message)"
                 ></div>
+              </div>
+              <div class="flex items-end">
                 <button
                   @click="copyMessage(message.message, message.message_id)"
                   class="chat-copy-button opacity-0 group-hover:opacity-100 rounded-full"
@@ -163,12 +165,14 @@
               </div>
             </div>
             <!-- AI Message -->
-            <div v-else-if="message.role === 'AI'" class="chat-message-row ai">
-              <div class="chat-message-bubble ai group">
+            <div v-else-if="message.role === 'AI'" class="chat-message-row ai group">
+              <div class="chat-message-bubble ai">
                 <div 
                   class="markdown-content"
                   v-html="parseMarkdownBasic(message.message)"
                 ></div>
+              </div>
+              <div class="flex items-end">
                 <button
                   @click="copyMessage(message.message, message.message_id)"
                   class="chat-copy-button opacity-0 group-hover:opacity-100 rounded-full"
@@ -895,8 +899,9 @@ const handleChunkReference = async (chunkId, messageId) => {
   console.log('🧹 Cleaned chunk ID:', { original: chunkId, cleaned: cleanChunkId })
   
   try {
-    // Set loading state
+    // Switch ke tab Context di ChatTool dan set Loading state 
     isLoadingChunk.value = true
+    chatToolRef.value.setActiveTab('context')
     
     console.log('🔄 Fetching chunk data via composable...')
     const chunkData = await fetchChunkByMessage(projectId.value, cleanChunkId, messageId)
@@ -907,9 +912,8 @@ const handleChunkReference = async (chunkId, messageId) => {
       // Simpan chunk data ke state
       currentChunkData.value = chunkData
       
-      // Switch ke tab Context di ChatTool untuk menampilkan chunk data
+      // Menampilkan chunk data
       if (chatToolRef.value && chatToolRef.value.setActiveTab) {
-        chatToolRef.value.setActiveTab('context')
         console.log('🔄 Switched to Context tab')
       }
     } else {
@@ -985,40 +989,3 @@ onMounted(() => {
   setupChunkLinkEventListener()
 })
 </script>
-<style scoped>
-.chat-message-bubble {
-  position: relative;
-}
-
-.chat-copy-button {
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  padding: 6px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.chat-copy-button.copied {
-  background-color: #10b981;
-  border-color: #10b981;
-  opacity: 1 !important;
-}
-
-/* For AI messages, adjust background for better contrast */
-.chat-message-row.ai .chat-copy-button {
-  background-color: rgba(255, 255, 255, 0.95);
-}
-
-/* For user messages */
-.chat-message-row.user .chat-copy-button {
-  background-color: rgba(255, 255, 255, 0.95);
-}
-</style>
