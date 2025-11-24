@@ -366,16 +366,14 @@ const deleteDocument = async () => {
   try {
     if (!documentToDelete.value || !selectedProject.value) return
 
-    const result = await deleteProjectKnowledgeById(selectedProject.value.id, documentToDelete.value.knowledge_source_id)
+    await deleteProjectKnowledgeById(selectedProject.value.id, documentToDelete.value.knowledge_source_id)
     
-    if (result && result.success) {
-      await refreshDocuments()
-    }
+    // Always refresh documents list after delete attempt to sync with server
+    await refreshDocuments()
     
-    showDeleteModal.value = false
-    documentToDelete.value = null
   } catch (error) {
     console.error('Error deleting document:', error)
+  } finally {
     showDeleteModal.value = false
     documentToDelete.value = null
   }
