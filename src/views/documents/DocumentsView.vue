@@ -4,17 +4,15 @@
     <ProjectList
       ref="projectListRef"
       v-if="currentView === 'project-list'"
-      :projects="projects"
-      :get-document-count="getProjectDocumentCount"
       @project-selected="selectProject"
       @add-project="addNewProject"
     />
 
     <!-- Document Management View -->
     <DocumentManager
+      ref="documentManagerRef"
       v-else-if="currentView === 'document-management' && selectedProject"
       :selected-project="selectedProject"
-      :documents="documents"
       :upload-queue="uploadQueue"
       :sort-field="sortField"
       :sort-direction="sortDirection"
@@ -22,6 +20,9 @@
       @files-selected="onFilesSelected"
       @file-error="onFileError"
       @upload-file="uploadFile"
+      @upload-all-files="uploadAllFiles"
+      @cancel-upload-all="cancelUploadAll"
+      @remove-from-queue="removeFromQueue"
       @refresh-documents="refreshDocuments"
       @view-pdf="handleViewPDF"
       @download-document="downloadDocument"
@@ -47,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import ProjectList from '@/components/documents/ProjectList.vue'
 import DocumentManager from '@/components/documents/DocumentManager.vue'
 import PDFViewer from '@/components/documents/PDFViewer.vue'
@@ -56,7 +57,7 @@ import DeleteConfirmModal from '@/components/documents/DeleteConfirmModal.vue'
 import { useProjects } from '@/composables/useProjects'
 import { usePDFViewer } from '@/composables/usePDFViewer'
 
-const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, addProject } = useProjects()
+const { uploadProjectKnowledge, fetchProjectKnowledges, deleteProjectKnowledgeById, addProject, downloadProjectKnowledgeById } = useProjects()
 
 // Use PDF Viewer composable
 const { showPDFViewer, selectedDocument, viewPDF, closePDFViewer } = usePDFViewer()
@@ -64,9 +65,6 @@ const { showPDFViewer, selectedDocument, viewPDF, closePDFViewer } = usePDFViewe
 // State untuk project selection
 const selectedProject = ref(null)
 const currentView = ref('project-list') // 'project-list' | 'document-management'
-
-// Projects data - will be updated via addProject API
-const projects = ref([])
 
 // State untuk file upload
 const uploadQueue = ref([])
@@ -79,15 +77,15 @@ const documentToDelete = ref(null)
 const sortField = ref('uploadDate')
 const sortDirection = ref('desc')
 
-const documents = ref([])
-
 // Ref untuk ProjectList component
 const projectListRef = ref(null)
 
-// Computed untuk document count per project
-const getProjectDocumentCount = (projectId) => {
-  return documents.value.filter(doc => doc.projectId === projectId).length
-}
+// Ref untuk DocumentManager component  
+const documentManagerRef = ref(null)
+
+// State untuk upload all functionality
+const isUploadingAll = ref(false)
+const uploadAllCancelled = ref(false)
 
 // Project navigation methods
 const selectProject = (project) => {
@@ -96,6 +94,9 @@ const selectProject = (project) => {
 }
 
 const backToProjects = () => {
+  // Prevent navigation if upload all is in progress
+  if (isUploadingAll.value) return
+  
   selectedProject.value = null
   currentView.value = 'project-list'
   uploadQueue.value = []
@@ -103,20 +104,10 @@ const backToProjects = () => {
 
 const addNewProject = async (projectData) => {
   try {
-    console.log('Creating new project via API:', projectData)
-    
-    // Call API to create project
     const newProject = await addProject(projectData)
     
-    if (newProject) {
-      console.log('Project added successfully:', newProject)
-      
-      // Call fetchProjects on ProjectList to refresh data
-      if (projectListRef.value && projectListRef.value.fetchProjects) {
-        await projectListRef.value.fetchProjects()
-      }
-    } else {
-      console.error('Failed to create project')
+    if (newProject && projectListRef.value && projectListRef.value.fetchProjects) {
+      await projectListRef.value.fetchProjects()
     }
   } catch (error) {
     console.error('Error creating project:', error)
@@ -125,8 +116,6 @@ const addNewProject = async (projectData) => {
 
 // File upload handlers
 const onFilesSelected = (files) => {
-  console.log('Files selected:', files)
-  
   const newItems = files.map(file => ({
     file,
     status: 'pending',
@@ -139,9 +128,6 @@ const onFilesSelected = (files) => {
 
 const onFileError = (errors) => {
   console.error('File upload errors:', errors)
-  errors.forEach(error => {
-    console.error(error)
-  })
 }
 
 const uploadFile = async (item, index) => {
@@ -166,40 +152,20 @@ const uploadFile = async (item, index) => {
     clearInterval(progressInterval)
     uploadQueue.value[index].progress = 100
     
-    if (result && result.success) {
-      // Create document object from response or file data
-      const newDocument = {
-        id: result.data?.id || Date.now(),
-        name: result.data?.name || item.file.name,
-        company: selectedProject.value?.name || 'Unknown',
-        uploadDate: result.data?.uploadDate || new Date().toISOString().split('T')[0],
-        size: result.data?.size || item.file.size,
-        type: result.data?.type || item.file.name.split('.').pop().toLowerCase(),
-        projectId: selectedProject.value?.id || null,
-        url: result.data?.url || URL.createObjectURL(item.file)
-      }
-      
-      // Add the new document to the list
-      documents.value.unshift(newDocument)
+    if (result) {
       uploadQueue.value[index].status = 'completed'
-      console.log(`File ${item.file.name} uploaded successfully`)
       
-      // Auto refresh documents list after successful upload to sync with server
       await refreshDocuments()
       
-      // Remove completed item from upload queue after 2 seconds
-      setTimeout(() => {
-        const completedIndex = uploadQueue.value.findIndex((item, idx) => 
-          idx === index && item.status === 'completed'
-        )
-        if (completedIndex !== -1) {
-          uploadQueue.value.splice(completedIndex, 1)
-        }
-      }, 2000)
+      const completedIndex = uploadQueue.value.findIndex((item, idx) => 
+        idx === index && item.status === 'completed'
+      )
+      if (completedIndex !== -1) {
+        uploadQueue.value.splice(completedIndex, 1)
+      }
     } else {
       uploadQueue.value[index].status = 'error'
       uploadQueue.value[index].error = result?.error || 'Upload failed'
-      console.error('Upload failed:', result?.error)
     }
     
   } catch (error) {
@@ -209,22 +175,132 @@ const uploadFile = async (item, index) => {
   }
 }
 
-// Document management methods
-const refreshDocuments = async () => {
-  if (!selectedProject.value) {
-    console.warn('No project selected for document refresh')
-    return
+const uploadingAllFile = async (item, index) => {
+  try {
+    uploadQueue.value[index].status = 'uploading'
+    uploadQueue.value[index].progress = 0
+    
+    const formData = new FormData()
+    formData.append('file', item.file)
+    
+    // Simulate progress during upload
+    const progressInterval = setInterval(() => {
+      if (uploadQueue.value[index].progress < 90) {
+        uploadQueue.value[index].progress += 10
+      }
+    }, 100)
+    
+    // Call the upload function and wait for response
+    const result = await uploadProjectKnowledge(selectedProject.value.id, formData)
+    
+    // Clear progress interval
+    clearInterval(progressInterval)
+    uploadQueue.value[index].progress = 100
+    
+    if (result) {
+      uploadQueue.value[index].status = 'completed'
+      
+      await refreshDocuments()
+      
+      // Auto-remove handled by upload all completion
+    } else {
+      uploadQueue.value[index].status = 'error'
+      uploadQueue.value[index].error = result?.error || 'Upload failed'
+    }
+    
+  } catch (error) {
+    uploadQueue.value[index].status = 'error'
+    uploadQueue.value[index].error = error.message
+    console.error('Upload failed:', error)
+  }
+}
+
+const removeFromQueue = (index) => {
+  uploadQueue.value.splice(index, 1)
+}
+
+const uploadAllFiles = async () => {
+  if (uploadQueue.value.length === 0) return
+
+  isUploadingAll.value = true
+  uploadAllCancelled.value = false
+  
+  // Create a snapshot of pending files to avoid array mutation issues
+  const pendingFiles = uploadQueue.value
+    .map((item, index) => ({ item: { ...item }, originalIndex: index }))
+    .filter(({ item }) => item.status === 'pending')
+
+  for (let i = 0; i < pendingFiles.length; i++) {
+    // Check if upload all was cancelled
+    if (uploadAllCancelled.value) break
+
+    const { item, originalIndex } = pendingFiles[i]
+    
+    // Find current index in queue (since array might have changed)
+    const currentIndex = uploadQueue.value.findIndex(queueItem => 
+      queueItem.file.name === item.file.name && queueItem.file.size === item.file.size
+    )
+    
+    if (currentIndex === -1) {
+      continue
+    }
+    
+    if (documentManagerRef.value) {
+      documentManagerRef.value.updateUploadAllProgress(currentIndex)
+    }
+    
+    try {
+      await uploadingAllFile(item, currentIndex)
+      
+      // Small delay between uploads
+      if (i < pendingFiles.length - 1 && !uploadAllCancelled.value) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+    } catch (error) {
+      console.error(`Failed to upload ${item.file.name}:`, error)
+    }
+  }
+
+  // Complete upload all
+  isUploadingAll.value = false
+  if (documentManagerRef.value) {
+    documentManagerRef.value.completeUploadAll()
   }
   
+  const completedCount = uploadQueue.value.filter(item => item.status === 'completed').length
+  
+  // Auto-remove completed items after upload all (only if not cancelled)
+  if (!uploadAllCancelled.value && completedCount > 0) {
+    setTimeout(() => {
+      uploadQueue.value = uploadQueue.value.filter(item => item.status !== 'completed')
+    }, 3000)
+  }
+}
+
+const cancelUploadAll = () => {
+  uploadAllCancelled.value = true
+  isUploadingAll.value = false
+  
+  if (documentManagerRef.value) {
+    documentManagerRef.value.completeUploadAll()
+  }
+}
+
+// Document management methods
+const refreshDocuments = async () => {
+  if (!selectedProject.value) return
+  
   try {
-    console.log('Refreshing documents for project:', selectedProject.value.id)
+    // Refresh documents in the DocumentManager component if available
+    if (documentManagerRef.value && documentManagerRef.value.refreshDocuments) {
+      await documentManagerRef.value.refreshDocuments()
+    } else {
+      // Fallback to direct API call
+      await fetchProjectKnowledges(selectedProject.value.id)
+    }
     
-    await fetchProjectKnowledges(selectedProject.value.id)
-    
-    const currentProjectDocs = documents.value.filter(doc => doc.projectId === selectedProject.value.id)
-    console.log(`Found ${currentProjectDocs.length} documents for project ${selectedProject.value.id}`)
-    
-    console.log('Documents refreshed successfully')
+    // Force UI update
+    await nextTick()
   } catch (error) {
     console.error('Error refreshing documents:', error)
   }
@@ -232,10 +308,7 @@ const refreshDocuments = async () => {
 
 // PDF Viewer methods - now using composable, just need wrapper for selectedProject
 const handleViewPDF = async (document) => {
-  if (!selectedProject.value) {
-    console.error('No project selected for PDF viewer')
-    return
-  }
+  if (!selectedProject.value) return
   
   await viewPDF(document, selectedProject.value.id)
 }
@@ -243,18 +316,11 @@ const handleViewPDF = async (document) => {
 // Download method
 const downloadDocument = async (document) => {
   try {
-    if (!selectedProject.value) {
-      console.error('No project selected for document download')
-      return
-    }
+    if (!selectedProject.value) return
 
-    console.log(`Downloading document: ${document.file_name} from project ${selectedProject.value.id}`)
-    
-    // Call API to download document
     const result = await downloadProjectKnowledgeById(selectedProject.value.id, document.knowledge_source_id || document.id)
 
     if (result) {
-      // Create blob URL and trigger download
       const blob = result.blob
       const filename = document.file_name
       
@@ -266,18 +332,12 @@ const downloadDocument = async (document) => {
       link.click()
       window.document.body.removeChild(link)
       URL.revokeObjectURL(url)
-      
-      console.log(`Download completed for: ${filename}`)
-    } else {
-      console.error('Failed to download document:', result?.error)
+    } else if (document.url) {
       // Fallback to original method if API fails
-      if (document.url) {
-        const link = window.document.createElement('a')
-        link.href = document.url
-        link.download = document.file_name || document.name
-        link.click()
-        console.log(`Fallback download for: ${document.file_name || document.name}`)
-      }
+      const link = window.document.createElement('a')
+      link.href = document.url
+      link.download = document.file_name || document.name
+      link.click()
     }
   } catch (error) {
     console.error('Error downloading document:', error)
@@ -287,14 +347,12 @@ const downloadDocument = async (document) => {
       link.href = document.url
       link.download = document.file_name || document.name
       link.click()
-      console.log(`Fallback download for: ${document.file_name || document.name}`)
     }
   }
 }
 
 // Delete methods
 const confirmDelete = (document) => {
-  console.log('Confirm delete for document:', document)
   documentToDelete.value = document
   showDeleteModal.value = true
 }
@@ -306,30 +364,18 @@ const cancelDelete = () => {
 
 const deleteDocument = async () => {
   try {
-    if (!documentToDelete.value || !selectedProject.value) {
-      console.error('No document or project selected for deletion')
-      return
-    }
+    if (!documentToDelete.value || !selectedProject.value) return
 
-    console.log(`Deleting document ${documentToDelete.value.file_name} from project ${selectedProject.value.id}`)
-    
-    // Call API to delete document
     const result = await deleteProjectKnowledgeById(selectedProject.value.id, documentToDelete.value.knowledge_source_id)
     
     if (result && result.success) {
-      
-      // Refresh documents to sync with server
       await refreshDocuments()
-    } else {
-      console.error('Failed to delete document:', result?.error)
-      // You might want to show an error message to the user here
     }
     
     showDeleteModal.value = false
     documentToDelete.value = null
   } catch (error) {
     console.error('Error deleting document:', error)
-    // You might want to show an error message to the user here
     showDeleteModal.value = false
     documentToDelete.value = null
   }
@@ -348,7 +394,9 @@ const sortBy = (field) => {
 // Keyboard shortcuts
 const handleEscapeKey = (e) => {
   if (e.key === 'Escape') {
-    if (showPDFViewer.value) {
+    if (isUploadingAll.value) {
+      cancelUploadAll()
+    } else if (showPDFViewer.value) {
       closePDFViewer()
     } else if (showDeleteModal.value) {
       cancelDelete()

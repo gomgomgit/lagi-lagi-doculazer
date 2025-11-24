@@ -35,34 +35,13 @@
       <p class="text-sm opacity-70" :class="textClasses">
         {{ subText }}
       </p>
-      
-      <!-- File Info -->
-      <div v-if="selectedFiles.length > 0" class="mt-4 text-left">
-        <p class="text-sm font-medium mb-2">Selected files:</p>
-        <div class="space-y-1">
-          <div 
-            v-for="(file, index) in selectedFiles" 
-            :key="index"
-            class="flex items-center justify-between text-sm p-2 bg-gray-50 rounded border"
-          >
-            <span class="truncate flex-1 mr-2">{{ file.name }}</span>
-            <span class="text-gray-500 text-xs">{{ formatFileSize(file.size) }}</span>
-            <button
-              @click.stop="removeFile(index)"
-              class="ml-2 text-red-500 hover:text-red-700 transition-colors"
-            >
-              <component :is="XIcon" :size="16" />
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Upload as UploadIcon, X as XIcon } from 'lucide-vue-next'
+import { Upload as UploadIcon } from 'lucide-vue-next'
 
 // Props
 const props = defineProps({
@@ -111,7 +90,6 @@ const emit = defineEmits(['files-selected', 'file-error'])
 
 // Reactive data
 const isDragOver = ref(false)
-const selectedFiles = ref([])
 const fileInput = ref(null)
 const dropZone = ref(null)
 
@@ -223,12 +201,6 @@ const handleFiles = (files) => {
   
   // Handle valid files
   if (validFiles.length > 0) {
-    if (props.multiple) {
-      selectedFiles.value = [...selectedFiles.value, ...validFiles]
-    } else {
-      selectedFiles.value = [validFiles[0]]
-    }
-    
     emit('files-selected', validFiles)
   }
   
@@ -236,11 +208,6 @@ const handleFiles = (files) => {
   if (fileInput.value) {
     fileInput.value.value = ''
   }
-}
-
-const removeFile = (index) => {
-  selectedFiles.value.splice(index, 1)
-  emit('files-selected', selectedFiles.value)
 }
 
 const formatFileSize = (bytes) => {
@@ -252,12 +219,4 @@ const formatFileSize = (bytes) => {
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
-
-// Expose methods for parent components
-defineExpose({
-  clearFiles: () => {
-    selectedFiles.value = []
-  },
-  getFiles: () => selectedFiles.value
-})
 </script>

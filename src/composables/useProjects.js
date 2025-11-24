@@ -1,14 +1,16 @@
 import { getProjectKnowledges, getProjects, getProjectsWithConversations, createProject, updateProject, deleteProject, ingestProjectKnowledge, deleteProjectKnowledge, downloadProjectKnowledge, getConversationHistory, sendInferenceMessage, updateConversation, getChunkByMessage } from '@/services/projectsApi'
 import { ref } from 'vue'
 
+// Shared state (singleton pattern)
+const projects = ref([])
+const projectsWithConversations = ref([])
+const projectKnowledges = ref([])
+const conversationHistory = ref([])
+const loading = ref(false)
+const documentsLoading = ref(false)
+const error = ref(null)
+
 export function useProjects() {
-  const projects = ref([])
-  const projectsWithConversations = ref([])
-  const projectKnowledges = ref([])
-  const conversationHistory = ref([])
-  const loading = ref(false)
-  const error = ref(null)
-  
   const apiCall = async (apiFunction, successCallback = null) => {
     loading.value = true
     error.value = null
@@ -31,6 +33,28 @@ export function useProjects() {
     }
   }
 
+  const documentsApiCall = async (apiFunction, successCallback = null) => {
+    documentsLoading.value = true
+    error.value = null
+    
+    try {
+      const result = await apiFunction()
+      if (result.success) {
+        if (successCallback) successCallback(result.data)
+        return result.data
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = err.message || 'API call failed'
+      console.error(err)
+      return null
+    } finally {
+      documentsLoading.value = false
+    }
+  }
+
   const fetchProjects = () => 
     apiCall(() => getProjects(), (data) => projects.value = data)
 
@@ -38,7 +62,9 @@ export function useProjects() {
     apiCall(() => getProjectsWithConversations(), (data) => projectsWithConversations.value = data)
 
   const fetchProjectKnowledges = (id) => 
-    apiCall(() => getProjectKnowledges(id), (data) => projectKnowledges.value = data)
+    documentsApiCall(() => getProjectKnowledges(id), (data) => {
+      projectKnowledges.value = data
+    })
 
   const fetchConversationHistory = (projectId, conversationId) => 
     apiCall(() => getConversationHistory(projectId, conversationId), (data) => conversationHistory.value = data)
@@ -89,6 +115,7 @@ export function useProjects() {
     projectKnowledges,
     conversationHistory,
     loading,
+    documentsLoading,
     error,
     
     // Methods

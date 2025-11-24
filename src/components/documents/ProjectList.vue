@@ -26,17 +26,17 @@
         <div class="p-3 rounded-lg project-card-icon-bg">
           <FolderClosedIcon class="w-8 h-8 project-card-icon" />
         </div>
-        <span class="text-sm px-2 py-1 rounded project-card-doc-count">
+        <!-- <span class="text-sm px-2 py-1 rounded project-card-doc-count">
           {{ getDocumentCount(project.id) }} docs
-        </span>
+        </span> -->
       </div>
       
       <h3 class="text-lg font-semibold mb-2 project-card-title">{{ project.name }}</h3>
       
-      <div class="flex items-center justify-between text-xs project-card-meta">
+      <!-- <div class="flex items-center justify-between text-xs project-card-meta">
         <span>Created: {{ formatDate(project.createdDate) }}</span>
         <span>Updated: {{ formatDate(project.lastUpdated) }}</span>
-      </div>
+      </div> -->
     </div>
   </div>
   
