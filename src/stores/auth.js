@@ -168,10 +168,11 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const { userAPI } = await import('@/services/api')
       const response = await userAPI.changePassword(passwordData)
+      console.log('Change password response:', response)
       return { success: true, data: response }
     } catch (error) {
-      console.error('Change password error:', error)
-      return { success: false, error: error.message }
+      console.error('Change password error:', response)
+      return { success: false, error: error }
     } finally {
       isLoading.value = false
     }

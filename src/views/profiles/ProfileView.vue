@@ -305,7 +305,8 @@ const handleChangePassword = async () => {
   try {
     const result = await authStore.changePassword({
       old_password: passwordForm.value.oldPassword,
-      new_password: passwordForm.value.newPassword
+      new_password: passwordForm.value.newPassword,
+      confirm_new_password: passwordForm.value.confirmPassword
     })
     
     if (result.success) {
@@ -316,13 +317,9 @@ const handleChangePassword = async () => {
         newPassword: '',
         confirmPassword: ''
       }
-      
-      // Auto redirect after 2 seconds
-      setTimeout(() => {
-        showProfile()
-      }, 2000)
     } else {
-      passwordError.value = result.error || 'Failed to change password'
+      console.error('Failed to change password:', result)
+      passwordError.value = error.error_detail || 'Failed to change password'
     }
   } catch (error) {
     console.error('Error changing password:', error)
