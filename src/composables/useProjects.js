@@ -8,6 +8,7 @@ const projectKnowledges = ref([])
 const conversationHistory = ref([])
 const loading = ref(false)
 const documentsLoading = ref(false)
+const projectsLoading = ref(false)
 const error = ref(null)
 
 export function useProjects() {
@@ -55,11 +56,33 @@ export function useProjects() {
     }
   }
 
+  const projectsApiCall = async (apiFunction, successCallback = null) => {
+    projectsLoading.value = true
+    error.value = null
+    
+    try {
+      const result = await apiFunction()
+      if (result.success) {
+        if (successCallback) successCallback(result.data)
+        return result.data
+      } else {
+        error.value = result.error
+        return null
+      }
+    } catch (err) {
+      error.value = err.message || 'API call failed'
+      console.error(err)
+      return null
+    } finally {
+      projectsLoading.value = false
+    }
+  }
+
   const fetchProjects = () => 
     apiCall(() => getProjects(), (data) => projects.value = data)
 
   const fetchProjectsWithConversations = () => 
-    apiCall(() => getProjectsWithConversations(), (data) => projectsWithConversations.value = data)
+    projectsApiCall(() => getProjectsWithConversations(), (data) => projectsWithConversations.value = data)
 
   const fetchProjectKnowledges = (id) => 
     documentsApiCall(() => getProjectKnowledges(id), (data) => {
@@ -116,6 +139,7 @@ export function useProjects() {
     conversationHistory,
     loading,
     documentsLoading,
+    projectsLoading,
     error,
     
     // Methods

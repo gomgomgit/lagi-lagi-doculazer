@@ -92,9 +92,9 @@
             variant="primary" 
             :icon="SaveIcon"
             @click="handleSaveProfile"
-            :disabled="authStore.isLoading"
+            :disabled="loading"
           >
-            <span v-if="authStore.isLoading">Saving...</span>
+            <span v-if="loading">Saving...</span>
             <span v-else>Save Changes</span>
           </BaseButton>
         </div>
@@ -167,7 +167,7 @@
             variant="secondary"
             :icon="CircleArrowLeftIcon"
             @click="showProfile"
-            :disabled="authStore.isLoading"
+            :disabled="loading"
           >
             Back
           </BaseButton>
@@ -175,9 +175,9 @@
             variant="primary"
             :icon="SaveIcon"
             @click="handleChangePassword"
-            :disabled="authStore.isLoading"
+            :disabled="loading"
           >
-            <span v-if="authStore.isLoading">Changing...</span>
+            <span v-if="loading">Changing...</span>
             <span v-else>Change Password</span>
           </BaseButton>
         </div>
@@ -192,14 +192,14 @@ import { CircleArrowLeftIcon, SaveIcon } from 'lucide-vue-next';
 import CardHeader from '@/components/ui/CardHeader.vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useProfiles } from '@/composables/useProfiles'
 
-// State untuk mengontrol tampilan mana yang aktif
+// Stores and composables
 const authStore = useAuthStore()
-
-console.log('User data:', authStore)
+const { updateProfile, changePassword, loading, error } = useProfiles()
 
 // State untuk mengontrol tampilan mana yang aktif
-const currentView = ref('profile') // 'profile', 'edit-profile', 'change-password'
+const currentView = ref('profile')
 
 // Computed properties untuk user data
 const userFullname = computed(() => {
@@ -257,21 +257,16 @@ const showChangePassword = () => {
 
 // Handle save profile changes
 const handleSaveProfile = async () => {
-  try {
-    const result = await authStore.updateProfile({
-      name: profileForm.value.fullname,
-      email: profileForm.value.email
-    })
-    
-    if (result.success) {
-      // Show success message or notification
-      console.log('Profile updated successfully')
-      showProfile() // Go back to profile view
-    } else {
-      console.error('Failed to update profile:', result.error)
-    }
-  } catch (error) {
-    console.error('Error updating profile:', error)
+  const result = await updateProfile({
+    name: profileForm.value.fullname,
+    email: profileForm.value.email
+  })
+  
+  if (result) {
+    console.log('Profile updated successfully')
+    showProfile() // Go back to profile view
+  } else {
+    console.error('Failed to update profile:', error.value)
   }
 }
 
@@ -302,28 +297,28 @@ const handleChangePassword = async () => {
     return
   }
 
-  try {
-    const result = await authStore.changePassword({
-      old_password: passwordForm.value.oldPassword,
-      new_password: passwordForm.value.newPassword,
-      confirm_new_password: passwordForm.value.confirmPassword
-    })
-    
-    if (result.success) {
-      passwordSuccess.value = 'Password changed successfully!'
-      // Reset form
-      passwordForm.value = {
-        oldPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      }
-    } else {
-      console.error('Failed to change password:', result)
-      passwordError.value = error.error_detail || 'Failed to change password'
+  const result = await changePassword({
+    old_password: passwordForm.value.oldPassword,
+    new_password: passwordForm.value.newPassword,
+    confirm_new_password: passwordForm.value.confirmPassword
+  })
+  
+  if (result) {
+    passwordSuccess.value = 'Password changed successfully!'
+    // Reset form
+    passwordForm.value = {
+      oldPassword: '',
+      newPassword: '',
+      confirmPassword: ''
     }
-  } catch (error) {
-    console.error('Error changing password:', error)
-    passwordError.value = 'An error occurred while changing password'
+    
+    // Navigate back to profile view after successful password change
+    setTimeout(() => {
+      showProfile()
+    }, 1500) // Wait 1.5 seconds to show success message
+  } else {
+    console.error('Failed to change password:', error.value)
+    passwordError.value = error.value || 'Failed to change password'
   }
 }
 </script>

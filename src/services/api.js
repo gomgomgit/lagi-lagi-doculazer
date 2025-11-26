@@ -44,21 +44,16 @@ class ApiService {
       headers.Authorization = `Bearer ${token}`
     }
 
-    try {
-      const response = await fetch(url, { ...options, headers })
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          await handleAuthError()
-        }
-        throw new Error(`HTTP error! status: ${response.status}`)
+    const response = await fetch(url, { ...options, headers })
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        await handleAuthError()
       }
-
-      return response
-    } catch (error) {
-      console.error('API Request failed:', error)
-      throw error
+      throw new Error(`HTTP error! status: ${response.status}`)
     }
+    console.log('API Request successful:', { url, options, response })
+    return response
   }
 
   // HTTP methods

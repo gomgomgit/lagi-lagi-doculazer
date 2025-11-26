@@ -21,7 +21,7 @@
         <!-- Project Accordion List -->
         
         <!-- Loading State -->
-        <div v-if="loading" class="text-center py-8">
+        <div v-if="projectsLoading" class="text-center py-8">
           <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-3"></div>
           <p class="text-sm text-gray-500">Loading projects...</p>
         </div>
@@ -185,6 +185,7 @@ const authStore = useAuthStore()
 const { 
   projectsWithConversations, 
   loading, 
+  projectsLoading,
   error, 
   fetchProjectsWithConversations,
   addProject,

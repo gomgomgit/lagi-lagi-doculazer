@@ -81,7 +81,7 @@
           </button>
 
           <!-- Test Login Button (Development Only) -->
-          <button 
+          <!-- <button 
             type="button"
             @click="handleTestLogin"
             :disabled="authStore.isLoading"
@@ -89,7 +89,7 @@
           >
             <span v-if="authStore.isLoading">Testing...</span>
             <span v-else>🧪 Test Login (Dev)</span>
-          </button>
+          </button> -->
         </form>
       </div>
     </div>
@@ -106,7 +106,7 @@ const authStore = useAuthStore()
 
 // Form data (dengan default test credentials)
 const formData = ref({
-  email: 'desdrianton@gmail.com',
+  email: 'user@doculazer.com',
   password: '123123',
   remember: false
 })

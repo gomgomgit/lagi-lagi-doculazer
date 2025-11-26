@@ -143,41 +143,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const updateProfile = async (profileData) => {
-    isLoading.value = true
-    try {
-      const { userAPI } = await import('@/services/api')
-      const response = await userAPI.updateProfile(profileData)
-      
-      // Update user data in store
-      if (response.user) {
-        setUser(response.user)
-      }
-      
-      return { success: true, data: response }
-    } catch (error) {
-      console.error('Update profile error:', error)
-      return { success: false, error: error.message }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
-  const changePassword = async (passwordData) => {
-    isLoading.value = true
-    try {
-      const { userAPI } = await import('@/services/api')
-      const response = await userAPI.changePassword(passwordData)
-      console.log('Change password response:', response)
-      return { success: true, data: response }
-    } catch (error) {
-      console.error('Change password error:', response)
-      return { success: false, error: error }
-    } finally {
-      isLoading.value = false
-    }
-  }
-
   // Initialize user data if token exists
   const initialize = async () => {
     if (token.value && !user.value) {
@@ -214,8 +179,6 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     register,
     fetchUser,
-    updateProfile,
-    changePassword,
     initialize,
     testLogin
   }
